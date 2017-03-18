@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 
 namespace IntelliSenseExtender.Options
@@ -7,5 +8,11 @@ namespace IntelliSenseExtender.Options
     [ComVisible(true)]
     public class OptionsPage : DialogPage
     {
+        [Category("Completions")]
+        [DefaultValue(false)]
+        [DisplayName("User Code Only Suggestions")]
+        [Description("Enable, if you want to limit suggestion to user code only. " +
+            "If disabled search will be perfomed in user code and all referenced assemblies.")]
+        public bool UserCodeOnlySuggestions { get; set; }
     }
 }

@@ -23,7 +23,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             _usings = await GetImportedNamespaces(context.Document);
 
-
             var publicClasses = await GetSymbols(context).ConfigureAwait(false);
             var completionItemsToAdd = publicClasses
                 .Select(symbol => CreateCompletionItemForSymbol(symbol));
@@ -38,7 +37,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol)
         {
-            var tags = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Public);
+            var accessabilityTag = typeSymbol.DeclaredAccessibility == Accessibility.Public
+                ? CompletionTags.Public
+                : CompletionTags.Private;
+            var tags = ImmutableArray.Create(CompletionTags.Class, accessabilityTag);
 
             return CompletionItem.Create(
                 displayText: typeSymbol.Name,
@@ -115,7 +117,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             while (namespacesToTraverse.Length > 0)
             {
                 var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers()).ToArray();
-                foundTypes.AddRange(members.OfType<INamedTypeSymbol>().Where(FilterType));
+                var typeSymbols = members
+                    .OfType<INamedTypeSymbol>()
+                    .Where(symbol => FilterType(symbol, semanticModel));
+                foundTypes.AddRange(typeSymbols);
                 namespacesToTraverse = members
                     .OfType<INamespaceSymbol>()
                     .Where(FilterNamespace)
@@ -127,15 +132,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private bool FilterNamespace(INamespaceSymbol ns)
         {
-            //TODO: add options
-            return ns.Locations.Any(l => l.IsInSource)
+            bool userCodeOnly = Options.Options.UserCodeOnlySuggestions;
+            return (!userCodeOnly || ns.Locations.Any(l => l.IsInSource))
                  && ns.CanBeReferencedByName;
         }
 
-        private bool FilterType(INamedTypeSymbol type)
+        private bool FilterType(INamedTypeSymbol type, SemanticModel semanticModel)
         {
-            //TODO: add internal support
-            return type.DeclaredAccessibility == Accessibility.Public
+            return (type.DeclaredAccessibility == Accessibility.Public
+                    || (type.DeclaredAccessibility == Accessibility.Internal
+                        && type.ContainingAssembly == semanticModel.Compilation.Assembly))
                 && type.CanBeReferencedByName
                 && !_usings.Contains(type.GetNamespace());
         }
