@@ -38,7 +38,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             context.AddItems(completionItemsToAdd);
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             //Add encodedSymbol to properties
             if (item.Properties.TryGetValue(SymbolIndexProperty, out string symbolIndexString))
@@ -49,7 +49,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 item = item.AddProperty(SymbolsProperty, symbolKey);
             }
 
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+            var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+
+            //Adding 
+            var unimportedTextParts = ImmutableArray<TaggedText>.Empty
+                .Add(new TaggedText(TextTags.Text, "(unimported)"))
+                .Add(new TaggedText(TextTags.Space, " "))
+                .AddRange(description.TaggedParts);
+
+            return description.WithTaggedParts(unimportedTextParts);
         }
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, CompletionContext context)
