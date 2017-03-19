@@ -6,6 +6,10 @@ using Microsoft.CodeAnalysis;
 
 namespace IntelliSenseExtender.ExposedInternals
 {
+    /// <summary>
+    /// Exposing some methods from internal class
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery.SyntaxTreeExtensions"/>
+    /// </summary>
     public static class SyntaxTreeExtensions
     {
         private static readonly Type _internalType;

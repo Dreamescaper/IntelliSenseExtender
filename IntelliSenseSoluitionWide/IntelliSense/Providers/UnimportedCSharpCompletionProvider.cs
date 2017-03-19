@@ -16,35 +16,67 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class UnimportedCSharpCompletionProvider : CompletionProvider
     {
         private const string NamespaceProperty = "Namespace";
+        private const string SymbolsProperty = "Symbols";
+        private const string SymbolNameProperty = "SymbolName";
+        private const string SymbolKindProperty = "SymbolKind";
+        private const string SymbolIndexProperty = "SymbolIndex";
+        private const string ContextPositionProperty = "ContextPosition";
 
         private IReadOnlyList<string> _usings;
+        private List<ISymbol> _symbolMapping;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             _usings = await GetImportedNamespaces(context.Document);
+            _symbolMapping = new List<ISymbol>();
 
             var publicClasses = await GetSymbols(context).ConfigureAwait(false);
+
             var completionItemsToAdd = publicClasses
-                .Select(symbol => CreateCompletionItemForSymbol(symbol));
+                .Select(symbol => CreateCompletionItemForSymbol(symbol, context)).ToList();
 
             context.AddItems(completionItemsToAdd);
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return base.GetDescriptionAsync(document, item, cancellationToken);
+            //Add encodedSymbol to properties
+            if (item.Properties.TryGetValue(SymbolIndexProperty, out string symbolIndexString))
+            {
+                int index = int.Parse(symbolIndexString);
+                ISymbol symbol = _symbolMapping[index];
+                string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
+                item = item.AddProperty(SymbolsProperty, symbolKey);
+            }
+
+            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol)
+        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, CompletionContext context)
         {
             var accessabilityTag = typeSymbol.DeclaredAccessibility == Accessibility.Public
                 ? CompletionTags.Public
                 : CompletionTags.Private;
             var tags = ImmutableArray.Create(CompletionTags.Class, accessabilityTag);
 
+            //In original Roslyn SymbolCompletionProvider SymbolsProperty is set
+            //here - in CreateCompletionItemForSymbol. However for huge items quantity
+            //encoding has significant performance impact. Instead, we are leaving reference for cached 
+            //symbol, and encode in GetDescriptionAsync
+
+            _symbolMapping.Add(typeSymbol);
+            string symbolIndexString = (_symbolMapping.Count - 1).ToString();
+
+            var props = ImmutableDictionary<string, string>.Empty
+                .Add(ContextPositionProperty, context.Position.ToString())
+                .Add(SymbolNameProperty, typeSymbol.Name)
+                .Add(SymbolKindProperty, typeSymbol.Kind.ToString())
+                .Add(SymbolIndexProperty, symbolIndexString);
+
             return CompletionItem.Create(
                 displayText: typeSymbol.Name,
                 sortText: "_" + typeSymbol.Name,
+                properties: props,
                 tags: tags);
         }
 
