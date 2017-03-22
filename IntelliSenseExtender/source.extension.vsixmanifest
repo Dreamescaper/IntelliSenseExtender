@@ -6,6 +6,7 @@
     <Description xml:space="preserve">Adds useful features to IntelliSense.</Description>
     <MoreInfo>https://github.com/Dreamescaper/IntelliSenseExtender</MoreInfo>
     <License>LICENSE.txt</License>
+    <ReleaseNotes>changelog.txt</ReleaseNotes>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />
