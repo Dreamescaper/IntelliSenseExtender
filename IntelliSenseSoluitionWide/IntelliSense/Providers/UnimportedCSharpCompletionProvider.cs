@@ -100,16 +100,21 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             _symbolMapping.Add(typeSymbol);
             string symbolIndexString = (_symbolMapping.Count - 1).ToString();
 
+            //Make those items the least prioritized
+            var rules = CompletionItemRules.Create(
+                    matchPriority: -1
+                );
+
             var props = ImmutableDictionary<string, string>.Empty
                 .Add(ContextPositionProperty, context.Position.ToString())
                 .Add(SymbolNameProperty, typeSymbol.Name)
-                .Add(SymbolKindProperty, typeSymbol.Kind.ToString())
                 .Add(SymbolIndexProperty, symbolIndexString);
 
             return CompletionItem.Create(
                 displayText: typeSymbol.Name,
-                sortText: typeSymbol.Name,
+                sortText: typeSymbol.Name + typeSymbol.GetNamespace(),
                 properties: props,
+                rules: rules,
                 tags: tags);
         }
 
