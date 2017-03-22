@@ -60,6 +60,7 @@
     <Compile Include="Options\OptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Options\OptionsProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IntelliSense\Providers\UnimportedCSharpCompletionProvider.cs" />
   </ItemGroup>

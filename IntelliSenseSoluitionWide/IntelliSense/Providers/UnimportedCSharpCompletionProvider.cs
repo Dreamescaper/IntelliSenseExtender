@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
+using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -41,23 +44,45 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             //Add encodedSymbol to properties
-            if (item.Properties.TryGetValue(SymbolIndexProperty, out string symbolIndexString))
+            if (TryGetSymbolMapping(item, out ISymbol symbol))
             {
-                int index = int.Parse(symbolIndexString);
-                ISymbol symbol = _symbolMapping[index];
                 string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
                 item = item.AddProperty(SymbolsProperty, symbolKey);
             }
 
             var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-            //Adding 
+            // Adding 'unimpoted' text to beginning
             var unimportedTextParts = ImmutableArray<TaggedText>.Empty
                 .Add(new TaggedText(TextTags.Text, "(unimported)"))
                 .Add(new TaggedText(TextTags.Space, " "))
                 .AddRange(description.TaggedParts);
 
             return description.WithTaggedParts(unimportedTextParts);
+        }
+
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        {
+            var change = await base.GetChangeAsync(document, item, commitKey, cancellationToken);
+
+            if (TryGetSymbolMapping(item, out ISymbol symbol))
+            {
+                // CompletionChange does not support multiple text changes. Instead we create
+                // huge text change containing both changes.
+                // While this approach works, it leads to scrolling position being reset.
+                //TODO: investigate other possibilities
+
+                var docText = (await document.GetTextAsync()).ToString();
+                var replacedText = docText.Substring(0, change.TextChange.Span.Start) + change.TextChange.NewText;
+
+                var addUsingText = $"using {symbol.GetNamespace()};" + Environment.NewLine;
+                var replacedTextWithUsing = addUsingText + replacedText;
+
+                var combinedTextChange = new TextChange(TextSpan.FromBounds(0, change.TextChange.Span.End), replacedTextWithUsing);
+                change = change.WithTextChange(combinedTextChange);
+            }
+
+            return change;
         }
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, CompletionContext context)
@@ -67,10 +92,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 : CompletionTags.Private;
             var tags = ImmutableArray.Create(CompletionTags.Class, accessabilityTag);
 
-            //In original Roslyn SymbolCompletionProvider SymbolsProperty is set
-            //here - in CreateCompletionItemForSymbol. However for huge items quantity
-            //encoding has significant performance impact. Instead, we are leaving reference for cached 
-            //symbol, and encode in GetDescriptionAsync
+            // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
+            // in ProvideCompletionsAsync for all items. However, for huge items quantity
+            // encoding has significant performance impact. Instead, we are leaving reference
+            // for cached symbol, and encode in GetDescriptionAsync.
 
             _symbolMapping.Add(typeSymbol);
             string symbolIndexString = (_symbolMapping.Count - 1).ToString();
@@ -83,7 +108,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             return CompletionItem.Create(
                 displayText: typeSymbol.Name,
-                sortText: "_" + typeSymbol.Name,
+                sortText: typeSymbol.Name,
                 properties: props,
                 tags: tags);
         }
@@ -147,6 +172,18 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
         }
 
+        private bool TryGetSymbolMapping(CompletionItem item, out ISymbol symbol)
+        {
+            symbol = null;
+            if (item.Properties.TryGetValue(SymbolIndexProperty, out string symbolIndexString))
+            {
+                int index = int.Parse(symbolIndexString);
+                symbol = _symbolMapping[index];
+                return true;
+            }
+            return false;
+        }
+
         private List<INamedTypeSymbol> GetAllTypes(SemanticModel semanticModel)
         {
             const int typesCapacity = 100000;
@@ -172,7 +209,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private bool FilterNamespace(INamespaceSymbol ns)
         {
-            bool userCodeOnly = Options.Options.UserCodeOnlySuggestions;
+            bool userCodeOnly = OptionsProvider.Options.UserCodeOnlySuggestions;
             return (!userCodeOnly || ns.Locations.Any(l => l.IsInSource))
                  && ns.CanBeReferencedByName;
         }

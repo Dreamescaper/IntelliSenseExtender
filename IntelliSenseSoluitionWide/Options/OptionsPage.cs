@@ -14,5 +14,11 @@ namespace IntelliSenseExtender.Options
         [Description("Enable, if you want to limit suggestion to user code only. " +
             "If disabled search will be perfomed in user code and all referenced assemblies.")]
         public bool UserCodeOnlySuggestions { get; set; }
+
+        public override void SaveSettingsToStorage()
+        {
+            base.SaveSettingsToStorage();
+            OptionsProvider.CachedOptions = null;
+        }
     }
 }

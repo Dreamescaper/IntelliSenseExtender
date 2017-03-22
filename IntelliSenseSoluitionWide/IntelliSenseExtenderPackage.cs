@@ -7,6 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 using IntelliSenseExtender.Options;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 
 namespace IntelliSenseExtender
@@ -35,7 +36,8 @@ namespace IntelliSenseExtender
         "IntelliSense Extender", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionsPage),
         "IntelliSense Extender", "General", 0, 0, true)]
-    [ProvideMenuResource("Menus.ctmenu", 1)]
+
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class IntelliSenseExtenderPackage : Package
     {
         /// <summary>
@@ -54,7 +56,7 @@ namespace IntelliSenseExtender
             // initialization is the Initialize method.
         }
 
-        public OptionsPage GetOptions()
+        public OptionsPage GetOptionsPage()
         {
             return (OptionsPage)GetDialogPage(typeof(OptionsPage));
         }
@@ -66,7 +68,7 @@ namespace IntelliSenseExtender
         /// </summary>
         protected override void Initialize()
         {
-            Options.Options.UserCodeOnlySuggestions = GetOptions().UserCodeOnlySuggestions;
+            OptionsProvider.GetOptionsPageFunc = () => GetOptionsPage();
 
             base.Initialize();
         }

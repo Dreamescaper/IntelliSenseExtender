@@ -2,6 +2,6 @@
 {
     public class Options
     {
-        public static bool UserCodeOnlySuggestions { get; set; }
+        public bool UserCodeOnlySuggestions { get; set; }
     }
 }
