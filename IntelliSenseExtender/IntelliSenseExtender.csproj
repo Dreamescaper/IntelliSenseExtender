@@ -253,6 +253,11 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\changelog.txt">
+      <Link>changelog.txt</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\IntelliSenseExtenderPackage.ico" />
   </ItemGroup>
   <ItemGroup>
