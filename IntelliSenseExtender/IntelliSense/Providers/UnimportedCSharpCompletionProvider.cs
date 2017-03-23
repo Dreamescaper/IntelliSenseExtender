@@ -106,9 +106,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Add(SymbolNameProperty, typeSymbol.Name)
                 .Add(SymbolIndexProperty, symbolIndexString);
 
+            // Add namespace to the end so items with same name would be displayed
+            var sortText = typeSymbol.Name + " " + typeSymbol.GetNamespace();
+
             return CompletionItem.Create(
                 displayText: typeSymbol.Name,
-                sortText: typeSymbol.Name + typeSymbol.GetNamespace(),
+                sortText: sortText,
                 properties: props,
                 rules: rules,
                 tags: tags);
