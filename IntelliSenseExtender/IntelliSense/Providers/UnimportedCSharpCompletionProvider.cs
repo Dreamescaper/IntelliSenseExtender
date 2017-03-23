@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using IntelliSenseExtender.Editor;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -25,8 +24,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private const string SymbolIndexProperty = "SymbolIndex";
         private const string ContextPositionProperty = "ContextPosition";
 
+        private NamespaceResolver _namespaceResolver;
+
         private IReadOnlyList<string> _usings;
         private List<ISymbol> _symbolMapping;
+
+        public UnimportedCSharpCompletionProvider()
+        {
+            _namespaceResolver = new NamespaceResolver();
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -65,21 +71,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var change = await base.GetChangeAsync(document, item, commitKey, cancellationToken);
 
+            // Add using for required symbol. 
+            // Any better place to put this?
             if (TryGetSymbolMapping(item, out ISymbol symbol))
             {
-                // CompletionChange does not support multiple text changes. Instead we create
-                // huge text change containing both changes.
-                // While this approach works, it leads to scrolling position being reset.
-                //TODO: investigate other possibilities
-
-                var docText = (await document.GetTextAsync()).ToString();
-                var replacedText = docText.Substring(0, change.TextChange.Span.Start) + change.TextChange.NewText;
-
-                var addUsingText = $"using {symbol.GetNamespace()};" + Environment.NewLine;
-                var replacedTextWithUsing = addUsingText + replacedText;
-
-                var combinedTextChange = new TextChange(TextSpan.FromBounds(0, change.TextChange.Span.End), replacedTextWithUsing);
-                change = change.WithTextChange(combinedTextChange);
+                _namespaceResolver.AddNamespace(symbol.GetNamespace());
             }
 
             return change;

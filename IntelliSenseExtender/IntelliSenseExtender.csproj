@@ -52,6 +52,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Editor\NamespaceResolver.cs" />
     <Compile Include="ExposedInternals\SymbolCompletionItem.cs" />
     <Compile Include="ExposedInternals\SyntaxTreeExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
