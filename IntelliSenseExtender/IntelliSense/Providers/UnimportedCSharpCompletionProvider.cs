@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,7 +74,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             // Add using for required symbol. 
             // Any better place to put this?
-            if (TryGetSymbolMapping(item, out ISymbol symbol))
+            if (TryGetSymbolMapping(item, out ISymbol symbol) && IsCommitContext())
             {
                 _namespaceResolver.AddNamespace(symbol.GetNamespace());
             }
@@ -225,6 +226,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         && type.ContainingAssembly == semanticModel.Compilation.Assembly))
                 && type.CanBeReferencedByName
                 && !_usings.Contains(type.GetNamespace());
+        }
+
+        private bool IsCommitContext()
+        {
+            // GetChangeAsync is called not only before actual commit (e.g. in SpellCheck as well).
+            // Manual adding 'using' in that method causes random adding usings.
+            // To avoid that we verify that we are actually committing item.
+            // TODO: PLEASE FIND BETTER APPROACH!!!
+
+            var stacktrace = new StackTrace();
+            var frames = stacktrace.GetFrames();
+            bool isCommitContext = frames
+                .Select(frame => frame.GetMethod())
+                .Any(method => method.Name == "Commit" && method.DeclaringType.Name == "Controller");
+
+            return isCommitContext;
         }
     }
 }
