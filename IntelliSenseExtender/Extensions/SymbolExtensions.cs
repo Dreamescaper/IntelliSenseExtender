@@ -13,5 +13,21 @@ namespace IntelliSenseExtender.Extensions
         {
             return symbol.ToDisplayString();
         }
+
+        public static bool IsAttribute(this INamedTypeSymbol typeSymbol)
+        {
+            var currentSymbol = typeSymbol.BaseType;
+            while (currentSymbol != null)
+            {
+                if (currentSymbol.Name == "Attribute"
+                    && currentSymbol.ContainingNamespace?.Name == "System")
+                {
+                    return true;
+                }
+
+                currentSymbol = currentSymbol.BaseType;
+            }
+            return false;
+        }
     }
 }

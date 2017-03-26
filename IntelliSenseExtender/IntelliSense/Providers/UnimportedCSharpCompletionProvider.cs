@@ -26,8 +26,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private const string ContextPositionProperty = "ContextPosition";
 
         private NamespaceResolver _namespaceResolver;
-
-        private IReadOnlyList<string> _usings;
         private List<ISymbol> _symbolMapping;
 
         public UnimportedCSharpCompletionProvider()
@@ -37,13 +35,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            _usings = await GetImportedNamespaces(context.Document);
             _symbolMapping = new List<ISymbol>();
+            var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
+                .ConfigureAwait(false);
 
-            var publicClasses = await GetSymbols(context).ConfigureAwait(false);
-
+            var publicClasses = GetSymbols(syntaxContext);
             var completionItemsToAdd = publicClasses
-                .Select(symbol => CreateCompletionItemForSymbol(symbol, context)).ToList();
+                .Select(symbol => CreateCompletionItemForSymbol(symbol, syntaxContext))
+                .ToList();
 
             context.AddItems(completionItemsToAdd);
         }
@@ -57,7 +56,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 item = item.AddProperty(SymbolsProperty, symbolKey);
             }
 
-            var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+            var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
             // Adding 'unimpoted' text to beginning
             var unimportedTextParts = ImmutableArray<TaggedText>.Empty
@@ -70,7 +69,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            var change = await base.GetChangeAsync(document, item, commitKey, cancellationToken);
+            var change = await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
 
             // Add using for required symbol. 
             // Any better place to put this?
@@ -82,7 +81,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return change;
         }
 
-        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, CompletionContext context)
+        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
             var accessabilityTag = typeSymbol.DeclaredAccessibility == Accessibility.Public
                 ? CompletionTags.Public
@@ -111,7 +110,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var sortText = typeSymbol.Name + " " + typeSymbol.GetNamespace();
 
             return CompletionItem.Create(
-                displayText: typeSymbol.Name,
+                displayText: CompletionItemHelper.GetDisplayText(typeSymbol, context),
                 sortText: sortText,
                 properties: props,
                 rules: rules,
@@ -136,40 +135,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
         }
 
-        private async ValueTask<IReadOnlyList<string>> GetImportedNamespaces(Document document)
+        private IEnumerable<ISymbol> GetSymbols(SyntaxContext context)
         {
-            var tree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
-            if (tree.GetRoot() is CompilationUnitSyntax compilationUnitSyntax)
+            if (context.IsTypeContext)
             {
-                var childNodes = compilationUnitSyntax.ChildNodes().ToArray();
-
-                var namespaces = childNodes
-                    .OfType<UsingDirectiveSyntax>()
-                    .Select(u => u.Name.ToString()).ToList();
-
-                var currentNamespaces = childNodes
-                    .OfType<NamespaceDeclarationSyntax>()
-                    .Select(nsSyntax => nsSyntax.Name.ToString());
-
-                namespaces.AddRange(currentNamespaces);
-
-                return namespaces;
-            }
-            else
-            {
-                return new string[] { };
-            }
-        }
-
-        private async Task<IEnumerable<ISymbol>> GetSymbols(CompletionContext context)
-        {
-            var document = context.Document;
-            var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken);
-            var syntaxTree = await document.GetSyntaxTreeAsync();
-
-            if (syntaxTree.IsTypeContext(context.Position, context.CancellationToken, semanticModel))
-            {
-                return GetAllTypes(semanticModel);
+                var typeSymbols = GetAllTypes(context);
+                if (context.IsAttributeContext)
+                {
+                    typeSymbols = FilterAttributes(typeSymbols);
+                }
+                return typeSymbols;
             }
             else
             {
@@ -189,19 +164,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return false;
         }
 
-        private List<INamedTypeSymbol> GetAllTypes(SemanticModel semanticModel)
+        private List<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
         {
             const int typesCapacity = 100000;
 
             var foundTypes = new List<INamedTypeSymbol>(typesCapacity);
 
-            var namespacesToTraverse = new[] { semanticModel.Compilation.GlobalNamespace };
+            var namespacesToTraverse = new[] { context.SemanticModel.Compilation.GlobalNamespace };
             while (namespacesToTraverse.Length > 0)
             {
                 var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers()).ToArray();
                 var typeSymbols = members
                     .OfType<INamedTypeSymbol>()
-                    .Where(symbol => FilterType(symbol, semanticModel));
+                    .Where(symbol => FilterType(symbol, context));
                 foundTypes.AddRange(typeSymbols);
                 namespacesToTraverse = members
                     .OfType<INamespaceSymbol>()
@@ -219,13 +194,20 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                  && ns.CanBeReferencedByName;
         }
 
-        private bool FilterType(INamedTypeSymbol type, SemanticModel semanticModel)
+        private List<INamedTypeSymbol> FilterAttributes(IEnumerable<INamedTypeSymbol> list)
+        {
+            return list
+                .Where(ts => ts.IsAttribute() && !ts.IsAbstract)
+                .ToList();
+        }
+
+        private bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
         {
             return (type.DeclaredAccessibility == Accessibility.Public
                     || (type.DeclaredAccessibility == Accessibility.Internal
-                        && type.ContainingAssembly == semanticModel.Compilation.Assembly))
+                        && type.ContainingAssembly == syntaxContext.SemanticModel.Compilation.Assembly))
                 && type.CanBeReferencedByName
-                && !_usings.Contains(type.GetNamespace());
+                && !syntaxContext.ImportedNamespaces.Contains(type.GetNamespace());
         }
 
         private bool IsCommitContext()
