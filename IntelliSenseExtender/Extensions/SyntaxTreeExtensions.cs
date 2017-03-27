@@ -22,6 +22,7 @@ namespace IntelliSenseExtender.Extensions
                     .Select(nsSyntax => nsSyntax.Name.ToString());
 
                 namespaces.AddRange(currentNamespaces);
+                namespaces.AddRange(currentNamespaces.SelectMany(GetParentNamespaces));
 
                 return namespaces;
             }
@@ -29,6 +30,20 @@ namespace IntelliSenseExtender.Extensions
             {
                 return new string[] { };
             }
+        }
+
+        private static IReadOnlyList<string> GetParentNamespaces(string nsName)
+        {
+            var splittedNs = nsName.Split('.');
+
+            var parentNamespaces = new List<string>();
+            for (int i = 1; i < splittedNs.Length; i++)
+            {
+                var parentNs = string.Join(".", splittedNs.Take(i));
+                parentNamespaces.Add(parentNs);
+            }
+
+            return parentNamespaces;
         }
     }
 }

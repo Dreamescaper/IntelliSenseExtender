@@ -2,6 +2,7 @@
 
 Bug fixes:
 + Fix all types suggested where only attributes are applicable
++ Fix rare duplicate items
 
 0.2
 
