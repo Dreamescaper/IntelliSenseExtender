@@ -31,8 +31,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
-            var publicClasses = GetSymbols(syntaxContext);
-            var completionItemsToAdd = publicClasses
+            var symbols = GetSymbols(syntaxContext);
+            var completionItemsToAdd = symbols
                 .Select(symbol => CreateCompletionItemForSymbol(symbol, syntaxContext))
                 .ToList();
 
@@ -104,10 +104,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
                 return typeSymbols;
             }
-            else
+            else if (context.IsMemberAccessContext)
             {
-                return Enumerable.Empty<ISymbol>();
+                return GetApplicableExtensionMethods(context);
             }
+
+            return Enumerable.Empty<ISymbol>();
         }
 
         private bool TryGetSymbolMapping(CompletionItem item, out ISymbol symbol)
@@ -142,6 +144,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
 
             return foundTypes;
+        }
+
+        private List<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
+        {
+            var accessedTypeSymbol = context.AccessedTypeSymbol;
+            return GetAllTypes(context)
+                .Where(type => type.MightContainExtensionMethods)
+                .SelectMany(type => type.GetMembers())
+                .OfType<IMethodSymbol>()
+                .Where(method => method.IsExtensionMethod
+                    && method.Parameters.Length > 0
+                    && method.Parameters[0].Type.IsAssignableFrom(accessedTypeSymbol))
+                .ToList();
         }
 
         private bool FilterNamespace(INamespaceSymbol ns)
