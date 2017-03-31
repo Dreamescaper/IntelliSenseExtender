@@ -16,7 +16,6 @@ namespace IntelliSenseExtender
         "IntelliSense Extender", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionsPage),
         "IntelliSense Extender", "General", 0, 0, true)]
-
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class IntelliSenseExtenderPackage : Package
     {

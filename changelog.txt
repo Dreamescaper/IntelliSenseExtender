@@ -1,5 +1,8 @@
 0.3
 
+New features:
++ Show suggestiongs for unimported extension methods
+
 Bug fixes:
 + Fix all types suggested where only attributes are applicable
 + Fix rare duplicate items
