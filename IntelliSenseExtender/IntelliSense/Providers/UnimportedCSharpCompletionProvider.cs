@@ -153,9 +153,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Where(type => type.MightContainExtensionMethods)
                 .SelectMany(type => type.GetMembers())
                 .OfType<IMethodSymbol>()
-                .Where(method => method.IsExtensionMethod
-                    && method.Parameters.Length > 0
-                    && method.Parameters[0].Type.IsAssignableFrom(accessedTypeSymbol))
+                .Select(m => m.ReduceExtensionMethod(accessedTypeSymbol))
+                .Where(m => m != null)
                 .ToList();
         }
 
