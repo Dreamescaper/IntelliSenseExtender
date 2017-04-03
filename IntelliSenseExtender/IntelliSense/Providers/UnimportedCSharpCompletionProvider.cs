@@ -27,7 +27,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            _symbolMapping = _symbolMapping ?? new Dictionary<string, ISymbol>();
+            _symbolMapping = new Dictionary<string, ISymbol>();
             var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 

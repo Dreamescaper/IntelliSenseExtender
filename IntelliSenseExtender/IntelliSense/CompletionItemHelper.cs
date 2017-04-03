@@ -57,14 +57,16 @@ namespace IntelliSenseExtender.IntelliSense
             // encoding has significant performance impact. We will put it in GetDescriptionAsync.
 
             var fullSymbolName = symbol.GetFullyQualifiedName();
+            var nsName = symbol.GetNamespace();
 
             var props = ImmutableDictionary<string, string>.Empty
                 .Add(CompletionItemProperties.ContextPosition, context.Position.ToString())
                 .Add(CompletionItemProperties.SymbolName, symbol.Name)
-                .Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
+                .Add(CompletionItemProperties.FullSymbolName, fullSymbolName)
+                .Add(CompletionItemProperties.Namespace, nsName);
 
             // Add namespace to the end so items with same name would be displayed
-            var sortText = symbol.Name + " " + fullSymbolName;
+            var sortText = symbol.Name + " " + nsName;
 
             return CompletionItem.Create(
                 displayText: GetDisplayText(symbol, context),
