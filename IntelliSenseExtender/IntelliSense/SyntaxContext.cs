@@ -47,10 +47,11 @@ namespace IntelliSenseExtender.IntelliSense
             var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
             var isAttributeContext = syntaxTree.IsAttributeNameContext(position, cancellationToken);
 
-            var isMemberAccessContext = syntaxTree.IsMemberAccessContext(position, out ExpressionSyntax accessedSyntax, cancellationToken);
+            syntaxTree.IsMemberAccessContext(position, out ExpressionSyntax accessedSyntax, cancellationToken);
             ITypeSymbol accessedTypeSymbol = accessedSyntax == null
                 ? null
                 : semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
+            var isMemberAccessContext = accessedTypeSymbol != null;
 
             return new SyntaxContext(document, semanticModel, syntaxTree, position,
                 importedNamespaces, isTypeContext, isAttributeContext, isMemberAccessContext, accessedTypeSymbol, cancellationToken);

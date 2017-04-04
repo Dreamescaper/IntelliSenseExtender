@@ -1,3 +1,8 @@
+0.3.1
+
+Bug fixes:
++ Fix crash when unexpected symbol accessed
+
 0.3
 
 New features:
