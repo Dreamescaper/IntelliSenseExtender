@@ -8,12 +8,19 @@ namespace IntelliSenseExtender.Options
     [ComVisible(true)]
     public class OptionsPage : DialogPage
     {
-        [Category("Completions")]
+        [Category("Unimported Symbols")]
         [DefaultValue(false)]
         [DisplayName("User Code Only Suggestions")]
         [Description("Enable, if you want to limit suggestion to user code only. " +
             "If disabled search will be perfomed in user code and all referenced assemblies.")]
         public bool UserCodeOnlySuggestions { get; set; }
+
+        [Category("Unimported Symbols")]
+        [DefaultValue(false)]
+        [DisplayName("Sort Completions Last")]
+        [Description("If enabled, unimported completions are listed after imported ones. " +
+            "Otherwise all items are sorted alphabetically.")]
+        public bool SortCompletionsAfterImported { get; set; }
 
         public override void SaveSettingsToStorage()
         {

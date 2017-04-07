@@ -1,3 +1,11 @@
+0.4
+
+New features:
++ Add option to add completions after imported ones
+
+Bug fixes:
++ Show different icons for different type kinds
+
 0.3.1
 
 Bug fixes:

@@ -41,14 +41,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (TryGetSymbolMapping(item, out ISymbol symbol))
-            {
-                return CompletionItemHelper.GetUnimportedDescriptionAsync(document, item, symbol, cancellationToken);
-            }
-            else
-            {
-                return base.GetDescriptionAsync(document, item, cancellationToken);
-            }
+            return TryGetSymbolMapping(item, out ISymbol symbol)
+                ? CompletionItemHelper.GetUnimportedDescriptionAsync(document, item, symbol, cancellationToken)
+                : base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
@@ -67,7 +62,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
-            var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context);
+            bool sortLast = OptionsProvider.Options.SortCompletionsAfterImported;
+            var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sortLast);
 
             var fullSymbolName = completionItem.Properties[CompletionItemProperties.FullSymbolName];
             _symbolMapping[fullSymbolName] = typeSymbol;
