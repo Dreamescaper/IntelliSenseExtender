@@ -116,6 +116,8 @@ namespace IntelliSenseExtender.IntelliSense
                                 return CompletionTags.Interface;
                             case TypeKind.Enum:
                                 return CompletionTags.Enum;
+                            case TypeKind.Struct:
+                                return CompletionTags.Structure;
                             case TypeKind.Delegate:
                                 return CompletionTags.Delegate;
                         }
