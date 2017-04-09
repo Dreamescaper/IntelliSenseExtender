@@ -34,6 +34,14 @@ namespace IntelliSenseExtender.Options
         [Description("Show IntelliSense suggestions for unimported extension methods.")]
         public bool EnableExtensionMethodsSuggestions { get; set; }
 
+        public OptionsPage()
+        {
+            UserCodeOnlySuggestions = false;
+            SortCompletionsAfterImported = true;
+            EnableTypesSuggestions = true;
+            EnableExtensionMethodsSuggestions = true;
+        }
+
         public override void SaveSettingsToStorage()
         {
             base.SaveSettingsToStorage();
