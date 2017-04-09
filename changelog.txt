@@ -2,6 +2,8 @@
 
 New features:
 + Add option to add completions after imported ones
++ Add option to disable type suggestions
++ Add option to disable extension method suggestions
 
 Bug fixes:
 + Show different icons for different type kinds

@@ -25,7 +25,9 @@ namespace IntelliSenseExtender.Options
             CachedOptions = new Options
             {
                 UserCodeOnlySuggestions = optionsPage.UserCodeOnlySuggestions,
-                SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported
+                SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
+                EnableTypesSuggestions = optionsPage.EnableTypesSuggestions,
+                EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions
             };
         }
     }

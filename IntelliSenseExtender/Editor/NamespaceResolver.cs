@@ -21,6 +21,7 @@ namespace IntelliSenseExtender.Editor
         /// </summary>
         public void AddNamespace(string nsName)
         {
+            //TODO: use roslyn
             var dte = GetDTE();
             if (dte.ActiveDocument.Object() is TextDocument textDoc)
             {

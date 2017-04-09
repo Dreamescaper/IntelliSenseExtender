@@ -12,15 +12,27 @@ namespace IntelliSenseExtender.Options
         [DefaultValue(false)]
         [DisplayName("User Code Only Suggestions")]
         [Description("Enable, if you want to limit suggestion to user code only. " +
-            "If disabled search will be perfomed in user code and all referenced assemblies.")]
+            "If disabled search will be performed in user code and all referenced assemblies.")]
         public bool UserCodeOnlySuggestions { get; set; }
 
         [Category("Unimported Symbols")]
-        [DefaultValue(false)]
-        [DisplayName("Sort Completions Last")]
+        [DefaultValue(true)]
+        [DisplayName("Sort Added Suggestions Last")]
         [Description("If enabled, unimported completions are listed after imported ones. " +
             "Otherwise all items are sorted alphabetically.")]
         public bool SortCompletionsAfterImported { get; set; }
+
+        [Category("Unimported Symbols")]
+        [DefaultValue(true)]
+        [DisplayName("Enable Types Suggestions")]
+        [Description("Show IntelliSense suggestions for unimported types.")]
+        public bool EnableTypesSuggestions { get; set; }
+
+        [Category("Unimported Symbols")]
+        [DefaultValue(true)]
+        [DisplayName("Enable Extension Methods Suggestions")]
+        [Description("Show IntelliSense suggestions for unimported extension methods.")]
+        public bool EnableExtensionMethodsSuggestions { get; set; }
 
         public override void SaveSettingsToStorage()
         {
