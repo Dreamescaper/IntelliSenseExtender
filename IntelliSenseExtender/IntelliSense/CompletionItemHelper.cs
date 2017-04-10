@@ -41,7 +41,7 @@ namespace IntelliSenseExtender.IntelliSense
             return description.WithTaggedParts(unimportedTextParts);
         }
 
-        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context)
+        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context, bool sortLast)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
@@ -66,7 +66,7 @@ namespace IntelliSenseExtender.IntelliSense
                 .Add(CompletionItemProperties.Namespace, nsName);
 
             // Add namespace to the end so items with same name would be displayed
-            var sortText = symbol.Name + " " + nsName;
+            var sortText = GetSortText(symbol.Name, nsName, sortLast);
 
             return CompletionItem.Create(
                 displayText: GetDisplayText(symbol, context),
@@ -74,6 +74,12 @@ namespace IntelliSenseExtender.IntelliSense
                 properties: props,
                 rules: rules,
                 tags: tags);
+        }
+
+        private static string GetSortText(string symbolName, string nsName, bool sortLast)
+        {
+            string prefix = sortLast ? "~" : string.Empty;
+            return prefix + symbolName + " " + nsName;
         }
 
         private static string GetAccessabilityTag(ISymbol symbol)
@@ -100,16 +106,32 @@ namespace IntelliSenseExtender.IntelliSense
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    return CompletionTags.Class;
+                    if (symbol is INamedTypeSymbol typeSymbol)
+                    {
+                        switch (typeSymbol.TypeKind)
+                        {
+                            case TypeKind.Class:
+                                return CompletionTags.Class;
+                            case TypeKind.Interface:
+                                return CompletionTags.Interface;
+                            case TypeKind.Enum:
+                                return CompletionTags.Enum;
+                            case TypeKind.Struct:
+                                return CompletionTags.Structure;
+                            case TypeKind.Delegate:
+                                return CompletionTags.Delegate;
+                        }
+                    }
+                    break;
                 case SymbolKind.Method:
                     if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsExtensionMethod)
                     {
                         return CompletionTags.ExtensionMethod;
                     }
                     return CompletionTags.Method;
-                default:
-                    return string.Empty;
             }
+
+            return string.Empty;
         }
     }
 }

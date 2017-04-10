@@ -25,30 +25,31 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             _namespaceResolver = new NamespaceResolver();
         }
 
+        //TODO: don't use static OptionsProvider class.
+        public Options.Options Options => OptionsProvider.Options;
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            _symbolMapping = new Dictionary<string, ISymbol>();
-            var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
-                .ConfigureAwait(false);
+            if (Options.EnableUnimportedSuggestions)
+            {
+                _symbolMapping = new Dictionary<string, ISymbol>();
+                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
+                    .ConfigureAwait(false);
 
-            var symbols = GetSymbols(syntaxContext);
-            var completionItemsToAdd = symbols
-                .Select(symbol => CreateCompletionItemForSymbol(symbol, syntaxContext))
-                .ToList();
+                var symbols = GetSymbols(syntaxContext);
+                var completionItemsToAdd = symbols
+                    .Select(symbol => CreateCompletionItemForSymbol(symbol, syntaxContext))
+                    .ToList();
 
-            context.AddItems(completionItemsToAdd);
+                context.AddItems(completionItemsToAdd);
+            }
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (TryGetSymbolMapping(item, out ISymbol symbol))
-            {
-                return CompletionItemHelper.GetUnimportedDescriptionAsync(document, item, symbol, cancellationToken);
-            }
-            else
-            {
-                return base.GetDescriptionAsync(document, item, cancellationToken);
-            }
+            return TryGetSymbolMapping(item, out ISymbol symbol)
+                ? CompletionItemHelper.GetUnimportedDescriptionAsync(document, item, symbol, cancellationToken)
+                : base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
@@ -67,7 +68,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
-            var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context);
+            bool sortLast = Options.SortCompletionsAfterImported;
+            var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sortLast);
 
             var fullSymbolName = completionItem.Properties[CompletionItemProperties.FullSymbolName];
             _symbolMapping[fullSymbolName] = typeSymbol;
@@ -95,7 +97,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private IEnumerable<ISymbol> GetSymbols(SyntaxContext context)
         {
-            if (context.IsTypeContext)
+            if (Options.EnableTypesSuggestions && context.IsTypeContext)
             {
                 var typeSymbols = GetAllTypes(context);
                 if (context.IsAttributeContext)
@@ -104,7 +106,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
                 return typeSymbols;
             }
-            else if (context.IsMemberAccessContext)
+            else if (Options.EnableExtensionMethodsSuggestions && context.IsMemberAccessContext)
             {
                 return GetApplicableExtensionMethods(context);
             }
@@ -160,7 +162,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private bool FilterNamespace(INamespaceSymbol ns)
         {
-            bool userCodeOnly = OptionsProvider.Options.UserCodeOnlySuggestions;
+            bool userCodeOnly = Options.UserCodeOnlySuggestions;
             return (!userCodeOnly || ns.Locations.Any(l => l.IsInSource))
                  && ns.CanBeReferencedByName;
         }
