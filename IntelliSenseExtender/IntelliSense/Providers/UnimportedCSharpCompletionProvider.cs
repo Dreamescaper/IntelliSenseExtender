@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -52,9 +53,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 : base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            var change = await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+            string insertText;
+            if (!item.Properties.TryGetValue(CompletionItemProperties.InsertText, out insertText))
+            {
+                insertText = item.DisplayText;
+            }
+            var change = Task.FromResult(CompletionChange.Create(new TextChange(item.Span, insertText)));
 
             // Add using for required symbol. 
             // Any better place to put this?

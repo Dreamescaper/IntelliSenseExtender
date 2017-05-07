@@ -11,18 +11,26 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        public static string GetDisplayText(ISymbol symbol, SyntaxContext context)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context)
         {
             const string AttributeSuffix = "Attribute";
 
-            var symbolText = symbol.Name;
+            string displayText = symbol.Name;
+            string insertText = displayText;
+
             if (context.IsAttributeContext
-                && symbolText.EndsWith(AttributeSuffix))
+                && displayText.EndsWith(AttributeSuffix))
             {
-                symbolText = symbolText.Substring(0, symbolText.Length - AttributeSuffix.Length);
+                displayText = displayText.Substring(0, displayText.Length - AttributeSuffix.Length);
+                insertText = displayText;
+            }
+            else if ((symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
+                || (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0))
+            {
+                displayText += "<>";
             }
 
-            return symbolText;
+            return (displayText, insertText);
         }
 
         public static async Task<CompletionDescription> GetUnimportedDescriptionAsync(Document document, CompletionItem item, ISymbol symbol, CancellationToken cancellationToken)
@@ -59,18 +67,22 @@ namespace IntelliSenseExtender.IntelliSense
             var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
 
+            (string displayText, string insertText) = GetDisplayInsertText(symbol, context);
+
             var props = ImmutableDictionary<string, string>.Empty
                 .Add(CompletionItemProperties.ContextPosition, context.Position.ToString())
                 .Add(CompletionItemProperties.SymbolName, symbol.Name)
                 .Add(CompletionItemProperties.FullSymbolName, fullSymbolName)
-                .Add(CompletionItemProperties.Namespace, nsName);
+                .Add(CompletionItemProperties.Namespace, nsName)
+                .Add(CompletionItemProperties.InsertText, insertText);
 
             // Add namespace to the end so items with same name would be displayed
             var sortText = GetSortText(symbol.Name, nsName, sortLast);
 
             return CompletionItem.Create(
-                displayText: GetDisplayText(symbol, context),
+                displayText: displayText,
                 sortText: sortText,
+                filterText: insertText,
                 properties: props,
                 rules: rules,
                 tags: tags);

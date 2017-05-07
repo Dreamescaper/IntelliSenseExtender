@@ -3,6 +3,7 @@
     public static class CompletionItemProperties
     {
         public const string Namespace = "Namespace";
+        public const string InsertText = "InsertText";
         public const string Symbols = "Symbols";
         public const string SymbolName = "SymbolName";
         public const string FullSymbolName = "FullSymbolName";
