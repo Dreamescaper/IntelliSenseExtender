@@ -11,7 +11,7 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace)
         {
             const string AttributeSuffix = "Attribute";
 
@@ -29,6 +29,8 @@ namespace IntelliSenseExtender.IntelliSense
             {
                 displayText += "<>";
             }
+
+            displayText += $"  ({@namespace})";
 
             return (displayText, insertText);
         }
@@ -67,7 +69,7 @@ namespace IntelliSenseExtender.IntelliSense
             var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
 
-            (string displayText, string insertText) = GetDisplayInsertText(symbol, context);
+            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName);
 
             var props = ImmutableDictionary<string, string>.Empty
                 .Add(CompletionItemProperties.ContextPosition, context.Position.ToString())

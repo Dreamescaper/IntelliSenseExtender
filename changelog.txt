@@ -1,3 +1,8 @@
+0.5
+
++ Show '<>' for generic types and methods
++ Show namespace for unimported symbols
+
 0.4
 
 New features:
