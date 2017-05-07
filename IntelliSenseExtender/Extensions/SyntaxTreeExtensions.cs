@@ -44,9 +44,8 @@ namespace IntelliSenseExtender.Extensions
                 && token.Parent is MemberAccessExpressionSyntax memberAccessNode)
             {
                 accessedExpressionSyntax = memberAccessNode.Expression;
-                return true;
             }
-            return false;
+            return accessedExpressionSyntax != null;
         }
 
         private static IReadOnlyList<string> GetParentNamespaces(string nsName)

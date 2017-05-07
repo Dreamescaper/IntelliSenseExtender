@@ -112,7 +112,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
                 return typeSymbols;
             }
-            else if (Options.EnableExtensionMethodsSuggestions && context.IsMemberAccessContext)
+            else if (Options.EnableExtensionMethodsSuggestions
+                && context.IsMemberAccessContext
+                && context.AccessedSymbol.Kind != SymbolKind.NamedType)
             {
                 return GetApplicableExtensionMethods(context);
             }
@@ -156,7 +158,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private List<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
         {
-            var accessedTypeSymbol = context.AccessedTypeSymbol;
+            var accessedTypeSymbol = context.AccessedSymbolType;
             return GetAllTypes(context)
                 .Where(type => type.MightContainExtensionMethods)
                 .SelectMany(type => type.GetMembers())

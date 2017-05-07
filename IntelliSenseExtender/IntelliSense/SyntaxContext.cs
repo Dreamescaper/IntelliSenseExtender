@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.IntelliSense
@@ -19,12 +20,14 @@ namespace IntelliSenseExtender.IntelliSense
         public bool IsTypeContext { get; }
         public bool IsAttributeContext { get; }
         public bool IsMemberAccessContext { get; }
-        public ITypeSymbol AccessedTypeSymbol { get; }
+        public ITypeSymbol AccessedSymbolType { get; }
+        public ISymbol AccessedSymbol { get; }
         public CancellationToken CancellationToken { get; }
 
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
             IReadOnlyList<string> importedNamespaces, bool isTypeContext = false, bool isAttributeContext = false,
-            bool isMemberAccessContext = false, ITypeSymbol accessedTypeSymbol = null, CancellationToken token = default(CancellationToken))
+            bool isMemberAccessContext = false, ITypeSymbol accessedTypeSymbol = null, ISymbol accessedSymbol = null,
+            CancellationToken token = default(CancellationToken))
         {
             Document = document;
             SemanticModel = semanticModel;
@@ -34,7 +37,8 @@ namespace IntelliSenseExtender.IntelliSense
             IsTypeContext = isTypeContext;
             IsAttributeContext = isAttributeContext;
             IsMemberAccessContext = isMemberAccessContext;
-            AccessedTypeSymbol = accessedTypeSymbol;
+            AccessedSymbolType = accessedTypeSymbol;
+            AccessedSymbol = accessedSymbol;
             CancellationToken = token;
         }
 
@@ -45,16 +49,22 @@ namespace IntelliSenseExtender.IntelliSense
 
             var importedNamespaces = syntaxTree.GetImportedNamespaces();
             var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
-            var isAttributeContext = syntaxTree.IsAttributeNameContext(position, cancellationToken);
+            var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);
 
-            syntaxTree.IsMemberAccessContext(position, out ExpressionSyntax accessedSyntax, cancellationToken);
-            ITypeSymbol accessedTypeSymbol = accessedSyntax == null
-                ? null
-                : semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
-            var isMemberAccessContext = accessedTypeSymbol != null;
+            ExpressionSyntax accessedSyntax = null;
+            bool isMemberAccessContext = !isTypeContext
+                && syntaxTree.IsMemberAccessContext(position, out accessedSyntax, cancellationToken);
+            ITypeSymbol accessedTypeSymbol = null;
+            ISymbol accessedSymbol = null;
+            if (isMemberAccessContext)
+            {
+                accessedTypeSymbol = semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
+                accessedSymbol = semanticModel.GetSymbolInfo(accessedSyntax).Symbol;
+            }
 
             return new SyntaxContext(document, semanticModel, syntaxTree, position,
-                importedNamespaces, isTypeContext, isAttributeContext, isMemberAccessContext, accessedTypeSymbol, cancellationToken);
+                importedNamespaces, isTypeContext, isAttributeContext, isMemberAccessContext,
+                accessedTypeSymbol, accessedSymbol, cancellationToken);
         }
     }
 }

@@ -1,7 +1,8 @@
 0.5
 
 + Show '<>' for generic types and methods
-+ Show namespace for unimported symbols
++ Show namespace for unimported suggestions
++ Fix extension methods suggested when type is accessed
 
 0.4
 
@@ -21,7 +22,7 @@ Bug fixes:
 0.3
 
 New features:
-+ Show suggestiongs for unimported extension methods
++ Show suggestions for unimported extension methods
 
 Bug fixes:
 + Fix all types suggested where only attributes are applicable
