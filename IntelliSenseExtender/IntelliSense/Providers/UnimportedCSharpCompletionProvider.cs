@@ -114,7 +114,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (Options.EnableExtensionMethodsSuggestions
                 && context.IsMemberAccessContext
-                && context.AccessedSymbol.Kind != SymbolKind.NamedType)
+                && context.AccessedSymbol?.Kind != SymbolKind.NamedType)
             {
                 return GetApplicableExtensionMethods(context);
             }
