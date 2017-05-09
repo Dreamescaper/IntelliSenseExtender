@@ -27,7 +27,8 @@ namespace IntelliSenseExtender.Options
                 UserCodeOnlySuggestions = optionsPage.UserCodeOnlySuggestions,
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                 EnableTypesSuggestions = optionsPage.EnableTypesSuggestions,
-                EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions
+                EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,
+                FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols
             };
         }
     }

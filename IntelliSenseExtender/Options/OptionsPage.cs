@@ -34,12 +34,19 @@ namespace IntelliSenseExtender.Options
         [Description("Show IntelliSense suggestions for unimported extension methods.")]
         public bool EnableExtensionMethodsSuggestions { get; set; }
 
+        [Category("Unimported Symbols")]
+        [DefaultValue(true)]
+        [DisplayName("Filter Out Obsolete symbols")]
+        [Description("Do not show methods or types marked with Obsolete attribute.")]
+        public bool FilterOutObsoleteSymbols { get; set; }
+
         public OptionsPage()
         {
             UserCodeOnlySuggestions = false;
             SortCompletionsAfterImported = true;
             EnableTypesSuggestions = true;
             EnableExtensionMethodsSuggestions = true;
+            FilterOutObsoleteSymbols = true;
         }
 
         public override void SaveSettingsToStorage()

@@ -114,7 +114,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (Options.EnableExtensionMethodsSuggestions
                 && context.IsMemberAccessContext
-                && context.AccessedSymbol?.Kind != SymbolKind.NamedType)
+                && context.AccessedSymbol?.Kind != SymbolKind.NamedType
+                && context.AccessedSymbolType != null)
             {
                 return GetApplicableExtensionMethods(context);
             }
@@ -153,19 +154,21 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     .ToArray();
             }
 
-            return foundTypes;
+            return FilterOutObsoleteSymbolsIfNeeded(foundTypes);
         }
 
         private List<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
         {
             var accessedTypeSymbol = context.AccessedSymbolType;
-            return GetAllTypes(context)
+            var foundExtensionSymbols = GetAllTypes(context)
                 .Where(type => type.MightContainExtensionMethods)
                 .SelectMany(type => type.GetMembers())
                 .OfType<IMethodSymbol>()
                 .Select(m => m.ReduceExtensionMethod(accessedTypeSymbol))
                 .Where(m => m != null)
                 .ToList();
+
+            return FilterOutObsoleteSymbolsIfNeeded(foundExtensionSymbols);
         }
 
         private bool FilterNamespace(INamespaceSymbol ns)
@@ -189,6 +192,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return list
                 .Where(ts => ts.IsAttribute() && !ts.IsAbstract)
                 .ToList();
+        }
+
+        private List<T> FilterOutObsoleteSymbolsIfNeeded<T>(IEnumerable<T> symbolsList) where T : ISymbol
+        {
+            return OptionsProvider.Options.FilterOutObsoleteSymbols
+                ? symbolsList.Where(symbol => !symbol.IsObsolete()).ToList()
+                : symbolsList.ToList();
         }
 
         private bool IsCommitContext()

@@ -2,6 +2,7 @@
 
 + Show '<>' for generic types and methods
 + Show namespace for unimported suggestions
++ Add option to filter out Obsolete symbols
 + Fix extension methods suggested when type is accessed
 
 0.4
