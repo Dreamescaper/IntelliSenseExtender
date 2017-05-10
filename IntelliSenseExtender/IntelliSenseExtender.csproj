@@ -61,6 +61,7 @@
     <Compile Include="IntelliSense\CompletionItemProperties.cs" />
     <Compile Include="IntelliSense\CompletionItemHelper.cs" />
     <Compile Include="IntelliSense\SyntaxContext.cs" />
+    <Compile Include="Options\IOptionsProvider.cs" />
     <Compile Include="Options\Options.cs" />
     <Compile Include="Options\OptionsPage.cs">
       <SubType>Component</SubType>

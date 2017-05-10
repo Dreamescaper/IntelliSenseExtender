@@ -52,7 +52,7 @@ namespace IntelliSenseExtender.Options
         public override void SaveSettingsToStorage()
         {
             base.SaveSettingsToStorage();
-            OptionsProvider.CachedOptions = null;
+            VsSettingsOptionsProvider.CachedOptions = null;
         }
     }
 }

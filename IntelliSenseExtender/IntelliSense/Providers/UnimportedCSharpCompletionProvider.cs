@@ -19,15 +19,21 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class UnimportedCSharpCompletionProvider : CompletionProvider
     {
         private readonly NamespaceResolver _namespaceResolver;
+        private readonly IOptionsProvider _optionsProvider;
         private Dictionary<string, ISymbol> _symbolMapping;
 
         public UnimportedCSharpCompletionProvider()
+            : this(VsSettingsOptionsProvider.Current)
         {
+        }
+
+        public UnimportedCSharpCompletionProvider(IOptionsProvider optionsProvider)
+        {
+            _optionsProvider = optionsProvider;
             _namespaceResolver = new NamespaceResolver();
         }
 
-        //TODO: don't use static OptionsProvider class.
-        public Options.Options Options => OptionsProvider.Options;
+        public Options.Options Options => _optionsProvider.GetOptions();
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -196,7 +202,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private List<T> FilterOutObsoleteSymbolsIfNeeded<T>(IEnumerable<T> symbolsList) where T : ISymbol
         {
-            return OptionsProvider.Options.FilterOutObsoleteSymbols
+            return Options.FilterOutObsoleteSymbols
                 ? symbolsList.Where(symbol => !symbol.IsObsolete()).ToList()
                 : symbolsList.ToList();
         }

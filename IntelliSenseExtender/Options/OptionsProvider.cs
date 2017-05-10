@@ -2,24 +2,23 @@
 
 namespace IntelliSenseExtender.Options
 {
-    public class OptionsProvider
+    public class VsSettingsOptionsProvider : IOptionsProvider
     {
         internal static Func<OptionsPage> GetOptionsPageFunc;
         internal static Options CachedOptions;
 
-        public static Options Options
+        public static VsSettingsOptionsProvider Current = new VsSettingsOptionsProvider();
+
+        public Options GetOptions()
         {
-            get
+            if (CachedOptions == null)
             {
-                if (CachedOptions == null)
-                {
-                    UpdateCachedOptions();
-                }
-                return CachedOptions;
+                UpdateCachedOptions();
             }
+            return CachedOptions;
         }
 
-        public static void UpdateCachedOptions()
+        private void UpdateCachedOptions()
         {
             var optionsPage = GetOptionsPageFunc.Invoke();
             CachedOptions = new Options

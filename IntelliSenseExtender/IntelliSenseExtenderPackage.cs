@@ -38,7 +38,7 @@ namespace IntelliSenseExtender
 
         protected override void Initialize()
         {
-            OptionsProvider.GetOptionsPageFunc = GetOptionsPage;
+            VsSettingsOptionsProvider.GetOptionsPageFunc = GetOptionsPage;
             base.Initialize();
         }
     }
