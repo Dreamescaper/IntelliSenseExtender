@@ -221,7 +221,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var mainSource = @"
                 public class Test {
                     public void Method() {
-                        object.
+                        var obj = null;
+                        obj.
                     }
                 }";
             var extensionsFile = @"
@@ -243,7 +244,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "object.");
+            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.");
             Assert.That(completions, Does.Not.Contain("Do1  (NM)"));
             Assert.That(completions, Does.Not.Contain("Do2  (NM)"));
         }
