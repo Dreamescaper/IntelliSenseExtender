@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelliSenseExtender", "IntelliSenseExtender\IntelliSenseExtender.csproj", "{2E41A5F8-16A0-4694-960B-73A8199AE37D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelliSenseExtender.Tests", "IntelliSenseExtender.Tests\IntelliSenseExtender.Tests.csproj", "{D763B057-96A5-48A1-BF68-71A11647F837}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{2E41A5F8-16A0-4694-960B-73A8199AE37D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E41A5F8-16A0-4694-960B-73A8199AE37D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E41A5F8-16A0-4694-960B-73A8199AE37D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D763B057-96A5-48A1-BF68-71A11647F837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D763B057-96A5-48A1-BF68-71A11647F837}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D763B057-96A5-48A1-BF68-71A11647F837}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D763B057-96A5-48A1-BF68-71A11647F837}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
