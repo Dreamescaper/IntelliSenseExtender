@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -25,18 +26,25 @@ namespace IntelliSenseExtender.Extensions
 
         public static bool IsAttribute(this INamedTypeSymbol typeSymbol)
         {
+            var baseTypes = typeSymbol.GetBaseTypes();
+            return baseTypes.Any(baseTypeSymbol => baseTypeSymbol.Name == nameof(Attribute)
+                    && baseTypeSymbol.ContainingNamespace?.Name == nameof(System));
+        }
+
+        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol typeSymbol)
+        {
             var currentSymbol = typeSymbol.BaseType;
             while (currentSymbol != null)
             {
-                if (currentSymbol.Name == nameof(Attribute)
-                    && currentSymbol.ContainingNamespace?.Name == nameof(System))
-                {
-                    return true;
-                }
-
+                yield return currentSymbol;
                 currentSymbol = currentSymbol.BaseType;
             }
-            return false;
+        }
+
+        public static bool IsAssignableFrom(this ITypeSymbol toSymbol, ITypeSymbol fromSymbol)
+        {
+            var assignableTypes = new[] { fromSymbol }.Concat(fromSymbol.AllInterfaces).Concat(fromSymbol.GetBaseTypes());
+            return assignableTypes.Contains(toSymbol);
         }
     }
 }

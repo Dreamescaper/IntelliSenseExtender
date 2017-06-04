@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Editor;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
@@ -15,25 +14,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    [ExportCompletionProvider("Unimported provider", LanguageNames.CSharp)]
-    public class UnimportedCSharpCompletionProvider : CompletionProvider
+    //[ExportCompletionProvider("Unimported provider", LanguageNames.CSharp)]
+    public class UnimportedCSharpCompletionProvider : AbstractCompletionProvider
     {
-        private readonly NamespaceResolver _namespaceResolver;
-        private readonly IOptionsProvider _optionsProvider;
         private Dictionary<string, ISymbol> _symbolMapping;
 
-        public UnimportedCSharpCompletionProvider()
-            : this(VsSettingsOptionsProvider.Current)
+        public UnimportedCSharpCompletionProvider() : base()
         {
         }
 
-        public UnimportedCSharpCompletionProvider(IOptionsProvider optionsProvider)
+        public UnimportedCSharpCompletionProvider(IOptionsProvider optionsProvider) : base(optionsProvider)
         {
-            _optionsProvider = optionsProvider;
-            _namespaceResolver = new NamespaceResolver();
         }
 
-        public Options.Options Options => _optionsProvider.GetOptions();
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -140,29 +133,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return false;
         }
 
-        private List<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
-        {
-            const int typesCapacity = 100000;
-
-            var foundTypes = new List<INamedTypeSymbol>(typesCapacity);
-
-            var namespacesToTraverse = new[] { context.SemanticModel.Compilation.GlobalNamespace };
-            while (namespacesToTraverse.Length > 0)
-            {
-                var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers()).ToArray();
-                var typeSymbols = members
-                    .OfType<INamedTypeSymbol>()
-                    .Where(symbol => FilterType(symbol, context));
-                foundTypes.AddRange(typeSymbols);
-                namespacesToTraverse = members
-                    .OfType<INamespaceSymbol>()
-                    .Where(FilterNamespace)
-                    .ToArray();
-            }
-
-            return FilterOutObsoleteSymbolsIfNeeded(foundTypes);
-        }
-
         private List<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
         {
             var accessedTypeSymbol = context.AccessedSymbolType;
@@ -177,19 +147,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return FilterOutObsoleteSymbolsIfNeeded(foundExtensionSymbols);
         }
 
-        private bool FilterNamespace(INamespaceSymbol ns)
+        protected override bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
         {
-            bool userCodeOnly = Options.UserCodeOnlySuggestions;
-            return (!userCodeOnly || ns.Locations.Any(l => l.IsInSource))
-                 && ns.CanBeReferencedByName;
-        }
-
-        private bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
-        {
-            return (type.DeclaredAccessibility == Accessibility.Public
-                    || (type.DeclaredAccessibility == Accessibility.Internal
-                        && type.ContainingAssembly == syntaxContext.SemanticModel.Compilation.Assembly))
-                && type.CanBeReferencedByName
+            return base.FilterType(type, syntaxContext)
                 && !syntaxContext.ImportedNamespaces.Contains(type.GetNamespace());
         }
 
@@ -198,13 +158,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return list
                 .Where(ts => ts.IsAttribute() && !ts.IsAbstract)
                 .ToList();
-        }
-
-        private List<T> FilterOutObsoleteSymbolsIfNeeded<T>(IEnumerable<T> symbolsList) where T : ISymbol
-        {
-            return Options.FilterOutObsoleteSymbols
-                ? symbolsList.Where(symbol => !symbol.IsObsolete()).ToList()
-                : symbolsList.ToList();
         }
 
         private bool IsCommitContext()

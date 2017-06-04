@@ -48,6 +48,18 @@ namespace IntelliSenseExtender.Extensions
             return accessedExpressionSyntax != null;
         }
 
+        public static bool IsObjectCreationContext(this SyntaxTree syntaxTree, int position, out ObjectCreationExpressionSyntax creationExpressionSyntax, CancellationToken cancellationToken)
+        {
+            creationExpressionSyntax = null;
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.NewKeyword)
+            {
+                creationExpressionSyntax = token.Parent as ObjectCreationExpressionSyntax;
+            }
+            return creationExpressionSyntax != null;
+        }
+
         private static IReadOnlyList<string> GetParentNamespaces(string nsName)
         {
             var splittedNs = nsName.Split('.');

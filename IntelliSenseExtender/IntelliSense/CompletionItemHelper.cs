@@ -51,15 +51,14 @@ namespace IntelliSenseExtender.IntelliSense
             return description.WithTaggedParts(unimportedTextParts);
         }
 
-        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context, bool sortLast)
+        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context, bool sortLast, int matchPriority = -1)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
             var tags = ImmutableArray.Create(kindTag, accessabilityTag);
 
-            // Make those items less prioritized
             var rules = CompletionItemRules.Create(
-                    matchPriority: -1
+                    matchPriority: matchPriority
                 );
 
             // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
