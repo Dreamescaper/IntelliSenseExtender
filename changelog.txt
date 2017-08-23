@@ -1,3 +1,7 @@
+0.6
+
++ Support for using static for Classes and Structs: Static Methods, Properties, Fields; Contsants.
+
 0.5
 
 + Show '<>' for generic types and methods

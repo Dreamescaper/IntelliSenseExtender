@@ -1,25 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="IntelliSenseExtender.Dreamescaper.87a2f156-5263-457a-bca9-45f1ca5643ef" Version="0.5" Language="en-US" Publisher="Oleksandr Liakhevych (Dreamescaper)" />
-    <DisplayName>IntelliSense Extender</DisplayName>
-    <Description xml:space="preserve">Provide IntelliSense completions not only for imported types, but for all available in current solution and referenced assemblies.</Description>
-    <MoreInfo>https://github.com/Dreamescaper/IntelliSenseExtender</MoreInfo>
-    <License>LICENSE.txt</License>
-    <ReleaseNotes>changelog.txt</ReleaseNotes>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.15.0" DisplayName="Visual Studio MPF 15.0" d:Source="Installed" Version="[15.0]" />
-  </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
-  </Prerequisites>
+    <Metadata>
+        <Identity Id="IntelliSenseExtender.Dreamescaper.87a2f156-5263-457a-bca9-45f1ca5643ef" Version="0.6" Language="en-US" Publisher="Oleksandr Liakhevych (Dreamescaper)" />
+        <DisplayName>IntelliSense Extender</DisplayName>
+        <Description xml:space="preserve">Provide IntelliSense completions not only for imported types, but for all available in current solution and referenced assemblies.</Description>
+        <MoreInfo>https://github.com/Dreamescaper/IntelliSenseExtender</MoreInfo>
+        <License>LICENSE.txt</License>
+        <ReleaseNotes>changelog.txt</ReleaseNotes>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.15.0" DisplayName="Visual Studio MPF 15.0" d:Source="Installed" Version="[15.0]" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
 </PackageManifest>
