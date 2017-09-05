@@ -11,12 +11,13 @@ namespace IntelliSenseExtender.IntelliSense
 {
 	public static class CompletionItemHelper
 	{
-		public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace)
+		public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context)
 		{
 			const string AttributeSuffix = "Attribute";
 
 			string displayText = symbol.Name;
 			string insertText = displayText;
+			string @namespace = symbol.GetNamespace();
 
 			if (context.IsAttributeContext
 					&& displayText.EndsWith(AttributeSuffix)) {
@@ -69,7 +70,7 @@ namespace IntelliSenseExtender.IntelliSense
 			var fullSymbolName = symbol.GetFullyQualifiedName();
 			var nsName = symbol.GetNamespace();
 
-			(string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName);
+			(string displayText, string insertText) = GetDisplayInsertText(symbol, context);
 
 			var props = ImmutableDictionary<string, string>.Empty
 					.Add(CompletionItemProperties.ContextPosition, context.Position.ToString())

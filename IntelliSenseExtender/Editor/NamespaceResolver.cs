@@ -23,6 +23,7 @@ namespace IntelliSenseExtender.Editor
 		{
 			//TODO: use roslyn
 			var dte = GetDTE();
+			if (isNamespace && namespaceOrClassName == @"<global namespace>") return;//no need to import global namespace
 			if (dte.ActiveDocument.Object() is TextDocument textDoc) {
 				var textToInsert = isNamespace ? GetNamespaceUsing(namespaceOrClassName) : GetStaticUsing(namespaceOrClassName);
 

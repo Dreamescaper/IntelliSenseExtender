@@ -52,6 +52,12 @@ namespace IntelliSenseExtender.Options
 		[Description("Show IntelliSense suggestions for unimported static members and constants only if they are declared in types that are already imported. This, in effect considerably, reduces the number of suggested static imports.")]
 		public bool StaticSuggestionsOnlyForImportedNamespaces { get; set; }
 
+		[Category("Static Symbols")]
+		[DefaultValue(true)]
+		[DisplayName("Use Code Fixes instead of Importing")]
+		[Description("Instead of importing static classes, implement as code fixes (add class and namespace if necessary).")]
+		public bool StaticSuggestionsAsCodeFixes { get; set; }
+
 		public OptionsPage()
 		{
 			UserCodeOnlySuggestions = false;
@@ -61,6 +67,7 @@ namespace IntelliSenseExtender.Options
 			EnableStaticSuggestions = true;
 			StaticSuggestionsOnlyForImportedNamespaces = true;
 			FilterOutObsoleteSymbols = true;
+			StaticSuggestionsAsCodeFixes = true;
 		}
 
 		public override void SaveSettingsToStorage()

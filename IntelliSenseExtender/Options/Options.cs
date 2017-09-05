@@ -10,6 +10,7 @@ namespace IntelliSenseExtender.Options
 		public bool FilterOutObsoleteSymbols { get; set; }
 
 		public bool StaticSuggestionsOnlyForImportedNamespaces { get; set; }
+		public bool StaticSuggestionsAsCodeFixes { get; set; }
 
 		public bool EnableUnimportedSuggestions => EnableTypesSuggestions || EnableExtensionMethodsSuggestions || EnableStaticSuggestions;
 	}

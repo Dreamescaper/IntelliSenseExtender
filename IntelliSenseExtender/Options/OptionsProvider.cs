@@ -27,6 +27,7 @@ namespace IntelliSenseExtender.Options
 				EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,
 				EnableStaticSuggestions = optionsPage.EnableStaticSuggestions,
 				StaticSuggestionsOnlyForImportedNamespaces = optionsPage.StaticSuggestionsOnlyForImportedNamespaces,
+				StaticSuggestionsAsCodeFixes = optionsPage.StaticSuggestionsAsCodeFixes,
 				FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols
 			};
 		}

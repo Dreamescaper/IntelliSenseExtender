@@ -58,23 +58,35 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 					: base.GetDescriptionAsync(document, item, cancellationToken);
 		}
 
-		public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+		public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
 		{
 			string insertText;
 			if (!item.Properties.TryGetValue(CompletionItemProperties.InsertText, out insertText)) {
 				insertText = item.DisplayText;
 			}
-			var change = Task.FromResult(CompletionChange.Create(new TextChange(item.Span, insertText)));
 
 			// Add using for required symbol. 
 			// Any better place to put this?
 			if (TryGetSymbolMapping(item, out ISymbol symbol) && IsCommitContext()) {
+				if (symbol.IsStaticImportable()) {
+					if (Options.StaticSuggestionsAsCodeFixes) {
+						var ns = symbol.GetNamespace();
+						var fullname = symbol.GetFullyQualifiedName();
+						insertText = fullname //change insertText so that it includes Class name and import namespace if necessary
+							.Replace(ns + ".", ""); //remove namespace from the fully qualified name
 
-				if (symbol.IsStaticImportable()) _namespaceResolver.AddNamespaceOrStatic(symbol.ContainingType.ToDisplayString(), false);
+						//we may still need to import namespace for the class, so we check for that here
+						var syntaxTree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
+						var importedNamespaces = syntaxTree.GetImportedNamespaces();
+						if (!importedNamespaces.Contains(ns)) _namespaceResolver.AddNamespaceOrStatic(ns, true);
+
+					}
+					else _namespaceResolver.AddNamespaceOrStatic(symbol.ContainingType.ToDisplayString(), false);
+				}
 				else _namespaceResolver.AddNamespaceOrStatic(symbol.GetNamespace(), true);
 			}
 
-			return change;
+			return CompletionChange.Create(new TextChange(item.Span, insertText));
 		}
 
 		private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
