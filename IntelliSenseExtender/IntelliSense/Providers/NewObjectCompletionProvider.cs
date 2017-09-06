@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using IntelliSenseExtender.Extensions;
+﻿using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -22,7 +22,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 if (TryGetTypeSymbol(objCreation, syntaxContext.SemanticModel, out typeSymbol))
                 {
                     var symbols = GetAllTypes(syntaxContext)
-                        .Where(type => typeSymbol.IsAssignableFrom(type))
+                        .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
+                        .Where(type => type != null)
                         .ToList();
                     symbols.ForEach(symbol => context.AddItem(CreateCompletionItem(symbol, syntaxContext, true)));
                 }
@@ -47,11 +48,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             typeSymbol = null;
 
-            if (objectCreationSyntax.Parent.Parent.Parent is VariableDeclarationSyntax varDeclarationSyntax
+            var parentSyntax = objectCreationSyntax.Parent;
+
+            if (parentSyntax.Parent.Parent is VariableDeclarationSyntax varDeclarationSyntax
                 && !varDeclarationSyntax.Type.IsVar)
             {
                 var typeInfo = semanticModel.GetTypeInfo(varDeclarationSyntax.Type);
                 typeSymbol = typeInfo.Type;
+            }
+            else if (parentSyntax is AssignmentExpressionSyntax assigmentExpressionSyntax)
+            {
+                var typeInfo = semanticModel.GetTypeInfo(assigmentExpressionSyntax.Left);
+                typeSymbol = typeInfo.Type;
+            }
+            else if (parentSyntax is ArgumentSyntax argumentSyntax)
+            {
+                typeSymbol = semanticModel.GetParameterTypeSymbol(argumentSyntax);
             }
 
             return typeSymbol != null;

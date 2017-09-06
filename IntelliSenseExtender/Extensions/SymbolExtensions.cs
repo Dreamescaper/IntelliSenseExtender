@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace IntelliSenseExtender.Extensions
 {
@@ -39,12 +39,6 @@ namespace IntelliSenseExtender.Extensions
                 yield return currentSymbol;
                 currentSymbol = currentSymbol.BaseType;
             }
-        }
-
-        public static bool IsAssignableFrom(this ITypeSymbol toSymbol, ITypeSymbol fromSymbol)
-        {
-            var assignableTypes = new[] { fromSymbol }.Concat(fromSymbol.AllInterfaces).Concat(fromSymbol.GetBaseTypes());
-            return assignableTypes.Contains(toSymbol);
         }
     }
 }

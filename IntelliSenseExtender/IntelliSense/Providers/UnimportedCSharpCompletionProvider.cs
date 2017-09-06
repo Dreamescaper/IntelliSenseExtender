@@ -32,11 +32,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (Options.EnableUnimportedSuggestions)
             {
-                _symbolMapping = new Dictionary<string, ISymbol>();
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
                     .ConfigureAwait(false);
 
                 var symbols = GetSymbols(syntaxContext);
+
+                _symbolMapping = new Dictionary<string, ISymbol>();
                 var completionItemsToAdd = symbols
                     .Select(symbol => CreateCompletionItemForSymbol(symbol, syntaxContext))
                     .ToList();
