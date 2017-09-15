@@ -58,6 +58,7 @@
     <Compile Include="Extensions\ComplilationExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
+    <Compile Include="Extensions\SyntaxTokenExtensions.cs" />
     <Compile Include="Extensions\SyntaxTreeExtensions.cs" />
     <Compile Include="IntelliSenseExtenderPackage.cs" />
     <Compile Include="IntelliSense\CompletionItemProperties.cs" />

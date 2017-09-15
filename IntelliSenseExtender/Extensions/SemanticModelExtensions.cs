@@ -1,6 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.Extensions
 {
@@ -13,17 +14,22 @@ namespace IntelliSenseExtender.Extensions
             if (argumentSyntax.Parent is ArgumentListSyntax argumentListSyntax)
             {
                 int paramIndex = argumentListSyntax.Arguments.IndexOf(argumentSyntax);
-                if (paramIndex != -1
-                   && argumentListSyntax.Parent is InvocationExpressionSyntax invocationSyntax)
+                if (paramIndex != -1)
                 {
-                    var methodInfo = semanticModel.GetSymbolInfo(invocationSyntax);
-                    var methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
-
-                    result = methodSymbol?.Parameters.ElementAtOrDefault(paramIndex)?.Type;
+                    return GetParameters(semanticModel, argumentListSyntax).ElementAtOrDefault(paramIndex)?.Type;
                 }
             }
 
             return result;
+        }
+
+        public static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
+        {
+            var invocationSyntax = (InvocationExpressionSyntax)argumentListSyntax.Parent;
+            var methodInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+            var methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
+
+            return methodSymbol.Parameters;
         }
     }
 }

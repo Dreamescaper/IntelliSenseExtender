@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using IntelliSenseExtender.ExposedInternals;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.Extensions
@@ -33,31 +30,6 @@ namespace IntelliSenseExtender.Extensions
             {
                 return new string[] { };
             }
-        }
-
-        public static bool IsMemberAccessContext(this SyntaxTree syntaxTree, int position, out ExpressionSyntax accessedExpressionSyntax, CancellationToken cancellationToken)
-        {
-            accessedExpressionSyntax = null;
-
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.DotToken
-                && token.Parent is MemberAccessExpressionSyntax memberAccessNode)
-            {
-                accessedExpressionSyntax = memberAccessNode.Expression;
-            }
-            return accessedExpressionSyntax != null;
-        }
-
-        public static bool IsObjectCreationContext(this SyntaxTree syntaxTree, int position, out ObjectCreationExpressionSyntax creationExpressionSyntax, CancellationToken cancellationToken)
-        {
-            creationExpressionSyntax = null;
-
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.NewKeyword)
-            {
-                creationExpressionSyntax = token.Parent as ObjectCreationExpressionSyntax;
-            }
-            return creationExpressionSyntax != null;
         }
 
         private static IReadOnlyList<string> GetParentNamespaces(string nsName)
