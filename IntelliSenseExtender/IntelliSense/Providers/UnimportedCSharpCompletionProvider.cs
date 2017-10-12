@@ -22,7 +22,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
         }
 
-
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             if (Options.EnableUnimportedSuggestions)

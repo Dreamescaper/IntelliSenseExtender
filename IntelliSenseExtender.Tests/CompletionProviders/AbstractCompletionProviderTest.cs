@@ -77,7 +77,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         public static CompletionContext GetContext(Document document, CompletionProvider provider, int position)
         {
             var context = new CompletionContext(provider, document, position,
-                new TextSpan(), CompletionTrigger.Default, document.Project.Solution.Workspace.Options,
+                new TextSpan(), CompletionTrigger.Invoke, document.Project.Solution.Workspace.Options,
                 default(CancellationToken));
             return context;
         }

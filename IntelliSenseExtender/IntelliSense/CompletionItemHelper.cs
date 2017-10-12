@@ -21,19 +21,15 @@ namespace IntelliSenseExtender.IntelliSense
 
             var symbolName = symbol.Name;
 
-            if (context.IsAttributeContext
-                && symbolName.EndsWith(AttributeSuffix))
+            if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {
                 displayText = symbolName.Substring(0, symbolName.Length - AttributeSuffix.Length);
                 insertText = displayText;
             }
-            else if ((symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
-                || (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0))
+            else if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
             {
-                var typeArguments = (symbol as IMethodSymbol)?.TypeArguments ?? (symbol as INamedTypeSymbol).TypeArguments;
-                var typeParameters = (symbol as IMethodSymbol)?.TypeParameters ?? (symbol as INamedTypeSymbol).TypeParameters;
-
-                if (Enumerable.SequenceEqual(typeArguments, typeParameters))
+                //If generic type is unbound - do not show generic arguments
+                if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters))
                 {
                     displayText = symbolName + "<>";
                     insertText = symbolName;
@@ -44,6 +40,11 @@ namespace IntelliSenseExtender.IntelliSense
                     insertText = displayText;
                 }
             }
+            else if (symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
+            {
+                displayText = symbolName + "<>";
+                insertText = symbolName;
+            }
             else
             {
                 displayText = symbolName;
@@ -52,7 +53,7 @@ namespace IntelliSenseExtender.IntelliSense
 
             if (newCreation)
             {
-                displayText = $"new {displayText}();";
+                displayText = $"new {displayText}()";
                 insertText = displayText;
             }
 
