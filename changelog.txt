@@ -1,3 +1,8 @@
+0.6
+
++ Fix issue when using was not added after commit
++ Show suggestions for types during object creation
+
 0.5
 
 + Show '<>' for generic types and methods
