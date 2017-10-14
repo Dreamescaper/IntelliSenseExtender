@@ -22,7 +22,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
         }
 
-        public AbstractCompletionProvider(IOptionsProvider optionsProvider)
+        protected AbstractCompletionProvider(IOptionsProvider optionsProvider)
         {
             _optionsProvider = optionsProvider;
             _namespaceResolver = new NamespaceResolver();

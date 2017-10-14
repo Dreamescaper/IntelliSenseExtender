@@ -20,14 +20,15 @@ namespace IntelliSenseExtender.Options
 
         private void UpdateCachedOptions()
         {
-            var optionsPage = GetOptionsPageFunc.Invoke();
+            var optionsPage = GetOptionsPageFunc();
             CachedOptions = new Options
             {
                 UserCodeOnlySuggestions = optionsPage.UserCodeOnlySuggestions,
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                 EnableTypesSuggestions = optionsPage.EnableTypesSuggestions,
                 EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,
-                FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols
+                FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
+                SuggestOnObjectCreation = optionsPage.SuggestOnObjectCreation
             };
         }
     }

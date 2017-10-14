@@ -7,7 +7,7 @@
         public bool EnableTypesSuggestions { get; set; }
         public bool EnableExtensionMethodsSuggestions { get; set; }
         public bool FilterOutObsoleteSymbols { get; set; }
-        public bool SuggestNewTypes { get; set; }
+        public bool SuggestOnObjectCreation { get; set; }
 
         public bool EnableUnimportedSuggestions => EnableTypesSuggestions || EnableExtensionMethodsSuggestions;
     }

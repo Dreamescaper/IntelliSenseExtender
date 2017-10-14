@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,7 +7,7 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SemanticModelExtensions
     {
-        public static ITypeSymbol GetParameterTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
+        public static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
         {
             ITypeSymbol result = null;
 
@@ -24,13 +23,14 @@ namespace IntelliSenseExtender.Extensions
             return result;
         }
 
+        /// <summary>
+        /// Return list of parameters of invoked method. Returns null if no method symbol found.
+        /// </summary>
         public static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
             var invocationSyntax = argumentListSyntax.Parent;
             var methodInfo = semanticModel.GetSymbolInfo(invocationSyntax);
             var methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
-
-            Debug.Assert(methodSymbol != null, "Failed to find invoked method!");
 
             return methodSymbol?.Parameters;
         }

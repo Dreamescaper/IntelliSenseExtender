@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
@@ -28,41 +26,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            try
+            if (Options.SuggestOnObjectCreation)
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken);
 
-                //ObjectCreationExpressionSyntax objCreation;
-                //if (syntaxContext.SyntaxTree.IsObjectCreationContext(context.Position, out objCreation, context.CancellationToken))
-                //{
-                //    ITypeSymbol typeSymbol;
-                //    if (TryGetTypeSymbol(objCreation, syntaxContext.SemanticModel, out typeSymbol))
-                //    {
-                //        var symbols = GetAllTypes(syntaxContext)
-                //            .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
-                //            .Where(type => type != null)
-                //            .ToList();
+                bool newKeywordRequired = true;
+                var currentSyntaxNode = syntaxContext.CurrentToken.Parent;
+                if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+                {
+                    //if we already have new keyword - we don't need that
+                    newKeywordRequired = false;
+                }
 
-                //        var completionItems = symbols.Select(symbol =>
-                //        {
-                //            var symbolName = symbol.Name;
-                //            var typeSymbolName = typeSymbol.Name;
-                //            var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
-                //                ? Sorting.WithPriority(4)
-                //                : Sorting.WithPriority(5);
-
-                //            return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext, priority, MatchPriority.Preselect);
-                //        })
-                //            .ToList();
-
-                //        context.AddItems(completionItems);
-                //        context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
-                //    }
-                //}
-
-                SyntaxNode currentNode = syntaxContext.SyntaxTree.FindTokenOnLeftOfPosition(syntaxContext.Position, syntaxContext.CancellationToken).Parent;
-                ITypeSymbol typeSymbol;
-                if (TryGetTypeSymbol(syntaxContext, out typeSymbol))
+                if (TryGetTypeSymbol(syntaxContext, out ITypeSymbol typeSymbol))
                 {
                     var symbols = GetAllTypes(syntaxContext)
                         .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
@@ -70,27 +46,27 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         .ToList();
 
                     var completionItems = symbols.Select(symbol =>
-                    {
-                        var symbolName = symbol.Name;
-                        var typeSymbolName = typeSymbol.Name;
-                        var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
-                            ? Sorting.WithPriority(4)
-                            : Sorting.WithPriority(5);
+                        {
+                            var symbolName = symbol.Name;
+                            var typeSymbolName = typeSymbol.Name;
+                            var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
+                                ? Sorting.WithPriority(4)
+                                : Sorting.WithPriority(5);
 
-                        bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
+                            bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
 
-                        return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext, priority, MatchPriority.Preselect, 0, unimported, true);
-                    })
+                            return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                                priority, MatchPriority.Preselect,
+                                newPositionOffset: 0,
+                                unimported: unimported,
+                                newCreationSyntax: newKeywordRequired);
+                        })
                         .ToList();
 
                     context.AddItems(completionItems);
                     context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
                     ReplaceNewKeywordSuggestion(context);
                 }
-            }
-            catch (Exception e)
-            {
-                throw;
             }
         }
 
@@ -99,14 +75,18 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var sourceString = text.ToString();
 
             //trigger completion automatically when assigning values
+            var textBeforeCaret = sourceString.Substring(0, caretPosition);
             if (trigger.Kind == CompletionTriggerKind.Insertion
-                && sourceString.Substring(0, caretPosition).EndsWith(" = "))
+                && (textBeforeCaret.EndsWith(" = ") || textBeforeCaret.EndsWith("new ")))
             {
                 return true;
             }
             return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
         }
 
+        /// <summary>
+        /// Return suggestions for special cases, such as array or collection initializers
+        /// </summary>
         private IEnumerable<CompletionItem> GetSpecialCasesCompletions(ITypeSymbol typeSymbol, SyntaxContext syntaxContext)
         {
             if (typeSymbol is IArrayTypeSymbol)
@@ -137,9 +117,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         protected override bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
         {
             return
-                (type.TypeKind == TypeKind.Class || type.TypeKind == TypeKind.Struct) &&
-                !type.IsAbstract &&
-                type.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public);
+                (type.TypeKind == TypeKind.Class || type.TypeKind == TypeKind.Struct)
+                && !type.IsAbstract
+                && type.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public);
         }
 
         private bool TryGetTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
@@ -148,7 +128,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             typeSymbol = null;
 
-            if (currentSyntaxNode.Parent.Parent is VariableDeclarationSyntax varDeclarationSyntax
+            // If new keyword is already present, we need to work with parent node
+            if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+            {
+                currentSyntaxNode = currentSyntaxNode.Parent;
+            }
+
+            if (currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
                 && !varDeclarationSyntax.Type.IsVar)
             {
                 var typeInfo = syntaxContext.SemanticModel.GetTypeInfo(varDeclarationSyntax.Type);
@@ -161,7 +147,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
             {
-                typeSymbol = syntaxContext.SemanticModel.GetParameterTypeSymbol(argumentSyntax);
+                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentSyntax);
             }
             else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
             {
@@ -183,6 +169,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         /// <param name="context">CompletionContext to replace keyword in</param>
         private void ReplaceNewKeywordSuggestion(CompletionContext context)
         {
+            //Add two spaces to filter text so it wouldn't be automatically selected when 'new' is typed
             var newSuggestion = CompletionItem.Create(
                 displayText: "new",
                 filterText: "new  ",

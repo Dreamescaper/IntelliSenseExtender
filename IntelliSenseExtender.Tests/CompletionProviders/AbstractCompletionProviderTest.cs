@@ -23,6 +23,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 EnableTypesSuggestions = true,
                 FilterOutObsoleteSymbols = true,
                 SortCompletionsAfterImported = true,
+                SuggestOnObjectCreation = true,
                 UserCodeOnlySuggestions = false
             });
 

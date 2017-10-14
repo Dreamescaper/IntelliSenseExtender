@@ -40,6 +40,13 @@ namespace IntelliSenseExtender.Options
         [Description("Do not show methods or types marked with Obsolete attribute.")]
         public bool FilterOutObsoleteSymbols { get; set; }
 
+        [Category("Object Creation")]
+        [DefaultValue(true)]
+        [DisplayName("Suggest types on object creation")]
+        [Description("If type is known, suggest it or its ancestor types after new keyword. " +
+            "Might lead to duplications in IntelliSense.")]
+        public bool SuggestOnObjectCreation { get; set; }
+
         public OptionsPage()
         {
             UserCodeOnlySuggestions = false;
@@ -47,6 +54,7 @@ namespace IntelliSenseExtender.Options
             EnableTypesSuggestions = true;
             EnableExtensionMethodsSuggestions = true;
             FilterOutObsoleteSymbols = true;
+            SuggestOnObjectCreation = true;
         }
 
         public override void SaveSettingsToStorage()
