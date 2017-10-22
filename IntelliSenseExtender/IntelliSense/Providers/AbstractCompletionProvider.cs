@@ -98,11 +98,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && type.CanBeReferencedByName;
         }
 
-        protected List<T> FilterOutObsoleteSymbolsIfNeeded<T>(IEnumerable<T> symbolsList) where T : ISymbol
+        protected List<T> FilterOutObsoleteSymbolsIfNeeded<T>(List<T> symbolsList) where T : ISymbol
         {
             return Options.FilterOutObsoleteSymbols
                 ? symbolsList.Where(symbol => !symbol.IsObsolete()).ToList()
-                : symbolsList.ToList();
+                : symbolsList;
         }
 
         private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
