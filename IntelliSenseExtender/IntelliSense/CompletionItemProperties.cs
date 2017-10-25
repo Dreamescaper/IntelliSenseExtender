@@ -1,4 +1,4 @@
-﻿namespace IntelliSenseExtender.IntelliSense
+namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemProperties
     {
