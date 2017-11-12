@@ -165,7 +165,9 @@ namespace IntelliSenseExtender.IntelliSense
                     break;
             }
 
-            return $"{prefix}{symbolName}_{namespaceName}";
+            // Use '!' as separator between nsName and symbolName, so that shorter name item 
+            // would be shown higher than longer (e.g. ClassName < ClassNameWithLongName)
+            return $"{prefix}{symbolName}!{namespaceName}";
         }
 
         private static string GetAccessabilityTag(ISymbol symbol)

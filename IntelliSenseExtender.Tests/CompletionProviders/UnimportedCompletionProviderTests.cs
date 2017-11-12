@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using IntelliSenseExtender.IntelliSense;
 using IntelliSenseExtender.IntelliSense.Providers;
 using NUnit.Framework;
 
@@ -72,6 +74,39 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 var completions = GetCompletions(provider, mainSource, classFile, $"/*{i}*/");
                 Assert.That(completions, Is.Empty);
             }
+        }
+
+        [Test]
+        public void Types_ShorterTypeGoesFirst()
+        {
+            var mainSource = @"
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            var classFile = @"
+                namespace NM
+                {
+                    public class CoolClass
+                    {
+                    }
+                    public class CoolClassWithLongerName
+                    {
+                    }
+                }";
+
+            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, mainSource, classFile, "/*here*/")
+                .OrderBy(compl => compl.SortText, StringComparer.Ordinal)
+                .ToList();
+
+            int coolClassIndex = completions.FindIndex(i =>
+                i.Properties[CompletionItemProperties.SymbolName] == "CoolClass");
+            int coolClassWithLongerNameIndex = completions.FindIndex(i =>
+                i.Properties[CompletionItemProperties.SymbolName] == "CoolClassWithLongerName");
+
+            Assert.That(coolClassIndex < coolClassWithLongerNameIndex);
         }
 
         #endregion
