@@ -95,7 +95,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (typeSymbol is IArrayTypeSymbol)
             {
-                return new[] { CompletionItemHelper.CreateCompletionItem("new [] {}", Sorting.WithPriority(1), newPositionOffset: -2) };
+                return new[] { CompletionItemHelper.CreateCompletionItem("new [] {}", Sorting.WithPriority(3), newPositionOffset: -2) };
             }
 
             if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
@@ -112,6 +112,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                             return new[] { CompletionItemHelper.CreateCompletionItem($"new List<{displayName}> {{}}", Sorting.WithPriority(1), newPositionOffset: -2) };
                         }
                         break;
+                    case "Boolean":
+                        return new[]
+                        {
+                             CompletionItemHelper.CreateCompletionItem("true", Sorting.WithPriority(3))
+                                .WithTags(ImmutableArray.Create(CompletionTags.Keyword)),
+                             CompletionItemHelper.CreateCompletionItem("false", Sorting.WithPriority(3))
+                                .WithTags(ImmutableArray.Create(CompletionTags.Keyword))
+                        };
                 }
             }
 

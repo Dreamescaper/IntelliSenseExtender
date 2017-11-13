@@ -204,6 +204,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestTrueFalseForBool()
+        {
+            var source = @"
+                public class Test {
+                    public void Method() {
+                       bool b = 
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("true"));
+            Assert.That(completionsNames, Does.Contain("false"));
+        }
+
+        [Test]
         public void DoNotSuggestAnythingIfNotApplicable()
         {
             var source = @"
