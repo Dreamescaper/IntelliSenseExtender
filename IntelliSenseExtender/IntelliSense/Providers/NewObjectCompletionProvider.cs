@@ -40,30 +40,34 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
                 if (TryGetTypeSymbol(syntaxContext, out ITypeSymbol typeSymbol))
                 {
-                    var symbols = GetAllTypes(syntaxContext)
-                        .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
-                        .Where(type => type != null)
-                        .ToList();
+                    if (!typeSymbol.IsBuiltInType())
+                    {
+                        var symbols = GetAllTypes(syntaxContext)
+                            .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
+                            .Where(type => type != null)
+                            .ToList();
 
-                    var completionItems = symbols.Select(symbol =>
-                        {
-                            var symbolName = symbol.Name;
-                            var typeSymbolName = typeSymbol.Name;
-                            var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
-                                ? Sorting.WithPriority(4)
-                                : Sorting.WithPriority(5);
+                        var completionItems = symbols.Select(symbol =>
+                            {
+                                var symbolName = symbol.Name;
+                                var typeSymbolName = typeSymbol.Name;
+                                var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
+                                    ? Sorting.WithPriority(4)
+                                    : Sorting.WithPriority(5);
 
-                            bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
+                                bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
 
-                            return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
-                                priority, MatchPriority.Preselect,
-                                newPositionOffset: 0,
-                                unimported: unimported,
-                                newCreationSyntax: newKeywordRequired);
-                        })
-                        .ToList();
+                                return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                                    priority, MatchPriority.Preselect,
+                                    newPositionOffset: 0,
+                                    unimported: unimported,
+                                    newCreationSyntax: newKeywordRequired);
+                            })
+                            .ToList();
 
-                    context.AddItems(completionItems);
+                        context.AddItems(completionItems);
+                    }
+
                     context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
                     ReplaceNewKeywordSuggestion(context);
                 }

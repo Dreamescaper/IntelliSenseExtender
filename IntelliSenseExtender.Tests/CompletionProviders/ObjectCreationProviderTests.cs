@@ -182,6 +182,27 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             Assert.That(completionsNames, Does.Contain("new List<int> {}"));
         }
 
+        [TestCase("int", "Int32")]
+        [TestCase("double", "Double")]
+        [TestCase("string", "String")]
+        public void DoNotSuggestPrimitiveTypesConstructors(string shortName, string typeName)
+        {
+            var source = @"
+                using System;
+
+                public class Test {
+                    public void Method() {" +
+                       $"{shortName} v = " +
+                    @"}
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain($"new {shortName}()"));
+            Assert.That(completionsNames, Does.Not.Contain($"new {typeName}()"));
+        }
+
         [Test]
         public void DoNotSuggestAnythingIfNotApplicable()
         {

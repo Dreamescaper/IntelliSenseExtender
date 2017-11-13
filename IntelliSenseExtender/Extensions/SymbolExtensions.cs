@@ -7,6 +7,10 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SymbolExtensions
     {
+        private static readonly string[] BuiltInTypes = new[] { "Byte", "SByte", "Int32",
+            "UInt32", "Int16", "UInt16", "Int64", "UInt64", "Single", "Double", "Char",
+            "Boolean", "Object", "String", "Decimal" };
+
         public static string GetNamespace(this ISymbol symbol)
         {
             return symbol.ContainingNamespace.ToDisplayString();
@@ -29,6 +33,11 @@ namespace IntelliSenseExtender.Extensions
             var baseTypes = typeSymbol.GetBaseTypes();
             return baseTypes.Any(baseTypeSymbol => baseTypeSymbol.Name == nameof(Attribute)
                     && baseTypeSymbol.ContainingNamespace?.Name == nameof(System));
+        }
+
+        public static bool IsBuiltInType(this ITypeSymbol typeSymbol)
+        {
+            return BuiltInTypes.Contains(typeSymbol.Name);
         }
 
         public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol typeSymbol)
