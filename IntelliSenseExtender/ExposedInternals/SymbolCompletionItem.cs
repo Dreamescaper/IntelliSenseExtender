@@ -15,29 +15,25 @@ namespace IntelliSenseExtender.ExposedInternals
     public static class SymbolCompletionItem
     {
         private static readonly Type _internalType;
-        private static readonly MethodInfo _encodeSymbolMethod;
-        private static readonly MethodInfo _getDescriptionAsyncMethod;
+        private static readonly EncodeSymbolHandler _encodeSymbolMethod;
+        private static readonly GetDescriptionAsyncHandler _getDescriptionAsyncMethod;
+
+        private delegate Task<CompletionDescription> GetDescriptionAsyncHandler(CompletionItem item, Document document, CancellationToken cancellationToken);
+
+        private delegate string EncodeSymbolHandler(ISymbol symbol);
 
         static SymbolCompletionItem()
         {
             _internalType = Type.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem," +
                 "Microsoft.CodeAnalysis.Features");
-            _encodeSymbolMethod = _internalType.GetMethod("EncodeSymbol");
-            _getDescriptionAsyncMethod = _internalType.GetMethods()
+            _encodeSymbolMethod = (EncodeSymbolHandler) _internalType.GetMethod("EncodeSymbol").CreateDelegate(typeof(EncodeSymbolHandler));
+            _getDescriptionAsyncMethod = (GetDescriptionAsyncHandler)_internalType.GetMethods()
                 .Single(method => method.Name == "GetDescriptionAsync"
-                    && method.GetParameters().Length == 3);
+                    && method.GetParameters().Length == 3).CreateDelegate(typeof(GetDescriptionAsyncHandler));
         }
 
-        public static Task<CompletionDescription> GetDescriptionAsync
-            (CompletionItem item, Document document, CancellationToken cancellationToken)
-        {
-            return (Task<CompletionDescription>)_getDescriptionAsyncMethod.Invoke(null,
-                new object[] { item, document, cancellationToken });
-        }
+        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken) => _getDescriptionAsyncMethod(item, document, cancellationToken);
 
-        public static string EncodeSymbol(ISymbol symbol)
-        {
-            return (string)_encodeSymbolMethod.Invoke(null, new object[] { symbol });
-        }
+        public static string EncodeSymbol(ISymbol symbol) => _encodeSymbolMethod(symbol);
     }
 }
