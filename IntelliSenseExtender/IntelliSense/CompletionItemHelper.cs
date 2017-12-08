@@ -43,12 +43,12 @@ namespace IntelliSenseExtender.IntelliSense
             var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
             // Adding 'unimported' text to beginning
-            var unimportedTextParts = ImmutableArray<TaggedText>.Empty
-                .Add(new TaggedText(TextTags.Text, "(unimported)"))
-                .Add(new TaggedText(TextTags.Space, " "))
-                .AddRange(description.TaggedParts);
+            var unimportedTextParts = ImmutableArray.CreateBuilder<TaggedText>(2 + description.TaggedParts.Length);
+            unimportedTextParts.Add(new TaggedText(TextTags.Text, "(unimported)"));
+            unimportedTextParts.Add(new TaggedText(TextTags.Space, " "));
+            unimportedTextParts.AddRange(description.TaggedParts);
 
-            return description.WithTaggedParts(unimportedTextParts);
+            return description.WithTaggedParts(unimportedTextParts.MoveToImmutable());
         }
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context, bool sortLast)
@@ -71,12 +71,13 @@ namespace IntelliSenseExtender.IntelliSense
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName);
 
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add(CompletionItemProperties.ContextPosition, context.Position.ToString())
-                .Add(CompletionItemProperties.SymbolName, symbol.Name)
-                .Add(CompletionItemProperties.FullSymbolName, fullSymbolName)
-                .Add(CompletionItemProperties.Namespace, nsName)
-                .Add(CompletionItemProperties.InsertText, insertText);
+            var props = ImmutableDictionary.CreateBuilder(StringComparer.Ordinal, StringComparer.Ordinal);
+
+            props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
+            props.Add(CompletionItemProperties.SymbolName, symbol.Name);
+            props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
+            props.Add(CompletionItemProperties.Namespace, nsName);
+            props.Add(CompletionItemProperties.InsertText, insertText);
 
             // Add namespace to the end so items with same name would be displayed
             var sortText = GetSortText(symbol.Name, nsName, sortLast);
@@ -85,7 +86,7 @@ namespace IntelliSenseExtender.IntelliSense
                 displayText: displayText,
                 sortText: sortText,
                 filterText: insertText,
-                properties: props,
+                properties: props.ToImmutable(),
                 rules: rules,
                 tags: tags);
         }
