@@ -1,3 +1,7 @@
+0.5.1
+
++ Small performance optimizations 
+
 0.5
 
 + Show '<>' for generic types and methods
