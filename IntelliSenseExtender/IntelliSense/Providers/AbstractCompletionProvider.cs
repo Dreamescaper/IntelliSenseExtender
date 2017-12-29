@@ -69,7 +69,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         protected List<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
         {
-            const int typesCapacity = 100000;
+            const int typesCapacity = 10000;
 
             var foundTypes = new List<INamedTypeSymbol>(typesCapacity);
 

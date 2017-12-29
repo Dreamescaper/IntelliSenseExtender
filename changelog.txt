@@ -3,6 +3,10 @@
 + Fix issue when using was not added after commit
 + Show suggestions for types during object creation
 
+0.5.1
+
++ Small performance optimizations 
+
 0.5
 
 + Show '<>' for generic types and methods

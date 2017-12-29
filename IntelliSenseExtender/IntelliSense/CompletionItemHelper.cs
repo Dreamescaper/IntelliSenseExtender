@@ -109,15 +109,14 @@ namespace IntelliSenseExtender.IntelliSense
             var nsName = symbol.GetNamespace();
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, newCreationSyntax);
-
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add(CompletionItemProperties.ContextPosition, context.Position.ToString())
-                .Add(CompletionItemProperties.SymbolName, symbol.Name)
-                .Add(CompletionItemProperties.FullSymbolName, fullSymbolName)
-                .Add(CompletionItemProperties.Namespace, nsName)
-                .Add(CompletionItemProperties.InsertText, insertText)
-                .Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString())
-                .Add(CompletionItemProperties.Unimported, unimported.ToString());
+            var props = ImmutableDictionary.CreateBuilder<string, string>();
+            props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
+            props.Add(CompletionItemProperties.SymbolName, symbol.Name);
+            props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
+            props.Add(CompletionItemProperties.Namespace, nsName);
+            props.Add(CompletionItemProperties.InsertText, insertText);
+            props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+            props.Add(CompletionItemProperties.Unimported, unimported.ToString());
 
             // Add namespace to the end so items with same name would be displayed
             var sortText = GetSortText(symbol.Name, nsName, sortingPriority);
@@ -126,7 +125,7 @@ namespace IntelliSenseExtender.IntelliSense
                 displayText: displayText,
                 sortText: sortText,
                 filterText: insertText,
-                properties: props,
+                properties: props.ToImmutable(),
                 rules: rules,
                 tags: tags);
         }
