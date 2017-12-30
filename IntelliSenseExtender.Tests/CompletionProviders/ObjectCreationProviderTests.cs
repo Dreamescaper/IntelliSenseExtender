@@ -185,6 +185,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [TestCase("int", "Int32")]
         [TestCase("double", "Double")]
         [TestCase("string", "String")]
+        [TestCase("IComparable", "Int32")]
         public void DoNotSuggestPrimitiveTypesConstructors(string shortName, string typeName)
         {
             var source = @"

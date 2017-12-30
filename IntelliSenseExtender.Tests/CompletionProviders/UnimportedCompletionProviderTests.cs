@@ -256,7 +256,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var mainSource = @"
                 public class Test {
                     public void Method() {
-                        var obj = null;
+                        object obj = null;
                         obj.
                     }
                 }";
