@@ -11,8 +11,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 {
     public abstract class AbstractCompletionProviderTest
     {
-        private static MetadataReference Mscorlib = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static MetadataReference SystemCore = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
+        private static readonly MetadataReference Mscorlib = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference SystemCore = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
 
         #region Options
 
@@ -23,6 +23,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 EnableTypesSuggestions = true,
                 FilterOutObsoleteSymbols = true,
                 SortCompletionsAfterImported = true,
+                SuggestTypesOnObjectCreation = true,
+                SuggestFactoryMethodsOnObjectCreation = true,
                 UserCodeOnlySuggestions = false
             });
 
@@ -55,8 +57,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static Document GetTestDocument(string source, params string[] additionalFiles)
         {
-            ProjectId projectId = ProjectId.CreateNewId();
-            DocumentId documentId = DocumentId.CreateNewId(projectId);
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
 
             var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
@@ -77,7 +79,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         public static CompletionContext GetContext(Document document, CompletionProvider provider, int position)
         {
             var context = new CompletionContext(provider, document, position,
-                new TextSpan(), CompletionTrigger.Default, document.Project.Solution.Workspace.Options,
+                new TextSpan(), CompletionTrigger.Invoke, document.Project.Solution.Workspace.Options,
                 default(CancellationToken));
             return context;
         }

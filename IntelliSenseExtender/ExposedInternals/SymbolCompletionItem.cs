@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -26,7 +25,7 @@ namespace IntelliSenseExtender.ExposedInternals
         {
             _internalType = Type.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem," +
                 "Microsoft.CodeAnalysis.Features");
-            _encodeSymbolMethod = (EncodeSymbolHandler) _internalType.GetMethod("EncodeSymbol").CreateDelegate(typeof(EncodeSymbolHandler));
+            _encodeSymbolMethod = (EncodeSymbolHandler)_internalType.GetMethod("EncodeSymbol").CreateDelegate(typeof(EncodeSymbolHandler));
             _getDescriptionAsyncMethod = (GetDescriptionAsyncHandler)_internalType.GetMethods()
                 .Single(method => method.Name == "GetDescriptionAsync"
                     && method.GetParameters().Length == 3).CreateDelegate(typeof(GetDescriptionAsyncHandler));

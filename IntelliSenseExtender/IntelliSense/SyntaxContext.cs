@@ -22,12 +22,13 @@ namespace IntelliSenseExtender.IntelliSense
         public bool IsMemberAccessContext { get; }
         public ITypeSymbol AccessedSymbolType { get; }
         public ISymbol AccessedSymbol { get; }
+        public SyntaxToken CurrentToken { get; }
         public CancellationToken CancellationToken { get; }
 
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
             IReadOnlyList<string> importedNamespaces, bool isTypeContext = false, bool isAttributeContext = false,
             bool isMemberAccessContext = false, ITypeSymbol accessedTypeSymbol = null, ISymbol accessedSymbol = null,
-            CancellationToken token = default(CancellationToken))
+            SyntaxToken currentToken = default(SyntaxToken), CancellationToken token = default(CancellationToken))
         {
             Document = document;
             SemanticModel = semanticModel;
@@ -39,6 +40,7 @@ namespace IntelliSenseExtender.IntelliSense
             IsMemberAccessContext = isMemberAccessContext;
             AccessedSymbolType = accessedTypeSymbol;
             AccessedSymbol = accessedSymbol;
+            CurrentToken = currentToken;
             CancellationToken = token;
         }
 
@@ -51,9 +53,10 @@ namespace IntelliSenseExtender.IntelliSense
             var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
             var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);
 
+            var currentToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+
             ExpressionSyntax accessedSyntax = null;
-            bool isMemberAccessContext = !isTypeContext
-                && syntaxTree.IsMemberAccessContext(position, out accessedSyntax, cancellationToken);
+            bool isMemberAccessContext = !isTypeContext && currentToken.IsMemberAccessContext(out accessedSyntax);
             ITypeSymbol accessedTypeSymbol = null;
             ISymbol accessedSymbol = null;
             if (isMemberAccessContext)
@@ -64,7 +67,7 @@ namespace IntelliSenseExtender.IntelliSense
 
             return new SyntaxContext(document, semanticModel, syntaxTree, position,
                 importedNamespaces, isTypeContext, isAttributeContext, isMemberAccessContext,
-                accessedTypeSymbol, accessedSymbol, cancellationToken);
+                accessedTypeSymbol, accessedSymbol, currentToken, cancellationToken);
         }
     }
 }

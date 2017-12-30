@@ -1,3 +1,9 @@
+0.6
+
++ Fix issue when using was not added after commit
++ Show suggestions for types during object creation
++ Show suggestions for static factory methods
+
 0.5.1
 
 + Small performance optimizations 

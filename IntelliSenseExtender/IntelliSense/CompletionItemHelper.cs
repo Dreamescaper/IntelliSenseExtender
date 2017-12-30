@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
@@ -11,26 +12,63 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation)
         {
             const string AttributeSuffix = "Attribute";
 
-            string displayText = symbol.Name;
-            string insertText = displayText;
+            string displayText;
+            string insertText;
 
-            if (context.IsAttributeContext
-                && displayText.EndsWith(AttributeSuffix))
+            var symbolName = symbol.Name;
+
+            if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {
-                displayText = displayText.Substring(0, displayText.Length - AttributeSuffix.Length);
+                displayText = symbolName.Substring(0, symbolName.Length - AttributeSuffix.Length);
                 insertText = displayText;
             }
-            else if ((symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
-                || (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0))
+            else if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
             {
-                displayText += "<>";
+                //If generic type is unbound - do not show generic arguments
+                if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters))
+                {
+                    displayText = symbolName + "<>";
+                    insertText = symbolName;
+                }
+                else
+                {
+                    displayText = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                    insertText = displayText;
+                }
+            }
+            else if (symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
+            {
+                displayText = symbolName + "<>";
+                insertText = symbolName;
+            }
+            else
+            {
+                displayText = symbolName;
+                insertText = symbolName;
             }
 
-            displayText += $"  ({@namespace})";
+            if (includeContainingType)
+            {
+                var containingType = symbol.ContainingType;
+                var typeName = containingType.Name;
+                displayText = $"{typeName}.{displayText}";
+                insertText = displayText;
+            }
+
+            if (newCreation)
+            {
+                displayText = $"new {displayText}()";
+                insertText = displayText;
+            }
+
+            if (unimported)
+            {
+                displayText += $"  ({@namespace})";
+            }
 
             return (displayText, insertText);
         }
@@ -42,24 +80,33 @@ namespace IntelliSenseExtender.IntelliSense
 
             var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
-            // Adding 'unimported' text to beginning
-            var unimportedTextParts = ImmutableArray.CreateBuilder<TaggedText>(2 + description.TaggedParts.Length);
-            unimportedTextParts.Add(new TaggedText(TextTags.Text, "(unimported)"));
-            unimportedTextParts.Add(new TaggedText(TextTags.Space, " "));
-            unimportedTextParts.AddRange(description.TaggedParts);
+            bool unimported = item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
+                && bool.Parse(unimportedString);
 
-            return description.WithTaggedParts(unimportedTextParts.MoveToImmutable());
+            if (unimported)
+            {
+                // Adding 'unimported' text to beginning
+                var unimportedTextParts = ImmutableArray<TaggedText>.Empty
+                    .Add(new TaggedText(TextTags.Text, "(unimported)"))
+                    .Add(new TaggedText(TextTags.Space, " "))
+                    .AddRange(description.TaggedParts);
+
+                description = description.WithTaggedParts(unimportedTextParts);
+            }
+
+            return description;
         }
 
-        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context, bool sortLast)
+        public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
+            int sortingPriority = Sorting.Default, int matchPriority = -12, int newPositionOffset = 0,
+            bool unimported = true, bool newCreationSyntax = false, bool includeContainingClass = false)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
             var tags = ImmutableArray.Create(kindTag, accessabilityTag);
 
-            // Make those items less prioritized
             var rules = CompletionItemRules.Create(
-                    matchPriority: -1
+                    matchPriority: matchPriority
                 );
 
             // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
@@ -69,32 +116,65 @@ namespace IntelliSenseExtender.IntelliSense
             var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
 
-            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName);
-
-            var props = ImmutableDictionary.CreateBuilder(StringComparer.Ordinal, StringComparer.Ordinal);
-
+            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, includeContainingClass, newCreationSyntax);
+            var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
             props.Add(CompletionItemProperties.SymbolName, symbol.Name);
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
             props.Add(CompletionItemProperties.Namespace, nsName);
             props.Add(CompletionItemProperties.InsertText, insertText);
+            props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+            props.Add(CompletionItemProperties.Unimported, unimported.ToString());
 
             // Add namespace to the end so items with same name would be displayed
-            var sortText = GetSortText(symbol.Name, nsName, sortLast);
+            var sortText = GetSortText(symbol.Name, nsName, sortingPriority);
 
             return CompletionItem.Create(
                 displayText: displayText,
-                sortText: sortText,
                 filterText: insertText,
+                sortText: sortText,
                 properties: props.ToImmutable(),
-                rules: rules,
-                tags: tags);
+                tags: tags,
+                rules: rules);
         }
 
-        private static string GetSortText(string symbolName, string nsName, bool sortLast)
+        public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority, int newPositionOffset = 0)
         {
-            string prefix = sortLast ? "~" : string.Empty;
-            return prefix + symbolName + " " + nsName;
+            var rules = CompletionItemRules.Create(
+                    matchPriority: MatchPriority.Preselect
+                );
+
+            var sortText = GetSortText(itemText, string.Empty, sortingPriority);
+            var properties = ImmutableDictionary<string, string>.Empty
+                .Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+
+            return CompletionItem.Create(
+                    displayText: itemText,
+                    sortText: sortText,
+                    properties: properties,
+                    rules: rules
+                );
+        }
+
+        private static string GetSortText(string symbolName, string namespaceName, int sortingPriority)
+        {
+            string prefix;
+            switch (sortingPriority)
+            {
+                case Sorting.Default:
+                    prefix = string.Empty;
+                    break;
+                case Sorting.Last:
+                    prefix = "~_";
+                    break;
+                default:
+                    prefix = "!" + sortingPriority + "_";
+                    break;
+            }
+
+            // Use '!' as separator between nsName and symbolName, so that shorter name item 
+            // would be shown higher than longer (e.g. ClassName < ClassNameWithLongName)
+            return $"{prefix}{symbolName}!{namespaceName}";
         }
 
         private static string GetAccessabilityTag(ISymbol symbol)
@@ -148,5 +228,12 @@ namespace IntelliSenseExtender.IntelliSense
 
             return string.Empty;
         }
+    }
+
+    public static class Sorting
+    {
+        public const int Default = -1;
+        public const int Last = -2;
+        public static int WithPriority(int i) => i;
     }
 }
