@@ -165,6 +165,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestFactoryMethods()
+        {
+            var source = @"
+                using System;
+                public class Test {
+                    public static bool DoSmth(Test testInstance)
+                    {
+                        TimeSpan ts = 
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("TimeSpan.FromSeconds"));
+        }
+
+        [Test]
         public void SuggestListInitialyzer()
         {
             var source = @"

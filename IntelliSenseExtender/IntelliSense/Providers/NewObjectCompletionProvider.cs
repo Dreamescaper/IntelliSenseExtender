@@ -52,7 +52,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                                 var symbolName = symbol.Name;
                                 var typeSymbolName = typeSymbol.Name;
                                 var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
-                                    ? Sorting.WithPriority(4)
+                                    ? Sorting.WithPriority(3)
                                     : Sorting.WithPriority(5);
 
                                 bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
@@ -66,6 +66,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                             .ToList();
 
                         context.AddItems(completionItems);
+
+                        var factoryMethodsCompletions = GetFactoryMethodsCompletions(syntaxContext, typeSymbol);
+                        context.AddItems(factoryMethodsCompletions);
                     }
 
                     context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
@@ -86,6 +89,25 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 return true;
             }
             return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
+        }
+
+        private IEnumerable<CompletionItem> GetFactoryMethodsCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
+        {
+            var factoryMethodSymbols = typeSymbol.GetMembers()
+                .OfType<IMethodSymbol>()
+                .Where(methodSymbol => methodSymbol.IsStatic
+                    && methodSymbol.DeclaredAccessibility == Accessibility.Public
+                    && methodSymbol.MethodKind == MethodKind.Ordinary
+                    && methodSymbol.ReturnType == typeSymbol);
+
+            var factoryMethodsCompletionItems = factoryMethodSymbols.Select(symbol =>
+                CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                        Sorting.WithPriority(4),
+                        MatchPriority.Preselect,
+                        unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),
+                        includeContainingClass: true));
+
+            return factoryMethodsCompletionItems;
         }
 
         /// <summary>

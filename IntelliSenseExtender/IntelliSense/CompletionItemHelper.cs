@@ -12,7 +12,7 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool newCreation)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation)
         {
             const string AttributeSuffix = "Attribute";
 
@@ -49,6 +49,14 @@ namespace IntelliSenseExtender.IntelliSense
             {
                 displayText = symbolName;
                 insertText = symbolName;
+            }
+
+            if (includeContainingType)
+            {
+                var containingType = symbol.ContainingType;
+                var typeName = containingType.Name;
+                displayText = $"{typeName}.{displayText}";
+                insertText = displayText;
             }
 
             if (newCreation)
@@ -91,7 +99,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
             int sortingPriority = Sorting.Default, int matchPriority = -12, int newPositionOffset = 0,
-            bool unimported = true, bool newCreationSyntax = false)
+            bool unimported = true, bool newCreationSyntax = false, bool includeContainingClass = false)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
@@ -108,7 +116,7 @@ namespace IntelliSenseExtender.IntelliSense
             var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
 
-            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, newCreationSyntax);
+            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, includeContainingClass, newCreationSyntax);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
             props.Add(CompletionItemProperties.SymbolName, symbol.Name);
