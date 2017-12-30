@@ -40,10 +40,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             int sorting = Options.SortCompletionsAfterImported ? Sorting.Last : Sorting.Default;
             var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sorting);
-
-            var fullSymbolName = completionItem.Properties[CompletionItemProperties.FullSymbolName];
-            GetSymbolMapping(context.Document)[fullSymbolName] = typeSymbol;
-
+            AddSymbolToMapping(context.Document, completionItem, typeSymbol);
             return completionItem;
         }
 

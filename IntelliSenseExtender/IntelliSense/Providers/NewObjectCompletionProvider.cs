@@ -84,11 +84,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     && methodSymbol.ReturnType == typeSymbol);
 
             var factoryMethodsCompletionItems = factoryMethodSymbols.Select(symbol =>
-                CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+            {
+                var item = CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         Sorting.WithPriority(4),
                         MatchPriority.Preselect,
                         unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),
-                        includeContainingClass: true));
+                        includeContainingClass: true);
+                AddSymbolToMapping(syntaxContext.Document, item, symbol);
+                return item;
+            });
 
             return factoryMethodsCompletionItems;
         }
@@ -120,11 +124,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         priority = Sorting.WithPriority(5);
                     }
 
-                    return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                    var item = CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         priority, MatchPriority.Preselect,
                         newPositionOffset: 0,
                         unimported: unimported,
                         newCreationSyntax: newKeywordRequired);
+                    AddSymbolToMapping(syntaxContext.Document, item, symbol);
+                    return item;
                 });
 
             return completionItems;

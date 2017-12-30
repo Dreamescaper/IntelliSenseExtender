@@ -113,7 +113,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         }
 
         private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
-        protected static Dictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
+        private static Dictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
         {
             if (_symbolMappingCache.document?.Id != currentDocument.Id)
             {
@@ -121,6 +121,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 _symbolMappingCache.mapping = new Dictionary<string, ISymbol>();
             }
             return _symbolMappingCache.mapping;
+        }
+
+        protected static void AddSymbolToMapping(Document currentDocument, CompletionItem item, ISymbol symbol)
+        {
+            if (item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName,
+                out string fullSymbolName))
+            {
+                GetSymbolMapping(currentDocument)[fullSymbolName] = symbol;
+            }
         }
 
         protected static bool TryGetItemSymbolMapping(CompletionItem item, Document currentDocument, out ISymbol symbol)
