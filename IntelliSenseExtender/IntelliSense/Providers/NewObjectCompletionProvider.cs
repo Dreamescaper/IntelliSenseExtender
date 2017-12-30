@@ -28,7 +28,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (Options.SuggestOnObjectCreation)
             {
-                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken);
+                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
 
                 bool newKeywordRequired = true;
                 var currentSyntaxNode = syntaxContext.CurrentToken.Parent;

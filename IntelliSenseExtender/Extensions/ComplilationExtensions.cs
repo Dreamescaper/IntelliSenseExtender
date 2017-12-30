@@ -1,13 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Linq;
 
 namespace IntelliSenseExtender.Extensions
 {
     public static class ComplilationExtensions
     {
         /// <summary>
-        /// If toSymbol is assignble from fromSymbol, and types are not generic - returns fromSymbol.
+        /// If toSymbol is assignable from fromSymbol, and types are not generic - returns fromSymbol.
         /// If types are generic, and toSymbol is assignable from fromSymbol with certain type parameter  returns fromSymbol with that type parameter.
         /// If no conversion present - returns null
         /// </summary>

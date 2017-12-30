@@ -131,11 +131,11 @@ namespace IntelliSenseExtender.IntelliSense
 
             return CompletionItem.Create(
                 displayText: displayText,
-                sortText: sortText,
                 filterText: insertText,
+                sortText: sortText,
                 properties: props.ToImmutable(),
-                rules: rules,
-                tags: tags);
+                tags: tags,
+                rules: rules);
         }
 
         public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority, int newPositionOffset = 0)

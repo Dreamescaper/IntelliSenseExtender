@@ -6,8 +6,6 @@ using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -47,24 +45,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             GetSymbolMapping(context.Document)[fullSymbolName] = typeSymbol;
 
             return completionItem;
-        }
-
-        private async Task<Document> AddUsings(Document document, params string[] nameSpaces)
-        {
-            var syntaxRoot = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-            if (syntaxRoot is CompilationUnitSyntax compilationUnitSyntax)
-            {
-                var usingNames = nameSpaces
-                    .Select(ns => SyntaxFactory.ParseName(ns))
-                    .Select(nsName => SyntaxFactory.UsingDirective(nsName).NormalizeWhitespace())
-                    .ToArray();
-                compilationUnitSyntax = compilationUnitSyntax.AddUsings(usingNames);
-                return document.WithSyntaxRoot(compilationUnitSyntax);
-            }
-            else
-            {
-                return document;
-            }
         }
 
         private IEnumerable<ISymbol> GetSymbols(SyntaxContext context)

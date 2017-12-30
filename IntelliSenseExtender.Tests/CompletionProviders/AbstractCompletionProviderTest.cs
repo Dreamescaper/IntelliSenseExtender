@@ -11,8 +11,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 {
     public abstract class AbstractCompletionProviderTest
     {
-        private static MetadataReference Mscorlib = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static MetadataReference SystemCore = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
+        private static readonly MetadataReference Mscorlib = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference SystemCore = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
 
         #region Options
 
@@ -56,8 +56,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static Document GetTestDocument(string source, params string[] additionalFiles)
         {
-            ProjectId projectId = ProjectId.CreateNewId();
-            DocumentId documentId = DocumentId.CreateNewId(projectId);
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
 
             var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
