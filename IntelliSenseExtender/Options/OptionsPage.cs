@@ -45,7 +45,13 @@ namespace IntelliSenseExtender.Options
         [DisplayName("Suggest types on object creation")]
         [Description("If type is known, suggest it or its ancestor types after new keyword. " +
             "Might lead to duplications in IntelliSense.")]
-        public bool SuggestOnObjectCreation { get; set; }
+        public bool SuggestTypesOnObjectCreation { get; set; }
+
+        [Category("Object Creation")]
+        [DefaultValue(true)]
+        [DisplayName("Suggest static factory methods on object creation")]
+        [Description("On object creation suggest static factory methods, if there are any in target type.")]
+        public bool SuggestFactoryMethodsOnObjectCreation { get; set; }
 
         public OptionsPage()
         {
@@ -54,7 +60,8 @@ namespace IntelliSenseExtender.Options
             EnableTypesSuggestions = true;
             EnableExtensionMethodsSuggestions = true;
             FilterOutObsoleteSymbols = true;
-            SuggestOnObjectCreation = true;
+            SuggestTypesOnObjectCreation = true;
+            SuggestFactoryMethodsOnObjectCreation = true;
         }
 
         public override void SaveSettingsToStorage()

@@ -26,7 +26,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (Options.SuggestOnObjectCreation)
+            if (Options.SuggestTypesOnObjectCreation || Options.SuggestFactoryMethodsOnObjectCreation)
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
 
@@ -42,33 +42,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 {
                     if (!typeSymbol.IsBuiltInType())
                     {
-                        var symbols = GetAllTypes(syntaxContext)
-                            .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
-                            .Where(type => type != null && !type.IsBuiltInType())
-                            .ToList();
-
-                        var completionItems = symbols.Select(symbol =>
-                            {
-                                var symbolName = symbol.Name;
-                                var typeSymbolName = typeSymbol.Name;
-                                var priority = symbolName == typeSymbolName || "I" + symbolName == typeSymbolName
-                                    ? Sorting.WithPriority(3)
-                                    : Sorting.WithPriority(5);
-
-                                bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
-
-                                return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
-                                    priority, MatchPriority.Preselect,
-                                    newPositionOffset: 0,
-                                    unimported: unimported,
-                                    newCreationSyntax: newKeywordRequired);
-                            })
-                            .ToList();
-
-                        context.AddItems(completionItems);
-
-                        var factoryMethodsCompletions = GetFactoryMethodsCompletions(syntaxContext, typeSymbol);
-                        context.AddItems(factoryMethodsCompletions);
+                        if (Options.SuggestTypesOnObjectCreation)
+                        {
+                            var typeCompletionItems = GetApplicableTypesCompletions(syntaxContext, typeSymbol, newKeywordRequired);
+                            context.AddItems(typeCompletionItems);
+                        }
+                        if (Options.SuggestFactoryMethodsOnObjectCreation)
+                        {
+                            var factoryMethodsCompletions = GetFactoryMethodsCompletions(syntaxContext, typeSymbol);
+                            context.AddItems(factoryMethodsCompletions);
+                        }
                     }
 
                     context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
@@ -108,6 +91,43 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         includeContainingClass: true));
 
             return factoryMethodsCompletionItems;
+        }
+
+        private IEnumerable<CompletionItem> GetApplicableTypesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol, bool newKeywordRequired)
+        {
+            var symbols = GetAllTypes(syntaxContext)
+                .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
+                .Where(type => type != null && !type.IsBuiltInType())
+                .ToList();
+
+            var completionItems = symbols.Select(symbol =>
+                {
+                    var symbolName = symbol.Name;
+                    var typeSymbolName = typeSymbol.Name;
+                    bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
+
+                    int priority;
+                    if (symbolName == typeSymbolName || "I" + symbolName == typeSymbolName)
+                    {
+                        priority = Sorting.WithPriority(3);
+                    }
+                    else if (!unimported)
+                    {
+                        priority = Sorting.WithPriority(4);
+                    }
+                    else
+                    {
+                        priority = Sorting.WithPriority(5);
+                    }
+
+                    return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                        priority, MatchPriority.Preselect,
+                        newPositionOffset: 0,
+                        unimported: unimported,
+                        newCreationSyntax: newKeywordRequired);
+                });
+
+            return completionItems;
         }
 
         /// <summary>
