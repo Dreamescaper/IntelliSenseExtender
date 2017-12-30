@@ -89,7 +89,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return Enumerable.Empty<ISymbol>();
         }
 
-        private List<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
+        private IEnumerable<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
         {
             var accessedTypeSymbol = context.AccessedSymbolType;
             var foundExtensionSymbols = GetAllTypes(context)
@@ -97,8 +97,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .SelectMany(type => type.GetMembers())
                 .OfType<IMethodSymbol>()
                 .Select(m => m.ReduceExtensionMethod(accessedTypeSymbol))
-                .Where(m => m != null)
-                .ToList();
+                .Where(m => m != null);
 
             return FilterOutObsoleteSymbolsIfNeeded(foundExtensionSymbols);
         }

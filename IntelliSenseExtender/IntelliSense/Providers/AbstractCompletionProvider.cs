@@ -67,27 +67,34 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 : base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
-        protected List<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
+        protected IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
         {
-            const int typesCapacity = 10000;
-
-            var foundTypes = new List<INamedTypeSymbol>(typesCapacity);
-
-            var namespacesToTraverse = new[] { context.SemanticModel.Compilation.GlobalNamespace };
-            while (namespacesToTraverse.Length > 0)
+            IEnumerable<INamedTypeSymbol> getAllTypes(Compilation compilation)
             {
-                var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers()).ToArray();
-                var typeSymbols = members
-                    .OfType<INamedTypeSymbol>()
-                    .Where(symbol => FilterType(symbol, context));
-                foundTypes.AddRange(typeSymbols);
-                namespacesToTraverse = members
-                    .OfType<INamespaceSymbol>()
-                    .Where(FilterNamespace)
-                    .ToArray();
+                var namespacesToTraverse = new List<INamespaceSymbol> { compilation.GlobalNamespace };
+                while (namespacesToTraverse.Count > 0)
+                {
+                    var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers());
+                    namespacesToTraverse = new List<INamespaceSymbol>();
+
+                    foreach (var member in members)
+                    {
+                        if (member is INamedTypeSymbol namedTypeSymbol
+                            && FilterType(namedTypeSymbol, context))
+                        {
+                            yield return namedTypeSymbol;
+                        }
+                        else if (member is INamespaceSymbol namespaceSymbol
+                            && FilterNamespace(namespaceSymbol))
+                        {
+                            namespacesToTraverse.Add(namespaceSymbol);
+                        }
+                    }
+                }
             }
 
-            return FilterOutObsoleteSymbolsIfNeeded(foundTypes);
+            var allTypes = getAllTypes(context.SemanticModel.Compilation);
+            return FilterOutObsoleteSymbolsIfNeeded(allTypes);
         }
 
         protected virtual bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
@@ -98,11 +105,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && type.CanBeReferencedByName;
         }
 
-        protected List<T> FilterOutObsoleteSymbolsIfNeeded<T>(List<T> symbolsList) where T : ISymbol
+        protected IEnumerable<T> FilterOutObsoleteSymbolsIfNeeded<T>(IEnumerable<T> symbols) where T : ISymbol
         {
             return Options.FilterOutObsoleteSymbols
-                ? symbolsList.Where(symbol => !symbol.IsObsolete()).ToList()
-                : symbolsList;
+                ? symbols.Where(symbol => !symbol.IsObsolete())
+                : symbols;
         }
 
         private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
