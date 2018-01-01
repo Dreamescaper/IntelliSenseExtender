@@ -14,7 +14,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void Types_ProvideReferencesCompletions_List()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public void Method() {
                         var list = new 
@@ -30,13 +30,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void Types_ProvideUserCodeCompletions()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         /*here*/
                     }
                 }";
-            var classFile = @"
+            const string classFile = @"
                 namespace NM
                 {
                     public class Class
@@ -53,13 +53,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void Types_DoNotProvideCompletionsIfTypeNotExpected()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public /*0*/ class Test {
                     public void /*1*/ Method() {
                         
                     }
                 }";
-            var classFile = @"
+            const string classFile = @"
                 namespace NM
                 {
                     public class Class
@@ -79,13 +79,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void Types_ShorterTypeGoesFirst()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         /*here*/
                     }
                 }";
-            var classFile = @"
+            const string classFile = @"
                 namespace NM
                 {
                     public class CoolClass
@@ -116,7 +116,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_ProvideReferencesCompletions_Linq()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
                 public class Test {
                     public void Method() {
@@ -134,14 +134,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_ProvideUserCodeCompletions()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         object obj = null;
                         obj.
                     }
                 }";
-            var extensionsFile = @"
+            const string extensionsFile = @"
                 namespace NM
                 {
                     public static class ObjectExtensions
@@ -160,13 +160,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_ProvideCompletionsForLiterals()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         111.
                     }
                 }";
-            var extensionsFile = @"
+            const string extensionsFile = @"
                 namespace NM
                 {
                     public static class ObjectExtensions
@@ -185,7 +185,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_DoNotProvideCompletionsIfMemberIsNotAccessed()
         {
-            var source = @"
+            const string source = @"
                 using System;
                 namespace A{
                     class CA
@@ -203,7 +203,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         { }
                     }
                 }";
-            var extensionsFile = @"
+            const string extensionsFile = @"
                 namespace NM
                 {
                     public static class ObjectExtensions
@@ -229,13 +229,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_DoNotProvideCompletionsWhenTypeIsAccessed()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         object.
                     }
                 }";
-            var extensionsFile = @"
+            const string extensionsFile = @"
                 namespace NM
                 {
                     public static class ObjectExtensions
@@ -253,14 +253,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void ExtensionMethods_DoNotProvideObsolete()
         {
-            var mainSource = @"
+            const string mainSource = @"
                 public class Test {
                     public void Method() {
                         object obj = null;
                         obj.
                     }
                 }";
-            var extensionsFile = @"
+            const string extensionsFile = @"
                 namespace NM
                 {
                     [System.Obsolete]

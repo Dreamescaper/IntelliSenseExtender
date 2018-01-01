@@ -12,7 +12,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_LocalVariable()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test {
@@ -30,7 +30,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_Member_InPlace()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test {
@@ -46,7 +46,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_Member_InConstructor()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test 
@@ -68,7 +68,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_MethodParameter()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test 
@@ -90,7 +90,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_ConstructorParameter()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test1
@@ -116,7 +116,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_AfterNewKeyword()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test {
@@ -134,7 +134,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestInterfaceImplementation_UnimportedTypes()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public void Method() {
                         System.Collections.Generic.IList<string> list =  
@@ -149,9 +149,81 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DoNotSuggestGenericTypesIfConstraintNotSatisfied()
+        {
+            const string source = @"
+                using System;
+                using System.Collections.Generic;
+
+                namespace NM
+                {
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            IList<string> list = 
+                        }
+                    }
+
+                    public class TContraints<T> : List<T> where T : SomeClass
+                    {
+
+                    }
+
+                    public class SomeClass
+                    {
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames,
+                Does.Not.Contain("new TContraints<string>()"));
+        }
+
+        [Test]
+        public void SuggestGenericTypesIfTypeConstraintSatisfied()
+        {
+            const string source = @"
+                using System;
+                using System.Collections.Generic;
+
+                namespace NM
+                {
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            IList<SomeClassDerived> list = 
+                        }
+                    }
+
+                    public class TContraints<T> : List<T> where T : SomeClass
+                    {
+
+                    }
+
+                    public class SomeClass
+                    {
+                    }
+
+                    public class SomeClassDerived: SomeClass
+                    {
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames,
+                Does.Contain("new TContraints<SomeClassDerived>()"));
+        }
+
+        [Test]
         public void SuggestArrayInitialyzer()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public void Method() {
                         int[] =  
@@ -167,7 +239,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestFactoryMethods()
         {
-            var source = @"
+            const string source = @"
                 using System;
                 public class Test {
                     public static bool DoSmth(Test testInstance)
@@ -185,7 +257,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestListInitialyzer()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test {
@@ -225,7 +297,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void SuggestTrueFalseForBool()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public void Method() {
                        bool b = 
@@ -243,7 +315,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void DoNotSuggestAnythingIfNotApplicable()
         {
-            var source = @"
+            const string source = @"
                 using System.Collections.Generic;
 
                 public class Test {
@@ -277,7 +349,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void TriggerCompletionAfterAssignment()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public static bool DoSmth(Test testInstance)
                     {
@@ -297,7 +369,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void TriggerCompletionNewKeyword()
         {
-            var source = @"
+            const string source = @"
                 public class Test {
                     public static bool DoSmth(Test testInstance)
                     {

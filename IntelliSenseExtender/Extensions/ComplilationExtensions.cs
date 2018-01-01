@@ -22,12 +22,22 @@ namespace IntelliSenseExtender.Extensions
             // TODO: think about complex cases (e.g. class SomeClass<T> : ISomeInterface<string, T>)
             if (fromSymbol is INamedTypeSymbol nFromSymbol
                 && toSymbol is INamedTypeSymbol nToSymbol
-                && nFromSymbol.Arity > 0 && nFromSymbol.Arity == nToSymbol.Arity)
+                && nFromSymbol.Arity > 0
+                && nFromSymbol.Arity == nToSymbol.Arity)
             {
-                var constructedFromSymbol = nFromSymbol.Construct(nToSymbol.TypeArguments.ToArray());
+                var toTypeAgruments = nToSymbol.TypeArguments.ToArray();
+                var constructedFromSymbol = nFromSymbol.Construct(toTypeAgruments);
                 if (compilation.ClassifyConversion(constructedFromSymbol, nToSymbol).IsImplicit)
                 {
-                    return constructedFromSymbol;
+                    // Verify if type parameters constraints (e.g. 'where T:IComparable') are satisfied
+                    var typeParametersSatisfyConditions = nFromSymbol.TypeParameters
+                            .Select((typeParam, i) => typeParam.ConstraintTypes
+                                .All(constraintType => compilation.ClassifyConversion(toTypeAgruments[i], constraintType).IsImplicit))
+                            .All(satisfies => satisfies);
+                    if (typeParametersSatisfyConditions)
+                    {
+                        return constructedFromSymbol;
+                    }
                 }
             }
             return null;
