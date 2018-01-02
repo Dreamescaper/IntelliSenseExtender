@@ -1,6 +1,7 @@
-0.7
+0.6.1
 
 + Fix suggestions provided for generic classes when type parameters are not satisfied
++ Fix crash on certain VS configurations
 
 0.6
 
