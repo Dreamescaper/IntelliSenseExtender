@@ -51,20 +51,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             // Any better place to put this?
             if (item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
                 && bool.Parse(unimportedString)
-                && TryGetItemSymbolMapping(item, document, out ISymbol symbol)
+                && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName)
                 && IsCommitContext())
             {
-                _namespaceResolver.AddNamespace(symbol.GetNamespace());
+                _namespaceResolver.AddNamespace(nsName);
             }
 
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, insertText), newPosition));
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return TryGetItemSymbolMapping(item, document, out ISymbol symbol)
-                ? CompletionItemHelper.GetUnimportedDescriptionAsync(document, item, symbol, cancellationToken)
-                : base.GetDescriptionAsync(document, item, cancellationToken);
+            return await CompletionItemHelper.GetDescriptionAsync(document, item, cancellationToken)
+                ?? await base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
         protected IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
@@ -110,37 +109,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return Options.FilterOutObsoleteSymbols
                 ? symbols.Where(symbol => !symbol.IsObsolete())
                 : symbols;
-        }
-
-        private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
-        private static Dictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
-        {
-            if (_symbolMappingCache.document?.Id != currentDocument.Id)
-            {
-                _symbolMappingCache.document = currentDocument;
-                _symbolMappingCache.mapping = new Dictionary<string, ISymbol>();
-            }
-            return _symbolMappingCache.mapping;
-        }
-
-        protected static void AddSymbolToMapping(Document currentDocument, CompletionItem item, ISymbol symbol)
-        {
-            if (item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName,
-                out string fullSymbolName))
-            {
-                GetSymbolMapping(currentDocument)[fullSymbolName] = symbol;
-            }
-        }
-
-        protected static bool TryGetItemSymbolMapping(CompletionItem item, Document currentDocument, out ISymbol symbol)
-        {
-            symbol = null;
-            if (item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName,
-                out string fullSymbolName))
-            {
-                return GetSymbolMapping(currentDocument).TryGetValue(fullSymbolName, out symbol);
-            }
-            return false;
         }
 
         private bool FilterNamespace(INamespaceSymbol ns)

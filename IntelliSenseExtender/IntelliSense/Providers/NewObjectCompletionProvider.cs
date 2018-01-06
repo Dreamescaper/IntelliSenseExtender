@@ -83,18 +83,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     && methodSymbol.MethodKind == MethodKind.Ordinary
                     && methodSymbol.ReturnType == typeSymbol);
 
-            var factoryMethodsCompletionItems = factoryMethodSymbols.Select(symbol =>
-            {
-                var item = CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+            return factoryMethodSymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         Sorting.WithPriority(4),
                         MatchPriority.Preselect,
                         unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),
-                        includeContainingClass: true);
-                AddSymbolToMapping(syntaxContext.Document, item, symbol);
-                return item;
-            });
-
-            return factoryMethodsCompletionItems;
+                        includeContainingClass: true));
         }
 
         private IEnumerable<CompletionItem> GetApplicableTypesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol, bool newKeywordRequired)
@@ -129,7 +122,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         newPositionOffset: 0,
                         unimported: unimported,
                         newCreationSyntax: newKeywordRequired);
-                    AddSymbolToMapping(syntaxContext.Document, item, symbol);
                     return item;
                 });
 

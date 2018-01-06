@@ -39,9 +39,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
             int sorting = Options.SortCompletionsAfterImported ? Sorting.Last : Sorting.Default;
-            var completionItem = CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sorting);
-            AddSymbolToMapping(context.Document, completionItem, typeSymbol);
-            return completionItem;
+            return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sorting);
         }
 
         private IEnumerable<ISymbol> GetSymbols(SyntaxContext context)

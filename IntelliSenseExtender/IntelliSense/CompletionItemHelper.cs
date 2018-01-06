@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -73,28 +74,35 @@ namespace IntelliSenseExtender.IntelliSense
             return (displayText, insertText);
         }
 
-        public static async Task<CompletionDescription> GetUnimportedDescriptionAsync(Document document, CompletionItem item, ISymbol symbol, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
-            item = item.AddProperty(CompletionItemProperties.Symbols, symbolKey);
-
-            var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
-
-            bool unimported = item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
-                && bool.Parse(unimportedString);
-
-            if (unimported)
+            if (TryGetItemSymbolMapping(item, document, out ISymbol symbol))
             {
-                // Adding 'unimported' text to beginning
-                var unimportedTextParts = ImmutableArray<TaggedText>.Empty
-                    .Add(new TaggedText(TextTags.Text, "(unimported)"))
-                    .Add(new TaggedText(TextTags.Space, " "))
-                    .AddRange(description.TaggedParts);
+                string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
+                item = item.AddProperty(CompletionItemProperties.Symbols, symbolKey);
 
-                description = description.WithTaggedParts(unimportedTextParts);
+                var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+                bool unimported = item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
+                    && bool.Parse(unimportedString);
+
+                if (unimported)
+                {
+                    // Adding 'unimported' text to beginning
+                    var unimportedTextParts = ImmutableArray<TaggedText>.Empty
+                        .Add(new TaggedText(TextTags.Text, "(unimported)"))
+                        .Add(new TaggedText(TextTags.Space, " "))
+                        .AddRange(description.TaggedParts);
+
+                    description = description.WithTaggedParts(unimportedTextParts);
+                }
+
+                return description;
             }
-
-            return description;
+            else
+            {
+                return null;
+            }
         }
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
@@ -109,12 +117,14 @@ namespace IntelliSenseExtender.IntelliSense
                     matchPriority: matchPriority
                 );
 
-            // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
-            // for all items. However, for huge items quantity
-            // encoding has significant performance impact. We will put it in GetDescriptionAsync.
-
             var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
+
+            // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
+            // for all items. However, for huge items quantity
+            // encoding has significant performance impact. We will put it in GetDescriptionAsync,
+            // and here put symbol to cache.
+            GetSymbolMapping(context.Document)[fullSymbolName] = symbol;
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, includeContainingClass, newCreationSyntax);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
@@ -192,7 +202,7 @@ namespace IntelliSenseExtender.IntelliSense
                 case Accessibility.NotApplicable:
                     return string.Empty;
                 default:
-                    throw new ArgumentException($"Accessability '{symbol.DeclaredAccessibility}' is not supported!");
+                    throw new ArgumentException($"Accessibility '{symbol.DeclaredAccessibility}' is not supported!");
             }
         }
 
@@ -227,6 +237,28 @@ namespace IntelliSenseExtender.IntelliSense
             }
 
             return string.Empty;
+        }
+
+        private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
+        private static Dictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
+        {
+            if (_symbolMappingCache.document?.Id != currentDocument.Id)
+            {
+                _symbolMappingCache.document = currentDocument;
+                _symbolMappingCache.mapping = new Dictionary<string, ISymbol>();
+            }
+            return _symbolMappingCache.mapping;
+        }
+
+        private static bool TryGetItemSymbolMapping(CompletionItem item, Document currentDocument, out ISymbol symbol)
+        {
+            symbol = null;
+            if (item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName,
+                out string fullSymbolName))
+            {
+                return GetSymbolMapping(currentDocument).TryGetValue(fullSymbolName, out symbol);
+            }
+            return false;
         }
     }
 
