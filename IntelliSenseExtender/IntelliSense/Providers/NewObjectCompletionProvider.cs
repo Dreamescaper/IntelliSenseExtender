@@ -84,7 +84,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     && methodSymbol.ReturnType == typeSymbol);
 
             return factoryMethodSymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
-                        Sorting.WithPriority(4),
+                        Sorting.NewSuggestion_FactoryMethod,
                         MatchPriority.Preselect,
                         unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),
                         includeContainingClass: true));
@@ -106,15 +106,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     int priority;
                     if (symbolName == typeSymbolName || "I" + symbolName == typeSymbolName)
                     {
-                        priority = Sorting.WithPriority(3);
+                        priority = Sorting.NewSuggestion_MatchingName;
                     }
                     else if (!unimported)
                     {
-                        priority = Sorting.WithPriority(4);
+                        priority = Sorting.NewSuggestion_Default;
                     }
                     else
                     {
-                        priority = Sorting.WithPriority(5);
+                        priority = Sorting.NewSuggestion_Unimported;
                     }
 
                     var item = CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
@@ -135,7 +135,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (typeSymbol is IArrayTypeSymbol)
             {
-                return new[] { CompletionItemHelper.CreateCompletionItem("new [] {}", Sorting.WithPriority(3), newPositionOffset: -2) };
+                return new[] { CompletionItemHelper.CreateCompletionItem("new [] {}", Sorting.NewSuggestion_CollectionInitializer, newPositionOffset: -1) };
             }
 
             if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
@@ -149,15 +149,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         if (typeParameter != null)
                         {
                             var displayName = typeParameter.ToMinimalDisplayString(syntaxContext.SemanticModel, syntaxContext.Position);
-                            return new[] { CompletionItemHelper.CreateCompletionItem($"new List<{displayName}> {{}}", Sorting.WithPriority(1), newPositionOffset: -2) };
+                            return new[] { CompletionItemHelper.CreateCompletionItem($"new List<{displayName}> {{}}", Sorting.NewSuggestion_CollectionInitializer, newPositionOffset: -1) };
                         }
                         break;
                     case "Boolean":
                         return new[]
                         {
-                             CompletionItemHelper.CreateCompletionItem("true", Sorting.WithPriority(3))
+                             CompletionItemHelper.CreateCompletionItem("true", Sorting.NewSuggestion_Literal)
                                 .WithTags(ImmutableArray.Create(CompletionTags.Keyword)),
-                             CompletionItemHelper.CreateCompletionItem("false", Sorting.WithPriority(3))
+                             CompletionItemHelper.CreateCompletionItem("false", Sorting.NewSuggestion_Literal)
                                 .WithTags(ImmutableArray.Create(CompletionTags.Keyword))
                         };
                 }

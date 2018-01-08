@@ -261,11 +261,4 @@ namespace IntelliSenseExtender.IntelliSense
             return false;
         }
     }
-
-    public static class Sorting
-    {
-        public const int Default = -1;
-        public const int Last = -2;
-        public static int WithPriority(int i) => i;
-    }
 }
