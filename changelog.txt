@@ -1,3 +1,7 @@
+0.7
+
++ Minor fixes
+
 0.6.1
 
 + Fix suggestions provided for generic classes when type parameters are not satisfied
