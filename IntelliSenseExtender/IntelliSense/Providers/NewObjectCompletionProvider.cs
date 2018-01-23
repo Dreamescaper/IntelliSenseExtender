@@ -94,8 +94,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var symbols = GetAllTypes(syntaxContext, syntaxContext.CancellationToken)
                 .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
-                .Where(type => type != null && !type.IsBuiltInType())
-                .ToList();
+                .Where(type => type != null && !type.IsBuiltInType());
 
             var completionItems = symbols.Select(symbol =>
                 {
