@@ -11,16 +11,15 @@ namespace IntelliSenseExtender.ExposedInternals
     /// </summary>
     public static class SyntaxTreeExtensions
     {
+        private delegate bool IsTypeContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, SemanticModel semanticModelOpt = null);
+        private delegate bool IsAttributeNameContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+
         private static readonly Type _contextQueryInternalType;
         private static readonly IsTypeContextHandler _isTypeContextMethod;
         private static readonly IsAttributeNameContextHandler _isAttributeNameContextMethod;
 
         private static readonly Type _sharedInternalType;
         private static readonly FindTokenOnLeftOfPositionHandler _findTokenOnLeftOfPositionMethod;
-
-        private delegate bool IsTypeContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, SemanticModel semanticModelOpt = null);
-
-        private delegate bool IsAttributeNameContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         private delegate SyntaxToken FindTokenOnLeftOfPositionHandler(
             SyntaxTree syntaxTree,

@@ -54,7 +54,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName)
                 && IsCommitContext())
             {
-                await _namespaceResolver.AddNamespaceAndApply(nsName, document, cancellationToken);
+                await _namespaceResolver.AddNamespaceAndApply(nsName, document, cancellationToken).ConfigureAwait(false);
             }
 
             return CompletionChange.Create(new TextChange(item.Span, insertText), newPosition);
@@ -62,8 +62,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return await CompletionItemHelper.GetDescriptionAsync(document, item, cancellationToken)
-                ?? await base.GetDescriptionAsync(document, item, cancellationToken);
+            return await CompletionItemHelper.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false)
+                ?? await base.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
         }
 
         protected IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext context, CancellationToken cancellationToken)
