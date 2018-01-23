@@ -46,7 +46,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (Options.EnableTypesSuggestions && context.IsTypeContext)
             {
-                var typeSymbols = GetAllTypes(context);
+                var typeSymbols = GetAllTypes(context, context.CancellationToken);
                 if (context.IsAttributeContext)
                 {
                     typeSymbols = FilterAttributes(typeSymbols);
@@ -67,7 +67,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private IEnumerable<IMethodSymbol> GetApplicableExtensionMethods(SyntaxContext context)
         {
             var accessedTypeSymbol = context.AccessedSymbolType;
-            var foundExtensionSymbols = GetAllTypes(context)
+            var foundExtensionSymbols = GetAllTypes(context, context.CancellationToken)
                 .Where(type => type.MightContainExtensionMethods)
                 .SelectMany(type => type.GetMembers())
                 .OfType<IMethodSymbol>()

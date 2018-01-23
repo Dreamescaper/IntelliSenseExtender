@@ -66,13 +66,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 ?? await base.GetDescriptionAsync(document, item, cancellationToken);
         }
 
-        protected IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext context)
+        protected IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext context, CancellationToken cancellationToken)
         {
             IEnumerable<INamedTypeSymbol> getAllTypes(Compilation compilation)
             {
                 var namespacesToTraverse = new List<INamespaceSymbol> { compilation.GlobalNamespace };
                 while (namespacesToTraverse.Count > 0)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var members = namespacesToTraverse.SelectMany(ns => ns.GetMembers());
                     namespacesToTraverse = new List<INamespaceSymbol>();
 

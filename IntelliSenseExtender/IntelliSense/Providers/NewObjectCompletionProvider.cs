@@ -92,7 +92,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private IEnumerable<CompletionItem> GetApplicableTypesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol, bool newKeywordRequired)
         {
-            var symbols = GetAllTypes(syntaxContext)
+            var symbols = GetAllTypes(syntaxContext, syntaxContext.CancellationToken)
                 .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
                 .Where(type => type != null && !type.IsBuiltInType())
                 .ToList();
