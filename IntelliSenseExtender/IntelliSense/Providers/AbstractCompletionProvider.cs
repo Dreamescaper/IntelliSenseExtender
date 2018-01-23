@@ -30,7 +30,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public Options.Options Options => _optionsProvider.GetOptions();
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             string insertText;
             if (!item.Properties.TryGetValue(CompletionItemProperties.InsertText, out insertText))
@@ -54,10 +54,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName)
                 && IsCommitContext())
             {
-                _namespaceResolver.AddNamespace(nsName);
+                await _namespaceResolver.AddNamespaceAndApply(nsName, document, cancellationToken);
             }
 
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, insertText), newPosition));
+            return CompletionChange.Create(new TextChange(item.Span, insertText), newPosition);
         }
 
         public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

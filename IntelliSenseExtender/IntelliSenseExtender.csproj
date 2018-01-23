@@ -53,6 +53,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Editor\NamespaceResolver.cs" />
+    <Compile Include="ExposedInternals\GenerationOptions.cs" />
+    <Compile Include="ExposedInternals\LanguageServices.cs" />
     <Compile Include="ExposedInternals\SymbolCompletionItem.cs" />
     <Compile Include="ExposedInternals\SyntaxTreeExtensions.cs" />
     <Compile Include="Extensions\ComplilationExtensions.cs" />
@@ -115,6 +117,12 @@
     <Reference Include="Microsoft.CodeAnalysis.Features, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Features.2.6.1\lib\netstandard1.3\Microsoft.CodeAnalysis.Features.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.2.6.1\lib\netstandard1.3\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.2.6.1\lib\netstandard1.3\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.2.6.1\lib\net46\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
@@ -124,6 +132,10 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.CommandBars, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.ComponentModelHost.15.5.27130\lib\net45\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.CoreUtility.15.4.27004\lib\net45\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
@@ -136,6 +148,9 @@
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Language.Intellisense.15.4.27004\lib\net45\Microsoft.VisualStudio.Language.Intellisense.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.LanguageServices, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.LanguageServices.2.6.1\lib\net46\Microsoft.VisualStudio.LanguageServices.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.VisualStudio.OLE.Interop.7.10.6071\lib\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>

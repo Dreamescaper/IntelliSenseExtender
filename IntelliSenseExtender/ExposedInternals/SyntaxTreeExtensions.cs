@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
@@ -34,13 +33,13 @@ namespace IntelliSenseExtender.ExposedInternals
         static SyntaxTreeExtensions()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var cSharpWorkspacesAssembly = assemblies.First(a => a.FullName.Contains("Microsoft.CodeAnalysis.CSharp.Workspaces"));
+            var cSharpWorkspacesAssembly = assemblies.First(a => a.GetName().Name == "Microsoft.CodeAnalysis.CSharp.Workspaces");
 
             _contextQueryInternalType = cSharpWorkspacesAssembly.GetType("Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery.SyntaxTreeExtensions");
             _isTypeContextMethod = (IsTypeContextHandler)_contextQueryInternalType.GetMethod("IsTypeContext").CreateDelegate(typeof(IsTypeContextHandler));
             _isAttributeNameContextMethod = (IsAttributeNameContextHandler)_contextQueryInternalType.GetMethod("IsAttributeNameContext").CreateDelegate(typeof(IsAttributeNameContextHandler));
 
-            var workspacesAssembly = assemblies.First(a => a.FullName.Contains("Microsoft.CodeAnalysis.Workspaces"));
+            var workspacesAssembly = assemblies.First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
             _sharedInternalType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions");
             _findTokenOnLeftOfPositionMethod = (FindTokenOnLeftOfPositionHandler)_sharedInternalType.GetMethod("FindTokenOnLeftOfPosition").CreateDelegate(typeof(FindTokenOnLeftOfPositionHandler));
         }
