@@ -1,6 +1,7 @@
 0.7
 
 + Namespace import is now added at sorted place
++ Fix rare null argument crash
 + Minor fixes
 
 0.6.1

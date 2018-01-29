@@ -16,7 +16,7 @@ namespace IntelliSenseExtender.Extensions
                 int paramIndex = argumentListSyntax.Arguments.IndexOf(argumentSyntax);
                 if (paramIndex != -1)
                 {
-                    return GetParameters(semanticModel, argumentListSyntax).ElementAtOrDefault(paramIndex)?.Type;
+                    return GetParameters(semanticModel, argumentListSyntax)?.ElementAtOrDefault(paramIndex)?.Type;
                 }
             }
 
