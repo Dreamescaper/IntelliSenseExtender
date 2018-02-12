@@ -49,7 +49,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         }
                         if (Options.SuggestFactoryMethodsOnObjectCreation)
                         {
-                            var factoryMethodsCompletions = GetFactoryMethodsCompletions(syntaxContext, typeSymbol);
+                            var factoryMethodsCompletions = GetFactoryMethodsAndPropertiesCompletions(syntaxContext, typeSymbol);
                             context.AddItems(factoryMethodsCompletions);
                         }
                     }
@@ -74,16 +74,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
         }
 
-        private IEnumerable<CompletionItem> GetFactoryMethodsCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
+        private IEnumerable<CompletionItem> GetFactoryMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
         {
-            var factoryMethodSymbols = typeSymbol.GetMembers()
-                .OfType<IMethodSymbol>()
-                .Where(methodSymbol => methodSymbol.IsStatic
-                    && methodSymbol.DeclaredAccessibility == Accessibility.Public
-                    && methodSymbol.MethodKind == MethodKind.Ordinary
-                    && methodSymbol.ReturnType == typeSymbol);
+            var factorySymbols = typeSymbol.GetMembers()
+                .Where(symbol => symbol.IsStatic
+                    && symbol.DeclaredAccessibility == Accessibility.Public
+                    && (((symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary
+                            && (symbol as IMethodSymbol)?.ReturnType == typeSymbol)
+                        || (symbol as IPropertySymbol)?.Type == typeSymbol));
 
-            return factoryMethodSymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+            return factorySymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         Sorting.NewSuggestion_FactoryMethod,
                         MatchPriority.Preselect,
                         unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),

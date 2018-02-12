@@ -255,6 +255,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestStaticProperties()
+        {
+            const string source = @"
+                using System;
+                public class Test {
+                    public static bool DoSmth(Test testInstance)
+                    {
+                        DateTime dt = 
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("DateTime.Now"));
+        }
+
+        [Test]
         public void SuggestListInitialyzer()
         {
             const string source = @"
