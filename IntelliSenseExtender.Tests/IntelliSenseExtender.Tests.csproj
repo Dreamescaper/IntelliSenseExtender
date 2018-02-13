@@ -148,6 +148,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompletionProviders\LocalVariablesCompletionProviderTests.cs" />
     <Compile Include="CompletionProviders\ObjectCreationProviderTests.cs" />
     <Compile Include="CompletionProviders\UnimportedCompletionProviderTests.cs" />
     <Compile Include="CompletionProviders\UtilsTests.cs" />
