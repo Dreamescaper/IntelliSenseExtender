@@ -50,8 +50,15 @@ namespace IntelliSenseExtender.Options
         [Category("Object Creation")]
         [DefaultValue(true)]
         [DisplayName("Suggest static factory methods on object creation")]
-        [Description("On object creation suggest static factory methods, if there are any in target type.")]
+        [Description("On object creation suggest static factory methods or static properties, " +
+            "if there are any in target type.")]
         public bool SuggestFactoryMethodsOnObjectCreation { get; set; }
+
+        [Category("Object Creation")]
+        [DefaultValue(true)]
+        [DisplayName("Suggest suitable variables as method parameters first. " +
+            "Might lead to duplications in IntelliSense.")]
+        public bool SuggestLocalVariablesFirst { get; set; }
 
         public OptionsPage()
         {
@@ -62,6 +69,7 @@ namespace IntelliSenseExtender.Options
             FilterOutObsoleteSymbols = true;
             SuggestTypesOnObjectCreation = true;
             SuggestFactoryMethodsOnObjectCreation = true;
+            SuggestLocalVariablesFirst = true;
         }
 
         public override void SaveSettingsToStorage()

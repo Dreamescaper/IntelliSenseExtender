@@ -27,6 +27,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestMethodParameters()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(int i) {
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
+
+        [Test]
         public void SuggestLabmdaParameters()
         {
             const string source = @"

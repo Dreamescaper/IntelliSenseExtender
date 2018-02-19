@@ -9,6 +9,7 @@
         public bool FilterOutObsoleteSymbols { get; set; }
         public bool SuggestTypesOnObjectCreation { get; set; }
         public bool SuggestFactoryMethodsOnObjectCreation { get; set; }
+        public bool SuggestLocalVariablesFirst { get; set; }
 
         public bool EnableUnimportedSuggestions => EnableTypesSuggestions || EnableExtensionMethodsSuggestions;
     }

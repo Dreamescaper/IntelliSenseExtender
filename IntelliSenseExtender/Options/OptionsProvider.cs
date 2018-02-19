@@ -29,7 +29,8 @@ namespace IntelliSenseExtender.Options
                 EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,
                 FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
                 SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
-                SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation
+                SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation,
+                SuggestLocalVariablesFirst = optionsPage.SuggestLocalVariablesFirst
             };
         }
     }
