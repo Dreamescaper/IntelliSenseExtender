@@ -25,6 +25,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 SortCompletionsAfterImported = true,
                 SuggestTypesOnObjectCreation = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
+                SuggestLocalVariablesFirst = true,
                 UserCodeOnlySuggestions = false
             });
 

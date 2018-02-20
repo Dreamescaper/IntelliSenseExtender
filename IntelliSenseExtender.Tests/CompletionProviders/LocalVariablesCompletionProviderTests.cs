@@ -27,6 +27,93 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestInlineDeclaredLocalVariables()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(object o) {
+                        if(o is int? intVar) { }
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int? var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("intVar"));
+        }
+
+        [Test]
+        public void SuggestForeachVariable()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method() {
+                        var intArray = new int[]{1,2,3};
+                        foreach(var i in intArray)
+                        {
+                            IntMethod(
+                        }
+                    }
+
+                    public void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
+
+        [Test]
+        public void SuggestForVariable()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method()
+                    {
+                        for(int i = 0; i < 5; i++)
+                        {
+                            IntMethod(
+                        }
+                    }
+
+                    public void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
+
+        [Test]
+        public void SuggestUsingVariable()
+        {
+            const string source = @"
+                using System.IO;
+
+                public class Test {
+                    public void Method()
+                    {
+                        using (var v = new StreamReader(""))
+                        {
+                            SrMethod(
+                        }
+                    }
+
+                    public void SrMethod(StreamReader var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "SrMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("v"));
+        }
+
+        [Test]
         public void SuggestMethodParameters()
         {
             const string source = @"
@@ -233,7 +320,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void DontSuggestUndefinedLocals()
+        public void DontSuggestLocalsDefinedLater()
         {
             const string source = @"
                 using System;
@@ -253,6 +340,51 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("undefinedSoFar"));
+        }
+
+        [Test]
+        public void DontSuggestForVariableOutOfFor()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method()
+                    {
+                        for(int i = 0; i < 5; i++)
+                        {
+                        }
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("i"));
+        }
+
+        [Test]
+        public void DontSuggestForeachVariableOutOfForeach()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method()
+                    {
+                        var intArray = new int[] {1,2,3};
+                        foreach(var i in intArray)
+                        { }
+
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("i"));
         }
 
         [Test]
