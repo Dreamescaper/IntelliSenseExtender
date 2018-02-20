@@ -26,7 +26,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             if (Options.SuggestLocalVariablesFirst)
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
-                var locals = GetLocalVariables(syntaxContext).Select(localSymbol =>
+                var locals = GetLocalVariables(syntaxContext).Union(GetLambdaParameters(syntaxContext)).Select(localSymbol =>
                     CompletionItemHelper.CreateCompletionItem(localSymbol, syntaxContext, unimported: false));
 
                 context.AddItems(locals);
@@ -103,12 +103,42 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
             }
 
+            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
+
             return getVariableSyntaxes().Select(syntaxNode =>
             {
                 var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
                 Debug.Assert(declaredSymbol is ILocalSymbol, "Found Symbol is not ILocalSymbol!");
                 return declaredSymbol as ILocalSymbol;
             });
+        }
+
+        private IEnumerable<ISymbol> GetLambdaParameters(SyntaxContext syntaxContext)
+        {
+            IEnumerable<ParameterSyntax> getLambdaParameterSyntaxes()
+            {
+                var currentNode = syntaxContext.CurrentToken.Parent;
+                var lambdas = currentNode.Ancestors().Where(node => node is LambdaExpressionSyntax);
+
+                foreach (var lambdaSyntax in lambdas)
+                {
+                    if (lambdaSyntax is SimpleLambdaExpressionSyntax simpleLambda)
+                    {
+                        yield return simpleLambda.Parameter;
+                    }
+                    else if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
+                    {
+                        foreach (var parameter in parenthesizedLambda.ParameterList.Parameters)
+                        {
+                            yield return parameter;
+                        }
+                    }
+                }
+            }
+
+            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
+
+            return getLambdaParameterSyntaxes().Select(p => syntaxContext.SemanticModel.GetDeclaredSymbol(p));
         }
     }
 }
