@@ -1,7 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -16,9 +21,94 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
         }
 
-        public override Task ProvideCompletionsAsync(CompletionContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            throw new System.NotImplementedException();
+            if (Options.SuggestLocalVariablesFirst)
+            {
+                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
+                var locals = GetLocalVariables(syntaxContext).Select(localSymbol =>
+                    CompletionItemHelper.CreateCompletionItem(localSymbol, syntaxContext, unimported: false));
+
+                context.AddItems(locals);
+            }
+        }
+
+        private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
+        {
+            IEnumerable<SyntaxNode> getVariableSyntaxes()
+            {
+                var currentNode = syntaxContext.CurrentToken.Parent;
+                var parentNode = currentNode?.Parent;
+
+                while (parentNode != null
+                    && !(currentNode is MethodDeclarationSyntax)
+                    && !(currentNode is PropertyDeclarationSyntax))
+                {
+                    // foreach and using statements
+                    if (parentNode is ForEachStatementSyntax
+                        || parentNode is VariableDeclaratorSyntax)
+                    {
+                        yield return parentNode;
+                    }
+
+                    // for statement
+                    else if (parentNode is ForStatementSyntax)
+                    {
+                        var varDeclaratorSyntax = parentNode
+                            .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
+                            ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
+                        if (varDeclaratorSyntax != null)
+                        {
+                            yield return varDeclaratorSyntax;
+                        }
+                    }
+
+                    // is pattern variable
+                    // Currently only isPattern inside parent 'if' is supported
+                    else if (parentNode is IfStatementSyntax)
+                    {
+                        var patternDeclarator = parentNode
+                            .ChildNodes().FirstOrDefault(node => node is IsPatternExpressionSyntax)
+                            ?.ChildNodes().FirstOrDefault(node => node is DeclarationPatternSyntax)
+                            ?.ChildNodes().FirstOrDefault(node => node is SingleVariableDesignationSyntax);
+
+                        if (patternDeclarator != null)
+                        {
+                            yield return patternDeclarator;
+                        }
+                    }
+
+                    foreach (var childNode in parentNode.ChildNodes())
+                    {
+                        // We don't need to look further then current node
+                        if (childNode == currentNode)
+                        {
+                            break;
+                        }
+
+                        if (childNode is LocalDeclarationStatementSyntax)
+                        {
+                            var varDeclaratorSyntax = childNode
+                                .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
+                                ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
+                            if (varDeclaratorSyntax != null)
+                            {
+                                yield return varDeclaratorSyntax;
+                            }
+                        }
+                    }
+
+                    currentNode = parentNode;
+                    parentNode = currentNode.Parent;
+                }
+            }
+
+            return getVariableSyntaxes().Select(syntaxNode =>
+            {
+                var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
+                Debug.Assert(declaredSymbol is ILocalSymbol, "Found Symbol is not ILocalSymbol!");
+                return declaredSymbol as ILocalSymbol;
+            });
         }
     }
 }

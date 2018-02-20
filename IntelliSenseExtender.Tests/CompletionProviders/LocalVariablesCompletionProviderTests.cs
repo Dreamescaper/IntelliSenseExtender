@@ -32,17 +32,19 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             const string source = @"
                 public class Test {
                     public void Method(object o) {
-                        if(o is int? intVar) { }
-                        IntMethod(
+                        if(o is string strVar)
+                        {
+                            StrMethod(
+                        }
                     }
 
-                    public void IntMethod(int? var){ }
+                    public void StrMethod(string var){ }
                 }";
 
             var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(provider, source, "StrMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("intVar"));
+            Assert.That(completionsNames, Does.Contain("strVar"));
         }
 
         [Test]
