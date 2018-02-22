@@ -30,6 +30,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var locals = GetLocalVariables(syntaxContext)
                     .Union(GetLambdaParameters(syntaxContext))
                     .Union(GetTypeMembers(syntaxContext))
+                    .Union(GetMethodParameters(syntaxContext))
                     .Select(localSymbol =>
                     CompletionItemHelper.CreateCompletionItem(localSymbol, syntaxContext, unimported: false));
 
@@ -168,6 +169,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             return currentTypeMembers.Union(inheritedMembers)
                 .Where(member => member is IFieldSymbol || member is IPropertySymbol);
+        }
+
+        private IEnumerable<ISymbol> GetMethodParameters(SyntaxContext syntaxContext)
+        {
+            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
+
+            var currentNode = syntaxContext.CurrentToken.Parent;
+            var methodNode = currentNode.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+
+            if (methodNode == null)
+            {
+                return Enumerable.Empty<ISymbol>();
+            }
+
+            var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
+            return methodSymbol.Parameters;
         }
     }
 }
