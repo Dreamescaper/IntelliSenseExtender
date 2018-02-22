@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -26,7 +27,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             if (Options.SuggestLocalVariablesFirst)
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
-                var locals = GetLocalVariables(syntaxContext).Union(GetLambdaParameters(syntaxContext)).Select(localSymbol =>
+                var locals = GetLocalVariables(syntaxContext)
+                    .Union(GetLambdaParameters(syntaxContext))
+                    .Union(GetTypeMembers(syntaxContext))
+                    .Select(localSymbol =>
                     CompletionItemHelper.CreateCompletionItem(localSymbol, syntaxContext, unimported: false));
 
                 context.AddItems(locals);
@@ -118,19 +122,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             IEnumerable<ParameterSyntax> getLambdaParameterSyntaxes()
             {
                 var currentNode = syntaxContext.CurrentToken.Parent;
-                var lambdas = currentNode.Ancestors().Where(node => node is LambdaExpressionSyntax);
+                var lambdas = currentNode?.Ancestors().Where(node => node is LambdaExpressionSyntax);
 
-                foreach (var lambdaSyntax in lambdas)
+                if (lambdas != null)
                 {
-                    if (lambdaSyntax is SimpleLambdaExpressionSyntax simpleLambda)
+                    foreach (var lambdaSyntax in lambdas)
                     {
-                        yield return simpleLambda.Parameter;
-                    }
-                    else if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
-                    {
-                        foreach (var parameter in parenthesizedLambda.ParameterList.Parameters)
+                        if (lambdaSyntax is SimpleLambdaExpressionSyntax simpleLambda)
                         {
-                            yield return parameter;
+                            yield return simpleLambda.Parameter;
+                        }
+                        else if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
+                        {
+                            foreach (var parameter in parenthesizedLambda.ParameterList.Parameters)
+                            {
+                                yield return parameter;
+                            }
                         }
                     }
                 }
@@ -139,6 +146,28 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
             return getLambdaParameterSyntaxes().Select(p => syntaxContext.SemanticModel.GetDeclaredSymbol(p));
+        }
+
+        private IEnumerable<ISymbol> GetTypeMembers(SyntaxContext syntaxContext)
+        {
+            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
+
+            var enclosingSymbol = syntaxContext.SemanticModel.GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken);
+            var typeSymbol = enclosingSymbol.ContainingType;
+
+            if (typeSymbol == null)
+            {
+                return Enumerable.Empty<ISymbol>();
+            }
+
+            var currentTypeMembers = typeSymbol.GetMembers();
+            var inheritedMembers = typeSymbol.GetBaseTypes()
+                .SelectMany(type => type.GetMembers())
+                .Where(member => member.DeclaredAccessibility == Accessibility.Public
+                    || member.DeclaredAccessibility == Accessibility.Protected);
+
+            return currentTypeMembers.Union(inheritedMembers)
+                .Where(member => member is IFieldSymbol || member is IPropertySymbol);
         }
     }
 }

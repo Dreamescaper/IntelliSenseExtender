@@ -396,14 +396,20 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 public class Test {
                     public void Method() {
                         int i = 0;
-                        /* here */
                     }
                 }";
 
             var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "/* here */");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Is.Empty);
+            var document = GetTestDocument(source);
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                var context = GetContext(document, provider, i);
+                provider.ProvideCompletionsAsync(context).Wait();
+                var completions = GetCompletions(context);
+
+                Assert.That(completions, Is.Empty);
+            }
         }
     }
 }
