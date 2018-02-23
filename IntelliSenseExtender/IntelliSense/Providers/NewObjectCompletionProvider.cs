@@ -62,15 +62,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            var sourceString = text.ToString();
-
-            //trigger completion automatically when assigning values
-            var textBeforeCaret = sourceString.Substring(0, caretPosition);
-            if (trigger.Kind == CompletionTriggerKind.Insertion
-                && (textBeforeCaret.EndsWith(" = ") || textBeforeCaret.EndsWith("new ")))
+            if (Options.SuggestTypesOnObjectCreation || Options.SuggestFactoryMethodsOnObjectCreation)
             {
-                return true;
+                var sourceString = text.ToString();
+
+                //trigger completion automatically when assigning values
+                var textBeforeCaret = sourceString.Substring(0, caretPosition);
+                if (trigger.Kind == CompletionTriggerKind.Insertion
+                    && (textBeforeCaret.EndsWith(" = ") || textBeforeCaret.EndsWith("new ")))
+                {
+                    return true;
+                }
             }
+
             return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
         }
 

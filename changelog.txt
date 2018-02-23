@@ -2,6 +2,7 @@
 
 + Namespace import is now added at sorted place
 + Suggest static properties during assignment or passing as parameter (e.g. DateTime.Now)
++ Suggest suitable as arguments local variables and members first
 + Fix rare null argument crash
 + Minor fixes
 

@@ -12,6 +12,11 @@
         public const int NewSuggestion_Literal = 1;
         public const int NewSuggestion_FactoryMethod = 4;
 
+        public const int Suitable_LambdaParameters = 1;
+        public const int Suitable_Locals = 2;
+        public const int Suitable_MethodParameters = 3;
+        public const int Suitable_TypeMembers = 4;
+
         public static int WithPriority(int i) => i;
     }
 }

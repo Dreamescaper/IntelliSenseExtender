@@ -106,7 +106,7 @@ namespace IntelliSenseExtender.IntelliSense
         }
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
-            int sortingPriority = Sorting.Default, int matchPriority = -12, int newPositionOffset = 0,
+            int sortingPriority = Sorting.Default, int matchPriority = -1, int newPositionOffset = 0,
             bool unimported = true, bool newCreationSyntax = false, bool includeContainingClass = false)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
@@ -228,12 +228,18 @@ namespace IntelliSenseExtender.IntelliSense
                         }
                     }
                     break;
+                case SymbolKind.Method when ((IMethodSymbol)symbol).IsExtensionMethod:
+                    return CompletionTags.ExtensionMethod;
                 case SymbolKind.Method:
-                    if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsExtensionMethod)
-                    {
-                        return CompletionTags.ExtensionMethod;
-                    }
                     return CompletionTags.Method;
+                case SymbolKind.Local:
+                    return CompletionTags.Local;
+                case SymbolKind.Parameter:
+                    return CompletionTags.Parameter;
+                case SymbolKind.Field:
+                    return CompletionTags.Field;
+                case SymbolKind.Property:
+                    return CompletionTags.Property;
             }
 
             return string.Empty;

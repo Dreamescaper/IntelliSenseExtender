@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
@@ -27,15 +30,53 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             if (Options.SuggestLocalVariablesFirst)
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
-                var locals = GetLocalVariables(syntaxContext)
-                    .Union(GetLambdaParameters(syntaxContext))
-                    .Union(GetTypeMembers(syntaxContext))
-                    .Union(GetMethodParameters(syntaxContext))
-                    .Select(localSymbol =>
-                    CompletionItemHelper.CreateCompletionItem(localSymbol, syntaxContext, unimported: false));
 
-                context.AddItems(locals);
+                if (TryGetParameterTypeSymbol(syntaxContext, out ITypeSymbol parameterTypeSymbol))
+                {
+                    var locals = GetLocalVariables(syntaxContext);
+                    var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, parameterTypeSymbol);
+
+                    var lambdaParameters = GetLambdaParameters(syntaxContext);
+                    var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, parameterTypeSymbol);
+
+                    var typeMembers = GetTypeMembers(syntaxContext);
+                    ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
+                    var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, parameterTypeSymbol);
+
+                    var methodParameters = GetMethodParameters(syntaxContext);
+                    var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, parameterTypeSymbol);
+
+                    var localCompletions = suitableLocals
+                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_Locals));
+                    var lambdaParamsCompletions = suitableLambdaParameters
+                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_LambdaParameters));
+                    var typeMemberCompletions = suitableTypeMembers
+                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_TypeMembers));
+                    var methodParametersCompletions = suitableMethodParameters
+                        .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
+
+                    context.AddItems(localCompletions);
+                    context.AddItems(lambdaParamsCompletions);
+                    context.AddItems(typeMemberCompletions);
+                    context.AddItems(methodParametersCompletions);
+                }
             }
+        }
+
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        {
+            if (Options.SuggestLocalVariablesFirst)
+            {
+                var sourceString = text.ToString();
+
+                var textBeforeCaret = sourceString.Substring(0, caretPosition);
+                if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == '(')
+                {
+                    return true;
+                }
+            }
+
+            return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
@@ -118,7 +159,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             });
         }
 
-        private IEnumerable<ISymbol> GetLambdaParameters(SyntaxContext syntaxContext)
+        private IEnumerable<IParameterSymbol> GetLambdaParameters(SyntaxContext syntaxContext)
         {
             IEnumerable<ParameterSyntax> getLambdaParameterSyntaxes()
             {
@@ -171,7 +212,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Where(member => member is IFieldSymbol || member is IPropertySymbol);
         }
 
-        private IEnumerable<ISymbol> GetMethodParameters(SyntaxContext syntaxContext)
+        private IEnumerable<IParameterSymbol> GetMethodParameters(SyntaxContext syntaxContext)
         {
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
@@ -180,11 +221,49 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             if (methodNode == null)
             {
-                return Enumerable.Empty<ISymbol>();
+                return Enumerable.Empty<IParameterSymbol>();
             }
 
             var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
             return methodSymbol.Parameters;
+        }
+
+        private bool TryGetParameterTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
+        {
+            SyntaxNode currentSyntaxNode = syntaxContext.CurrentToken.Parent;
+
+            typeSymbol = null;
+
+            if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
+            {
+                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentSyntax);
+            }
+            else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
+            {
+                int parameterIndex = argumentListSyntax.ChildTokens()
+                    .Where(token => token.ValueText == ",")
+                    .ToList().IndexOf(syntaxContext.CurrentToken) + 1;
+                var parameters = syntaxContext.SemanticModel.GetParameters(argumentListSyntax);
+
+                typeSymbol = parameters?.ElementAtOrDefault(parameterIndex)?.Type;
+            }
+
+            return typeSymbol != null;
+        }
+
+        private IEnumerable<T> GetAssignableSymbols<T>(SyntaxContext syntaxContext, IEnumerable<T> symbols,
+            Func<T, ITypeSymbol> getSymbolType, ITypeSymbol toSymbol) where T : ISymbol
+        {
+            return symbols.Where(symbol =>
+                syntaxContext.SemanticModel.Compilation.ClassifyConversion(getSymbolType(symbol), toSymbol).IsImplicit);
+        }
+
+        private CompletionItem CreateCompletion(SyntaxContext syntaxContext, ISymbol symbol, int sorting)
+        {
+            return CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
+                unimported: false,
+                matchPriority: MatchPriority.Preselect,
+                sortingPriority: sorting);
         }
     }
 }
