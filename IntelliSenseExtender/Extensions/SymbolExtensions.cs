@@ -28,6 +28,15 @@ namespace IntelliSenseExtender.Extensions
                 .Any(attribute => attribute.AttributeClass.Name == nameof(ObsoleteAttribute));
         }
 
+        public static IEnumerable<ISymbol> AncestorsAndSelf(this ISymbol symbol)
+        {
+            while (symbol != null)
+            {
+                yield return symbol;
+                symbol = symbol.ContainingSymbol;
+            }
+        }
+
         public static bool IsAttribute(this INamedTypeSymbol typeSymbol)
         {
             var baseTypes = typeSymbol.GetBaseTypes();

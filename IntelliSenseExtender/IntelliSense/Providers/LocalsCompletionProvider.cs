@@ -195,9 +195,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
             var enclosingSymbol = syntaxContext.SemanticModel.GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken);
+
+            var methodSymbol = enclosingSymbol.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
             var typeSymbol = enclosingSymbol.ContainingType;
 
-            if (typeSymbol == null)
+            if (typeSymbol == null || methodSymbol == null)
             {
                 return Enumerable.Empty<ISymbol>();
             }
@@ -208,8 +210,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Where(member => member.DeclaredAccessibility == Accessibility.Public
                     || member.DeclaredAccessibility == Accessibility.Protected);
 
-            return currentTypeMembers.Union(inheritedMembers)
+            var fieldsAndProperties = currentTypeMembers.Union(inheritedMembers)
                 .Where(member => member is IFieldSymbol || member is IPropertySymbol);
+
+            //Don't suggest instance members in static method
+            if (methodSymbol.IsStatic)
+            {
+                fieldsAndProperties = fieldsAndProperties.Where(member => member.IsStatic);
+            }
+
+            return fieldsAndProperties;
         }
 
         private IEnumerable<IParameterSymbol> GetMethodParameters(SyntaxContext syntaxContext)

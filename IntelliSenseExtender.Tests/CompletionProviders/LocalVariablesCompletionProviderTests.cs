@@ -390,6 +390,26 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DontSuggestInstanceMembersInStaticMethod()
+        {
+            const string source = @"
+                public class Test {
+                    private int _field = 0;
+
+                    public static void Method() {
+                        IntMethod(
+                    }
+
+                    public static void IntMethod(int var){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("_field"));
+        }
+
+        [Test]
         public void DontSuggestAnythingInArbitraryContext()
         {
             const string source = @"
