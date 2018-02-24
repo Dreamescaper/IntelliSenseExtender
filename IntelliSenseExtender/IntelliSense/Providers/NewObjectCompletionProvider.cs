@@ -210,6 +210,19 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             {
                 typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
             }
+            else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
+            {
+                var parentMethodOrProperty = returnStatementSyntax
+                    .Ancestors()
+                    .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
+
+                var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
+                    ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
+                if (typeSyntax != null)
+                {
+                    typeSymbol = syntaxContext.SemanticModel.GetTypeInfo(typeSyntax).Type;
+                }
+            }
 
             return typeSymbol != null;
         }

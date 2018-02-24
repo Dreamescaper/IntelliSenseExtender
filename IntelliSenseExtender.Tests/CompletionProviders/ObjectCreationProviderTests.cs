@@ -343,11 +343,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void Method() 
                     { }
 
-                    public static bool DoSmth(Test testInstance)
+                    public static void DoSmth(Test testInstance)
                     {
                         testInstance.Method();
                         var v1 = new
-                        return true;
                     }
                 }";
 
@@ -362,6 +361,25 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
                 Assert.That(completions, Is.Empty);
             }
+        }
+
+        [Test]
+        public void SuggestOnReturn()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+
+                public class Test {
+                    public List<int> Method() {
+                        return 
+                    }
+                }";
+
+            var provider = new NewObjectCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("new List<int>"));
         }
 
         [Test]

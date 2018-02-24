@@ -481,5 +481,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             Assert.That(completionsNames, Does.Not.Contain("_stringField"));
             Assert.That(completionsNames, Does.Contain("_boolField"));
         }
+
+        [Test]
+        public void SuggestReturnValues()
+        {
+            const string source = @"
+                public class Test {
+                    public int Method()
+                    {
+                        int i = 0;
+                        return 
+                    }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
     }
 }
