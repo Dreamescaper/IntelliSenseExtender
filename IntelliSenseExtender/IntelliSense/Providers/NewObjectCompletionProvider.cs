@@ -69,7 +69,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 //trigger completion automatically when assigning values
                 var textBeforeCaret = sourceString.Substring(0, caretPosition);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
-                    && (textBeforeCaret.EndsWith(" = ") || textBeforeCaret.EndsWith("new ")))
+                    && (textBeforeCaret.EndsWith(" = ")
+                    || textBeforeCaret.EndsWith(" = new ")
+                    || textBeforeCaret.EndsWith("return ")))
                 {
                     return true;
                 }

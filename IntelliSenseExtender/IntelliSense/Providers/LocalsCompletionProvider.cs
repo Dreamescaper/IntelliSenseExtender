@@ -70,7 +70,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var sourceString = text.ToString();
 
                 var textBeforeCaret = sourceString.Substring(0, caretPosition);
-                if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == '(')
+                if (trigger.Kind == CompletionTriggerKind.Insertion &&
+                    (trigger.Character == '(' || textBeforeCaret.EndsWith("return ")))
                 {
                     return true;
                 }
