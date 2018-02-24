@@ -240,9 +240,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private bool TryGetParameterTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
         {
-            SyntaxNode currentSyntaxNode = syntaxContext.CurrentToken.Parent;
+            SyntaxToken currentToken = syntaxContext.CurrentToken;
+            SyntaxNode currentSyntaxNode = currentToken.Parent;
 
             typeSymbol = null;
+
+            // If we have named parameter, we need to work with parent
+            if (currentSyntaxNode is NameColonSyntax)
+            {
+                currentSyntaxNode = currentSyntaxNode.Parent;
+            }
 
             if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
             {
@@ -250,12 +257,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
             {
-                int parameterIndex = argumentListSyntax.ChildTokens()
-                    .Where(token => token.ValueText == ",")
-                    .ToList().IndexOf(syntaxContext.CurrentToken) + 1;
-                var parameters = syntaxContext.SemanticModel.GetParameters(argumentListSyntax);
-
-                typeSymbol = parameters?.ElementAtOrDefault(parameterIndex)?.Type;
+                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
             }
 
             return typeSymbol != null;

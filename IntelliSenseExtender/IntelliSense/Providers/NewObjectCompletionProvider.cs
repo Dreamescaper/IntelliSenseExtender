@@ -179,12 +179,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private bool TryGetTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
         {
-            SyntaxNode currentSyntaxNode = syntaxContext.CurrentToken.Parent;
+            SyntaxToken currentToken = syntaxContext.CurrentToken;
+            SyntaxNode currentSyntaxNode = currentToken.Parent;
 
             typeSymbol = null;
 
             // If new keyword is already present, we need to work with parent node
-            if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+            if (currentSyntaxNode is ObjectCreationExpressionSyntax
+                || currentSyntaxNode is NameColonSyntax)
             {
                 currentSyntaxNode = currentSyntaxNode.Parent;
             }
@@ -206,12 +208,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
             {
-                int parameterIndex = argumentListSyntax.ChildTokens()
-                    .Where(token => token.ValueText == ",")
-                    .ToList().IndexOf(syntaxContext.CurrentToken) + 1;
-                var parameters = syntaxContext.SemanticModel.GetParameters(argumentListSyntax);
-
-                typeSymbol = parameters?.ElementAtOrDefault(parameterIndex)?.Type;
+                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
             }
 
             return typeSymbol != null;

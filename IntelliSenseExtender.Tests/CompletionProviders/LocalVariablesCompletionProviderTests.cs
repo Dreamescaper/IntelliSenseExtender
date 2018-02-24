@@ -431,5 +431,55 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 Assert.That(completions, Is.Empty);
             }
         }
+
+        [Test]
+        public void SuggestCorrectArgumentType()
+        {
+            const string source = @"
+                public class Test {
+                    private int _intField = 0;
+                    private string _stringField = "";
+                    private bool _boolField = false;
+
+                    public void Method() {
+                        MultiMethod(_intField, 
+                    }
+
+                    public void MultiMethod(int intVar, string strVar, bool boolVar){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "MultiMethod(_intField, ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("_intField"));
+            Assert.That(completionsNames, Does.Not.Contain("_boolField"));
+            Assert.That(completionsNames, Does.Contain("_stringField"));
+        }
+
+        [Test]
+        public void SuggestCorrectNamedArgumentType()
+        {
+            const string source = @"
+                public class Test {
+                    private int _intField = 0;
+                    private string _stringField = "";
+                    private bool _boolField = false;
+
+                    public void Method() {
+                        MultiMethod(boolVar:  
+                    }
+
+                    public void MultiMethod(int intVar, string strVar, bool boolVar){ }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "MultiMethod(boolVar:  ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("_intField"));
+            Assert.That(completionsNames, Does.Not.Contain("_stringField"));
+            Assert.That(completionsNames, Does.Contain("_boolField"));
+        }
     }
 }
