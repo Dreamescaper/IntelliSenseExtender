@@ -31,20 +31,26 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             {
                 var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
 
-                if (TryGetParameterTypeSymbol(syntaxContext, out ITypeSymbol parameterTypeSymbol))
+                var typeSymbol = syntaxContext.SemanticModel.GetTypeSymbol(syntaxContext.CurrentToken,
+                    variableDeclaration: false,
+                    assignment: false,
+                    methodArgument: true,
+                    returnValue: true);
+
+                if (typeSymbol != null)
                 {
                     var locals = GetLocalVariables(syntaxContext);
-                    var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, parameterTypeSymbol);
+                    var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
 
                     var lambdaParameters = GetLambdaParameters(syntaxContext);
-                    var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, parameterTypeSymbol);
+                    var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, typeSymbol);
 
                     var typeMembers = GetTypeMembers(syntaxContext);
                     ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
-                    var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, parameterTypeSymbol);
+                    var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, typeSymbol);
 
                     var methodParameters = GetMethodParameters(syntaxContext);
-                    var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, parameterTypeSymbol);
+                    var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, typeSymbol);
 
                     var localCompletions = suitableLocals
                         .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_Locals));
@@ -70,8 +76,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var sourceString = text.ToString();
 
                 var textBeforeCaret = sourceString.Substring(0, caretPosition);
-                if (trigger.Kind == CompletionTriggerKind.Insertion &&
-                    (trigger.Character == '(' || textBeforeCaret.EndsWith("return ")))
+                if (trigger.Kind == CompletionTriggerKind.Insertion
+                    && (trigger.Character == '(' || textBeforeCaret.EndsWith(", ") || textBeforeCaret.EndsWith("return ")))
                 {
                     return true;
                 }
@@ -237,44 +243,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
             return methodSymbol.Parameters;
-        }
-
-        private bool TryGetParameterTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
-        {
-            SyntaxToken currentToken = syntaxContext.CurrentToken;
-            SyntaxNode currentSyntaxNode = currentToken.Parent;
-
-            typeSymbol = null;
-
-            // If we have named parameter, we need to work with parent
-            if (currentSyntaxNode is NameColonSyntax)
-            {
-                currentSyntaxNode = currentSyntaxNode.Parent;
-            }
-
-            if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
-            {
-                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentSyntax);
-            }
-            else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
-            {
-                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
-            }
-            else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
-            {
-                var parentMethodOrProperty = returnStatementSyntax
-                    .Ancestors()
-                    .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
-
-                var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
-                    ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
-                if (typeSyntax != null)
-                {
-                    typeSymbol = syntaxContext.SemanticModel.GetTypeInfo(typeSyntax).Type;
-                }
-            }
-
-            return typeSymbol != null;
         }
 
         private IEnumerable<T> GetAssignableSymbols<T>(SyntaxContext syntaxContext, IEnumerable<T> symbols,

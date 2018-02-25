@@ -6,7 +6,6 @@ using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +37,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     newKeywordRequired = false;
                 }
 
-                if (TryGetTypeSymbol(syntaxContext, out ITypeSymbol typeSymbol))
+                var typeSymbol = syntaxContext.SemanticModel.GetTypeSymbol(syntaxContext.CurrentToken);
+                if (typeSymbol != null)
                 {
                     if (!typeSymbol.IsBuiltInType())
                     {
@@ -177,56 +177,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 (type.TypeKind == TypeKind.Class || type.TypeKind == TypeKind.Struct)
                 && !type.IsAbstract
                 && type.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public);
-        }
-
-        private bool TryGetTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol typeSymbol)
-        {
-            SyntaxToken currentToken = syntaxContext.CurrentToken;
-            SyntaxNode currentSyntaxNode = currentToken.Parent;
-
-            typeSymbol = null;
-
-            // If new keyword is already present, we need to work with parent node
-            if (currentSyntaxNode is ObjectCreationExpressionSyntax
-                || currentSyntaxNode is NameColonSyntax)
-            {
-                currentSyntaxNode = currentSyntaxNode.Parent;
-            }
-
-            if (currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
-                && !varDeclarationSyntax.Type.IsVar)
-            {
-                var typeInfo = syntaxContext.SemanticModel.GetTypeInfo(varDeclarationSyntax.Type);
-                typeSymbol = typeInfo.Type;
-            }
-            else if (currentSyntaxNode is AssignmentExpressionSyntax assigmentExpressionSyntax)
-            {
-                var typeInfo = syntaxContext.SemanticModel.GetTypeInfo(assigmentExpressionSyntax.Left);
-                typeSymbol = typeInfo.Type;
-            }
-            else if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
-            {
-                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentSyntax);
-            }
-            else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
-            {
-                typeSymbol = syntaxContext.SemanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
-            }
-            else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
-            {
-                var parentMethodOrProperty = returnStatementSyntax
-                    .Ancestors()
-                    .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
-
-                var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
-                    ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
-                if (typeSyntax != null)
-                {
-                    typeSymbol = syntaxContext.SemanticModel.GetTypeInfo(typeSyntax).Type;
-                }
-            }
-
-            return typeSymbol != null;
         }
 
         /// <summary>

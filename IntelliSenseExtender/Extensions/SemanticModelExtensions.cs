@@ -8,7 +8,56 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SemanticModelExtensions
     {
-        public static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
+        public static ITypeSymbol GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken,
+            bool variableDeclaration = true, bool assignment = true, bool methodArgument = true, bool returnValue = true)
+        {
+            SyntaxNode currentSyntaxNode = currentToken.Parent;
+
+            // If new keyword is already present, we need to work with parent node
+            if (currentSyntaxNode is ObjectCreationExpressionSyntax
+                || currentSyntaxNode is NameColonSyntax)
+            {
+                currentSyntaxNode = currentSyntaxNode.Parent;
+            }
+
+            if (variableDeclaration
+                && currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
+                && !varDeclarationSyntax.Type.IsVar)
+            {
+                var typeInfo = semanticModel.GetTypeInfo(varDeclarationSyntax.Type);
+                return typeInfo.Type;
+            }
+            if (assignment && currentSyntaxNode is AssignmentExpressionSyntax assigmentExpressionSyntax)
+            {
+                var typeInfo = semanticModel.GetTypeInfo(assigmentExpressionSyntax.Left);
+                return typeInfo.Type;
+            }
+            if (methodArgument && currentSyntaxNode is ArgumentSyntax argumentSyntax)
+            {
+                return semanticModel.GetArgumentTypeSymbol(argumentSyntax);
+            }
+            if (methodArgument && currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
+            {
+                return semanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
+            }
+            if (returnValue && currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
+            {
+                var parentMethodOrProperty = returnStatementSyntax
+                    .Ancestors()
+                    .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
+
+                var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
+                    ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
+                if (typeSyntax != null)
+                {
+                    return semanticModel.GetTypeInfo(typeSyntax).Type;
+                }
+            }
+
+            return null;
+        }
+
+        private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
         {
             ITypeSymbol result = null;
 
@@ -39,7 +88,7 @@ namespace IntelliSenseExtender.Extensions
             return result;
         }
 
-        public static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
+        private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
         {
             int parameterIndex = argumentListSyntax.ChildTokens()
                 .Where(token => token.IsKind(SyntaxKind.CommaToken))
@@ -52,7 +101,7 @@ namespace IntelliSenseExtender.Extensions
         /// <summary>
         /// Return list of parameters of invoked method. Returns null if no method symbol found.
         /// </summary>
-        public static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
+        private static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
             var invocationSyntax = argumentListSyntax.Parent;
             var methodInfo = semanticModel.GetSymbolInfo(node: invocationSyntax);
