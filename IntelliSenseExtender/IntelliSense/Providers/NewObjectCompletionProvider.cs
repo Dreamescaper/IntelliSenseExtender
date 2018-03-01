@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
@@ -15,6 +16,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     [ExportCompletionProvider("Object creation provider", LanguageNames.CSharp)]
     public class NewObjectCompletionProvider : AbstractCompletionProvider
     {
+        private static readonly Regex BracketRegex = new Regex(@"\w\($");
+
         public NewObjectCompletionProvider() : base()
         {
         }
@@ -71,7 +74,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 if (trigger.Kind == CompletionTriggerKind.Insertion
                     && (textBeforeCaret.EndsWith(" = ")
                     || textBeforeCaret.EndsWith(" = new ")
-                    || textBeforeCaret.EndsWith("return ")))
+                    || textBeforeCaret.EndsWith("return ")
+                    || BracketRegex.IsMatch(textBeforeCaret)))
                 {
                     return true;
                 }

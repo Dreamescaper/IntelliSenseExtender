@@ -15,6 +15,7 @@ namespace IntelliSenseExtender.Extensions
 
             // If new keyword is already present, we need to work with parent node
             if (currentSyntaxNode is ObjectCreationExpressionSyntax
+                // happens with named arguments - we need to get ArgumentSyntax
                 || currentSyntaxNode is NameColonSyntax)
             {
                 currentSyntaxNode = currentSyntaxNode.Parent;

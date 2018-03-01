@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.Options;
@@ -17,6 +18,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     [ExportCompletionProvider(nameof(LocalsCompletionProvider), LanguageNames.CSharp)]
     public class LocalsCompletionProvider : AbstractCompletionProvider
     {
+        private static readonly Regex BracketRegex = new Regex(@"\w\($");
+
         public LocalsCompletionProvider() : base()
         {
         }
@@ -77,7 +80,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
                 var textBeforeCaret = sourceString.Substring(0, caretPosition);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
-                    && (trigger.Character == '(' || textBeforeCaret.EndsWith(", ") || textBeforeCaret.EndsWith("return ")))
+                    && (BracketRegex.IsMatch(textBeforeCaret) || textBeforeCaret.EndsWith(", ") || textBeforeCaret.EndsWith("return ")))
                 {
                     return true;
                 }
