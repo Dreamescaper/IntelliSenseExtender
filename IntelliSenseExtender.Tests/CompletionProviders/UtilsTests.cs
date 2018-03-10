@@ -28,8 +28,6 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         [Test]
         public void NamespaceResolver_ShouldAddUsingInsideNamespaceIfUsingsArePresent()
         {
-            // Basically verify that all that reflection crap is not broken.
-
             const string source = @"
                 namespace ns.something
                 {

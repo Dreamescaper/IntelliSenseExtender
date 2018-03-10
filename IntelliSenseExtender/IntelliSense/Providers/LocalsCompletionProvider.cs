@@ -95,56 +95,26 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             {
                 var currentNode = syntaxContext.CurrentToken.Parent;
                 var parentNode = currentNode?.Parent;
-
-                while (parentNode != null
-                    && !(currentNode is MethodDeclarationSyntax)
-                    && !(currentNode is PropertyDeclarationSyntax))
+                var containingMethodNode = parentNode?.AncestorsAndSelf()
+                    .FirstOrDefault(node =>
+                        node is MethodDeclarationSyntax
+                        || node is PropertyDeclarationSyntax
+                        || node is ConstructorDeclarationSyntax);
+                if (containingMethodNode != null)
                 {
-                    // foreach and using statements
-                    if (parentNode is ForEachStatementSyntax
-                        || parentNode is VariableDeclaratorSyntax)
+                    while (parentNode != null && currentNode != containingMethodNode)
                     {
-                        yield return parentNode;
-                    }
-
-                    // for statement
-                    else if (parentNode is ForStatementSyntax)
-                    {
-                        var varDeclaratorSyntax = parentNode
-                            .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
-                            ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
-                        if (varDeclaratorSyntax != null)
+                        // foreach and using statements
+                        if (parentNode is ForEachStatementSyntax
+                            || parentNode is VariableDeclaratorSyntax)
                         {
-                            yield return varDeclaratorSyntax;
-                        }
-                    }
-
-                    // is pattern variable
-                    // Currently only isPattern inside parent 'if' is supported
-                    else if (parentNode is IfStatementSyntax)
-                    {
-                        var patternDeclarator = parentNode
-                            .ChildNodes().FirstOrDefault(node => node is IsPatternExpressionSyntax)
-                            ?.ChildNodes().FirstOrDefault(node => node is DeclarationPatternSyntax)
-                            ?.ChildNodes().FirstOrDefault(node => node is SingleVariableDesignationSyntax);
-
-                        if (patternDeclarator != null)
-                        {
-                            yield return patternDeclarator;
-                        }
-                    }
-
-                    foreach (var childNode in parentNode.ChildNodes())
-                    {
-                        // We don't need to look further then current node
-                        if (childNode == currentNode)
-                        {
-                            break;
+                            yield return parentNode;
                         }
 
-                        if (childNode is LocalDeclarationStatementSyntax)
+                        // for statement
+                        else if (parentNode is ForStatementSyntax)
                         {
-                            var varDeclaratorSyntax = childNode
+                            var varDeclaratorSyntax = parentNode
                                 .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
                                 ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
                             if (varDeclaratorSyntax != null)
@@ -152,21 +122,58 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                                 yield return varDeclaratorSyntax;
                             }
                         }
-                    }
 
-                    currentNode = parentNode;
-                    parentNode = currentNode.Parent;
+                        // is pattern variable
+                        // Currently only isPattern inside parent 'if' is supported
+                        else if (parentNode is IfStatementSyntax)
+                        {
+                            var patternDeclarator = parentNode
+                                .ChildNodes().FirstOrDefault(node => node is IsPatternExpressionSyntax)
+                                ?.ChildNodes().FirstOrDefault(node => node is DeclarationPatternSyntax)
+                                ?.ChildNodes().FirstOrDefault(node => node is SingleVariableDesignationSyntax);
+
+                            if (patternDeclarator != null)
+                            {
+                                yield return patternDeclarator;
+                            }
+                        }
+
+                        foreach (var childNode in parentNode.ChildNodes())
+                        {
+                            // We don't need to look further then current node
+                            if (childNode == currentNode)
+                            {
+                                break;
+                            }
+
+                            if (childNode is LocalDeclarationStatementSyntax)
+                            {
+                                var varDeclaratorSyntax = childNode
+                                    .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
+                                    ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
+                                if (varDeclaratorSyntax != null)
+                                {
+                                    yield return varDeclaratorSyntax;
+                                }
+                            }
+                        }
+
+                        currentNode = parentNode;
+                        parentNode = currentNode.Parent;
+                    }
                 }
             }
 
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
-            return getVariableSyntaxes().Select(syntaxNode =>
-            {
-                var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
-                Debug.Assert(declaredSymbol is ILocalSymbol, "Found Symbol is not ILocalSymbol!");
-                return declaredSymbol as ILocalSymbol;
-            });
+            return getVariableSyntaxes()
+                .Select(syntaxNode =>
+                {
+                    var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
+                    Debug.Assert(declaredSymbol is ILocalSymbol, "Found Symbol is not ILocalSymbol!");
+                    return declaredSymbol as ILocalSymbol;
+                })
+                .Where(symbol => symbol != null);
         }
 
         private IEnumerable<IParameterSymbol> GetLambdaParameters(SyntaxContext syntaxContext)

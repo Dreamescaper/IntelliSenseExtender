@@ -134,6 +134,21 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestLambdaParameterOutsideMethod()
+        {
+            const string source = @"
+                using System;
+                public static class Test {
+                    public static Func<string, string, bool> F = (a,b) => a.Contains(
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "a.Contains(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("b"));
+        }
+
+        [Test]
         public void SuggestLabmdaParameters()
         {
             const string source = @"
