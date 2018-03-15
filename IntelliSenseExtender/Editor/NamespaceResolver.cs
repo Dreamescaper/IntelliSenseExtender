@@ -22,20 +22,20 @@ namespace IntelliSenseExtender.Editor
         /// <summary>
         /// Add namespace to current document
         /// </summary>
-        public async Task AddNamespaceAndApply(string nsName, Document document, CancellationToken cancellationToken)
+        public async Task AddNamespaceAndApplyAsync(string nsName, Document document, CancellationToken cancellationToken)
         {
             var workspace = GetVisualStudioWorkspace();
 
             // Provided document might be outdated at this point. Find recent one.
             var recentDocument = workspace.CurrentSolution.GetDocument(document.Id);
-            var newDocument = await AddNamespaceImport(nsName, recentDocument, cancellationToken).ConfigureAwait(false);
+            var newDocument = await AddNamespaceImportAsync(nsName, recentDocument, cancellationToken).ConfigureAwait(false);
 
             bool addedSuccessfully = workspace.TryApplyChanges(newDocument.Project.Solution);
 
             Debug.Assert(addedSuccessfully, "Failed to add import!");
         }
 
-        public async Task<Document> AddNamespaceImport(string nsName, Document document, CancellationToken cancellationToken)
+        public async Task<Document> AddNamespaceImportAsync(string nsName, Document document, CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

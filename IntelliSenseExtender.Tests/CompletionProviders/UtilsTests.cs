@@ -19,7 +19,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImport("System", document, CancellationToken.None).Result;
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System", document, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
             Assert.That(newDocText, Does.Contain("using System;"));
@@ -37,7 +37,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImport("System.Collections", document, CancellationToken.None).Result;
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System.Collections", document, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
             Assert.That(newDocText, Does.Contain("using System.Collections;"));

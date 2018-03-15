@@ -32,7 +32,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (Options.SuggestLocalVariablesFirst)
             {
-                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
+                var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
 
                 var typeSymbol = syntaxContext.SemanticModel.GetTypeSymbol(syntaxContext.CurrentToken,
                     variableDeclaration: false,

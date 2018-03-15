@@ -54,7 +54,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName)
                 && IsCommitContext())
             {
-                await _namespaceResolver.AddNamespaceAndApply(nsName, document, cancellationToken).ConfigureAwait(false);
+                await _namespaceResolver.AddNamespaceAndApplyAsync(nsName, document, cancellationToken).ConfigureAwait(false);
             }
 
             return CompletionChange.Create(new TextChange(item.Span, insertText), newPosition);

@@ -44,7 +44,7 @@ namespace IntelliSenseExtender.IntelliSense
             CancellationToken = token;
         }
 
-        public static async Task<SyntaxContext> Create(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<SyntaxContext> CreateAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
             var syntaxTree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);

@@ -24,7 +24,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (Options.EnableUnimportedSuggestions)
             {
-                var syntaxContext = await SyntaxContext.Create(context.Document, context.Position, context.CancellationToken)
+                var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                     .ConfigureAwait(false);
                 var symbols = GetSymbols(syntaxContext);
 

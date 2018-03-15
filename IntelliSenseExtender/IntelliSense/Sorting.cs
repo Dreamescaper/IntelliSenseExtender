@@ -16,7 +16,5 @@
         public const int Suitable_Locals = 2;
         public const int Suitable_MethodParameters = 3;
         public const int Suitable_TypeMembers = 4;
-
-        public static int WithPriority(int i) => i;
     }
 }
