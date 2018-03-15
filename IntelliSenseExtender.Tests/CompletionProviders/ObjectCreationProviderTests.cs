@@ -24,7 +24,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("new List<string>"));
+            Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("new List<string>"));
+            Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("new List<string>"));
+            Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, "int res = DoSomething(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("new List<int>"));
+            Assert.That(completionsNames, Does.Contain("new List<int>()"));
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, "new Test1(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("new List<int>"));
+            Assert.That(completionsNames, Does.Contain("new List<int>()"));
         }
 
         [Test]
@@ -145,7 +145,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
-                Does.Contain("new List<string>  (System.Collections.Generic)"));
+                Does.Contain("new List<string>()  (System.Collections.Generic)"));
         }
 
         [Test]
@@ -179,7 +179,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
-                Does.Not.Contain("new TContraints<string>"));
+                Does.Not.Contain("new TContraints<string>()"));
         }
 
         [Test]
@@ -217,7 +217,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
-                Does.Contain("new TContraints<SomeClassDerived>"));
+                Does.Contain("new TContraints<SomeClassDerived>()"));
         }
 
         [Test]
@@ -308,8 +308,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var provider = new NewObjectCompletionProvider(Options_Default);
             var completions = GetCompletions(provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain($"new {shortName}"));
-            Assert.That(completionsNames, Does.Not.Contain($"new {typeName}"));
+            Assert.That(completionsNames, Does.Not.Contain($"new {shortName}()"));
+            Assert.That(completionsNames, Does.Not.Contain($"new {typeName}()"));
         }
 
         [Test]
@@ -379,7 +379,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(provider, source, "return ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Contain("new List<int>"));
+            Assert.That(completionsNames, Does.Contain("new List<int>()"));
         }
 
         [Test]

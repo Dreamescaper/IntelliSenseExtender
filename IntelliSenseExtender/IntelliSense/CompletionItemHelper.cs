@@ -62,7 +62,7 @@ namespace IntelliSenseExtender.IntelliSense
 
             if (newCreation)
             {
-                displayText = $"new {displayText}";
+                displayText = $"new {displayText}()";
                 insertText = displayText;
             }
 
