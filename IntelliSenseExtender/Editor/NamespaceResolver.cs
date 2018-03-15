@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
@@ -48,9 +50,13 @@ namespace IntelliSenseExtender.Editor
                 .NormalizeWhitespace()
                 .WithTrailingTrivia(SyntaxFactory.EndOfLine("\r\n"));
 
+            var existingUsingContext = root.DescendantNodes()
+                .OfType<UsingDirectiveSyntax>()
+                .FirstOrDefault() ?? root;
+
             var services = document.Project.LanguageServices;
             var finalRoot = services.AddImports(
-                model.Compilation, root, root, new[] { import }, placeSystemNamespaceFirst);
+                model.Compilation, root, existingUsingContext, new[] { import }, placeSystemNamespaceFirst);
 
             return document.WithSyntaxRoot(finalRoot);
         }
