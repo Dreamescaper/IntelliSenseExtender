@@ -24,6 +24,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 FilterOutObsoleteSymbols = true,
                 SortCompletionsAfterImported = true,
                 SuggestTypesOnObjectCreation = true,
+                AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
                 SuggestLocalVariablesFirst = true,
                 UserCodeOnlySuggestions = false

@@ -49,6 +49,12 @@ namespace IntelliSenseExtender.Options
 
         [Category("Object Creation")]
         [DefaultValue(true)]
+        [DisplayName("Add parenthesis for 'new' suggestions")]
+        [Description("When we create new object, show 'new' completions with parenthesis (including invocation)")]
+        public bool AddParethesisForNewSuggestions { get; set; }
+
+        [Category("Object Creation")]
+        [DefaultValue(true)]
         [DisplayName("Suggest static factory methods on object creation")]
         [Description("On object creation suggest static factory methods or static properties, " +
             "if there are any in target type.")]
@@ -68,6 +74,7 @@ namespace IntelliSenseExtender.Options
             EnableExtensionMethodsSuggestions = true;
             FilterOutObsoleteSymbols = true;
             SuggestTypesOnObjectCreation = true;
+            AddParethesisForNewSuggestions = true;
             SuggestFactoryMethodsOnObjectCreation = true;
             SuggestLocalVariablesFirst = true;
         }

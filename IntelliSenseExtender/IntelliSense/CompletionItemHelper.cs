@@ -13,9 +13,9 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
         {
-            const string AttributeSuffix = "Attribute";
+            const string AttributeSuffix = nameof(Attribute);
 
             string displayText;
             string insertText;
@@ -62,7 +62,11 @@ namespace IntelliSenseExtender.IntelliSense
 
             if (newCreation)
             {
-                displayText = $"new {displayText}()";
+                displayText = $"new {displayText}";
+                if (showParenthesisForNewCreations)
+                {
+                    displayText += "()";
+                }
                 insertText = displayText;
             }
 
@@ -107,7 +111,9 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
             int sortingPriority = Sorting.Default, int matchPriority = -1, int newPositionOffset = 0,
-            bool unimported = true, bool newCreationSyntax = false, bool includeContainingClass = false)
+            bool unimported = true,
+            bool newCreationSyntax = false, bool showParenthesisForNewCreations = false,
+            bool includeContainingClass = false)
         {
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
@@ -126,7 +132,8 @@ namespace IntelliSenseExtender.IntelliSense
             // and here put symbol to cache.
             GetSymbolMapping(context.Document)[fullSymbolName] = symbol;
 
-            (string displayText, string insertText) = GetDisplayInsertText(symbol, context, nsName, unimported, includeContainingClass, newCreationSyntax);
+            (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
+                nsName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
             props.Add(CompletionItemProperties.SymbolName, symbol.Name);

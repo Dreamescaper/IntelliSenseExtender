@@ -130,7 +130,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         priority, MatchPriority.Preselect,
                         newPositionOffset: 0,
                         unimported: unimported,
-                        newCreationSyntax: newKeywordRequired);
+                        newCreationSyntax: newKeywordRequired,
+                        showParenthesisForNewCreations: Options.AddParethesisForNewSuggestions);
                     return item;
                 });
 
