@@ -98,8 +98,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var containingMethodNode = parentNode?.AncestorsAndSelf()
                     .FirstOrDefault(node =>
                         node is MethodDeclarationSyntax
-                        || node is PropertyDeclarationSyntax
+                        || node is AccessorDeclarationSyntax
                         || node is ConstructorDeclarationSyntax);
+
                 if (containingMethodNode != null)
                 {
                     while (parentNode != null && currentNode != containingMethodNode)
@@ -244,15 +245,26 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
             var currentNode = syntaxContext.CurrentToken.Parent;
-            var methodNode = currentNode.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
 
-            if (methodNode == null)
+            var methodOrPropertyNode = currentNode.AncestorsAndSelf()
+                .Where(node => node is MethodDeclarationSyntax || node is AccessorDeclarationSyntax)
+                .FirstOrDefault();
+
+            if (methodOrPropertyNode is MethodDeclarationSyntax methodNode)
             {
-                return Enumerable.Empty<IParameterSymbol>();
+                var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
+                return methodSymbol.Parameters;
+            }
+            //Special case - property set method
+            else if (methodOrPropertyNode is AccessorDeclarationSyntax accessorNode
+                && accessorNode.Kind() == SyntaxKind.SetAccessorDeclaration)
+            {
+                var propertyNode = accessorNode.Ancestors().OfType<PropertyDeclarationSyntax>().First();
+                var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(propertyNode);
+                return propertySymbol.SetMethod.Parameters;
             }
 
-            var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
-            return methodSymbol.Parameters;
+            return Enumerable.Empty<IParameterSymbol>();
         }
 
         private IEnumerable<T> GetAssignableSymbols<T>(SyntaxContext syntaxContext, IEnumerable<T> symbols,

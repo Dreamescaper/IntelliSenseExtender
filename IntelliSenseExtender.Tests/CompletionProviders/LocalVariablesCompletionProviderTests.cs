@@ -266,6 +266,32 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestSetterValueParameter()
+        {
+            const string source = @"
+                public class TestClass
+                {
+                    public int Prop
+                    {
+                        get => 0;
+                        set
+                        {
+                            Method(
+                        }
+                    }
+
+                    public void Method(int i)
+                    {
+                    }
+                }";
+
+            var provider = new LocalsCompletionProvider(Options_Default);
+            var completions = GetCompletions(provider, source, "Method(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("value"));
+        }
+
+        [Test]
         public void DontSuggestNotSuitableVariables()
         {
             const string source = @"
