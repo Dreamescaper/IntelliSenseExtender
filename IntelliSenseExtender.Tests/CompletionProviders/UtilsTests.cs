@@ -54,5 +54,22 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             Assert.That(newDocText.IndexOf("using System.Collections;"),
                 Is.GreaterThan(newDocText.IndexOf("namespace ns.something")));
         }
+
+        [Test]
+        public void NamespaceResolver_ShouldAddNamespaceRelativeToParentNamespace()
+        {
+            const string source = @"
+                namespace A.B.C
+                {
+                    using System;
+                }";
+
+            var document = GetTestDocument(source);
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.C.D.E", document, CancellationToken.None).Result;
+            var newDocText = newDoc.GetTextAsync().Result.ToString();
+
+            Assert.That(newDocText, Does.Not.Contain("using A.B.C.D.E;"));
+            Assert.That(newDocText, Does.Contain("using D.E;"));
+        }
     }
 }

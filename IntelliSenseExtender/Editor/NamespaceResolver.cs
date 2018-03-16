@@ -1,12 +1,14 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Package = Microsoft.VisualStudio.Shell.Package;
@@ -45,20 +47,62 @@ namespace IntelliSenseExtender.Editor
 
             bool placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
 
-            var import = SyntaxGenerator.GetGenerator(document)
-                .NamespaceImportDeclaration(nsName)
-                .NormalizeWhitespace()
-                .WithTrailingTrivia(SyntaxFactory.EndOfLine("\r\n"));
-
             var existingUsingContext = root.DescendantNodes()
                 .OfType<UsingDirectiveSyntax>()
                 .FirstOrDefault() ?? root;
 
-            var services = document.Project.LanguageServices;
-            var finalRoot = services.AddImports(
-                model.Compilation, root, existingUsingContext, new[] { import }, placeSystemNamespaceFirst);
+            var parentNamespace = existingUsingContext.Ancestors()
+                .OfType<NamespaceDeclarationSyntax>()
+                .FirstOrDefault()
+                ?.Name.GetText().ToString().Trim();
 
-            return document.WithSyntaxRoot(finalRoot);
+            //If we're adding import inside namespace, added namespace should be reduced relatively to parent namespace
+            if (parentNamespace != null)
+            {
+                nsName = ReduceNamespaceName(nsName, parentNamespace);
+            }
+
+            if (!string.IsNullOrWhiteSpace(nsName))
+            {
+                var import = SyntaxGenerator.GetGenerator(document).NamespaceImportDeclaration(nsName);
+
+                var services = document.Project.LanguageServices;
+                var finalRoot = services.AddImports(
+                    model.Compilation, root, existingUsingContext, new[] { import }, placeSystemNamespaceFirst);
+
+                var newDocument = document.WithSyntaxRoot(finalRoot);
+                newDocument = await Formatter.FormatAsync(newDocument, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);
+
+                return newDocument;
+            }
+            else
+            {
+                return document;
+            }
+        }
+
+        // Has to be better way
+        private string ReduceNamespaceName(string nsToImport, string containingNs)
+        {
+            IEnumerable<string> GetParentNamespaces(string ns)
+            {
+                yield return ns;
+
+                while (ns.Contains('.'))
+                {
+                    ns = ns.Substring(0, ns.LastIndexOf('.'));
+                    yield return ns;
+                }
+            }
+
+            foreach (var ns in GetParentNamespaces(containingNs))
+            {
+                if (nsToImport.StartsWith(ns))
+                {
+                    return nsToImport.Substring(Math.Min(ns.Length + 1, nsToImport.Length));
+                }
+            }
+            return nsToImport;
         }
     }
 }
