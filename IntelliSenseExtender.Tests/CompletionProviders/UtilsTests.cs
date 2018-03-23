@@ -65,11 +65,11 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.C.D.E", document, CancellationToken.None).Result;
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.Csmth.D.E", document, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
-            Assert.That(newDocText, Does.Not.Contain("using A.B.C.D.E;"));
-            Assert.That(newDocText, Does.Contain("using D.E;"));
+            Assert.That(newDocText, Does.Not.Contain("using A.B.Csmth.D.E;"));
+            Assert.That(newDocText, Does.Contain("using Csmth.D.E;"));
         }
     }
 }

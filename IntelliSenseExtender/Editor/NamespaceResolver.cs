@@ -95,9 +95,14 @@ namespace IntelliSenseExtender.Editor
                 }
             }
 
+            if (nsToImport == containingNs)
+            {
+                return string.Empty;
+            }
+
             foreach (var ns in GetParentNamespaces(containingNs))
             {
-                if (nsToImport.StartsWith(ns))
+                if (nsToImport.StartsWith(ns + "."))
                 {
                     return nsToImport.Substring(Math.Min(ns.Length + 1, nsToImport.Length));
                 }

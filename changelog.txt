@@ -1,3 +1,7 @@
+next
+
++ Fixed minor bug with namespace import
+
 0.7
 
 + Namespace import is now added at sorted place
