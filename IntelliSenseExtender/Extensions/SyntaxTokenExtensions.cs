@@ -10,11 +10,14 @@ namespace IntelliSenseExtender.Extensions
         {
             accessedExpressionSyntax = null;
 
-            if (currentToken.Kind() == SyntaxKind.DotToken
-                && currentToken.Parent is MemberAccessExpressionSyntax memberAccessNode)
+            var parentNode = currentToken.Parent;
+            var memberAccessNode = parentNode as MemberAccessExpressionSyntax
+                ?? parentNode?.Parent as MemberAccessExpressionSyntax;
+            if (memberAccessNode != null)
             {
                 accessedExpressionSyntax = memberAccessNode.Expression;
             }
+
             return accessedExpressionSyntax != null;
         }
 

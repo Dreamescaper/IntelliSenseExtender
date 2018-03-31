@@ -146,7 +146,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 {
                     public static class ObjectExtensions
                     {
-                        public static void Do(this object var)
+                        public static void Do(this object obj)
                         { }
                     }
                 }";
@@ -171,7 +171,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 {
                     public static class ObjectExtensions
                     {
-                        public static void Do(this object var)
+                        public static void Do(this object obj)
                         { }
                     }
                 }";
@@ -208,7 +208,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 {
                     public static class ObjectExtensions
                     {
-                        public static void Do(this object var)
+                        public static void Do(this object obj)
                         { }
                     }
                 }";
@@ -240,7 +240,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 {
                     public static class ObjectExtensions
                     {
-                        public static void Do(this object var)
+                        public static void Do(this object obj)
                         { }
                     }
                 }";
@@ -266,22 +266,52 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     [System.Obsolete]
                     public static class ObjectExtensions1
                     {
-                        public static void Do1(this object var)
+                        public static void Do1(this object obj)
                         { }
                     }
 
                     public static class ObjectExtensions2
                     {
                         [System.Obsolete]
-                        public static void Do2(this object var)
+                        public static void Do2(this object obj)
                         { }
                     }
                 }";
 
             var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.");
+            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.")
+                .Select(c => c.DisplayText)
+                .ToList();
+
             Assert.That(completions, Does.Not.Contain("Do1  (NM)"));
             Assert.That(completions, Does.Not.Contain("Do2  (NM)"));
+        }
+
+        [Test]
+        public void ExtensionMethods_SuggestMethodsIfInvokedWithPresentText()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        object obj = null;
+                        obj.Some
+                    }
+                }";
+            const string extensionsFile = @"
+                namespace NM
+                {
+                    public static class ObjectExtensions1
+                    {
+                        public static void SomeExtension(this object obj)
+                        { }
+                    }
+                }";
+
+            var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
+            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.Some")
+                .Select(c => c.DisplayText);
+
+            Assert.That(completions, Does.Contain("SomeExtension  (NM)"));
         }
 
         #endregion

@@ -1,6 +1,7 @@
 next
 
-+ Fixed minor bug with namespace import
++ Fix minor bug with namespace import
++ Fix extension methods not suggested if IntelliSense invoked with text present 
 
 0.7
 
