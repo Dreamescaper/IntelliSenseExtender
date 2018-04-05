@@ -80,7 +80,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         protected override bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
         {
             return base.FilterType(type, syntaxContext)
-                && !syntaxContext.ImportedNamespaces.Contains(type.GetNamespace());
+                && !syntaxContext.ImportedNamespaces.Contains(type.GetNamespace())
+                && !type.ContainingNamespace.IsGlobalNamespace;
         }
 
         private List<INamedTypeSymbol> FilterAttributes(IEnumerable<INamedTypeSymbol> list)
