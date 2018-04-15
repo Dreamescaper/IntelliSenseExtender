@@ -21,13 +21,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-            if (!options.SuggestLocalVariablesFirst
-                || (syntaxContext.TypeInferredFrom != TypeInferredFrom.MethodArgument
-                && syntaxContext.TypeInferredFrom != TypeInferredFrom.ReturnValue))
-            {
-                return null;
-            }
-
             var typeSymbol = syntaxContext.InferredType;
             var locals = GetLocalVariables(syntaxContext);
             var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
@@ -71,6 +64,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
             }
             return false;
+        }
+
+        public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
+        {
+            return options.SuggestLocalVariablesFirst
+                && syntaxContext.InferredType != null
+                && (syntaxContext.TypeInferredFrom == TypeInferredFrom.MethodArgument
+                || syntaxContext.TypeInferredFrom == TypeInferredFrom.ReturnValue);
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)

@@ -10,14 +10,18 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (!syntaxContext.IsTypeContext
-               || (syntaxContext.IsAttributeContext && (!typeSymbol.IsAttribute() || typeSymbol.IsAbstract))
+            if ((syntaxContext.IsAttributeContext && (!typeSymbol.IsAttribute() || typeSymbol.IsAbstract))
                || syntaxContext.IsNamespaceImported(typeSymbol))
             {
                 return null;
             }
 
             return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
+        }
+
+        public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
+        {
+            return syntaxContext.IsTypeContext;
         }
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)

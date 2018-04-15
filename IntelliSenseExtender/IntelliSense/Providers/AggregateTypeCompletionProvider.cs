@@ -51,18 +51,26 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
-            var typeCompletions = GetAllTypes(syntaxContext, Options)
-                .SelectMany(type => typeCompletionProviders
-                    .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
-                .Where(enumerable => enumerable != null)
-                .SelectMany(enumerable => enumerable);
+            var applicableTypeProviders = typeCompletionProviders
+                .Where(p => p.IsApplicable(syntaxContext, Options))
+                .ToArray();
+            if (applicableTypeProviders.Length > 0)
+            {
+                var typeCompletions = GetAllTypes(syntaxContext, Options)
+                    .SelectMany(type => applicableTypeProviders
+                        .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
+                    .Where(enumerable => enumerable != null)
+                    .SelectMany(enumerable => enumerable);
+
+                context.AddItems(typeCompletions);
+            }
 
             var simpleCompletions = simpleCompletionProviders
+                .Where(p => p.IsApplicable(syntaxContext, Options))
                 .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
                 .Where(enumerable => enumerable != null)
                 .SelectMany(enumerable => enumerable);
 
-            context.AddItems(typeCompletions);
             context.AddItems(simpleCompletions);
         }
 

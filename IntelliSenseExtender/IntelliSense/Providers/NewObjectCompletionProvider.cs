@@ -34,10 +34,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (!options.SuggestTypesOnObjectCreation
-                || syntaxContext.InferredType == null
-                || syntaxContext.InferredType.IsBuiltInType()
-                || typeSymbol.IsBuiltInType()
+            if (typeSymbol.IsBuiltInType()
                 || (typeSymbol.TypeKind != TypeKind.Class && typeSymbol.TypeKind != TypeKind.Struct)
                 || typeSymbol.IsAbstract
                 || !typeSymbol.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public))
@@ -75,6 +72,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 }
             }
             return false;
+        }
+
+        public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
+        {
+            return options.SuggestTypesOnObjectCreation
+                && syntaxContext.InferredType != null;
         }
 
         private IEnumerable<CompletionItem> GetFactoryMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)

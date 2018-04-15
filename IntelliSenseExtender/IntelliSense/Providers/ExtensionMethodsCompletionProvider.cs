@@ -11,12 +11,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (!options.EnableUnimportedSuggestions
-                || !options.EnableExtensionMethodsSuggestions
-                || !syntaxContext.IsMemberAccessContext
-                || syntaxContext.AccessedSymbolType == null
-                || syntaxContext.AccessedSymbol?.Kind == SymbolKind.NamedType
-                || syntaxContext.IsNamespaceImported(typeSymbol)
+            if (syntaxContext.IsNamespaceImported(typeSymbol)
                 || !typeSymbol.MightContainExtensionMethods)
             {
                 return null;
@@ -30,6 +25,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Where(m => m != null);
 
             return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s, syntaxContext, options));
+        }
+
+        public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
+        {
+            return options.EnableUnimportedSuggestions
+                && options.EnableExtensionMethodsSuggestions
+                && syntaxContext.IsMemberAccessContext
+                && syntaxContext.AccessedSymbolType != null
+                && syntaxContext.AccessedSymbol?.Kind != SymbolKind.NamedType;
         }
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)
