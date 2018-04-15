@@ -29,9 +29,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
-            return options.EnableUnimportedSuggestions
-                && options.EnableExtensionMethodsSuggestions
-                && syntaxContext.IsMemberAccessContext
+            return syntaxContext.IsMemberAccessContext
                 && syntaxContext.AccessedSymbolType != null
                 && syntaxContext.AccessedSymbol?.Kind != SymbolKind.NamedType;
         }

@@ -19,8 +19,6 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         public static OptionsProvider Options_Default => new OptionsProvider(
             new Options.Options
             {
-                EnableExtensionMethodsSuggestions = true,
-                EnableTypesSuggestions = true,
                 FilterOutObsoleteSymbols = true,
                 SortCompletionsAfterImported = true,
                 SuggestTypesOnObjectCreation = true,

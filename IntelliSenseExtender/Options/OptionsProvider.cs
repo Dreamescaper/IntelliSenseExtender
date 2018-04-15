@@ -24,8 +24,6 @@ namespace IntelliSenseExtender.Options
             CachedOptions = new Options
             {
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
-                EnableTypesSuggestions = optionsPage.EnableTypesSuggestions,
-                EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,
                 FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
                 SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
                 AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,

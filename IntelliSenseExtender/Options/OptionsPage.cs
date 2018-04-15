@@ -17,18 +17,6 @@ namespace IntelliSenseExtender.Options
 
         [Category("Unimported Symbols")]
         [DefaultValue(true)]
-        [DisplayName("Enable Types Suggestions")]
-        [Description("Show IntelliSense suggestions for unimported types.")]
-        public bool EnableTypesSuggestions { get; set; }
-
-        [Category("Unimported Symbols")]
-        [DefaultValue(true)]
-        [DisplayName("Enable Extension Methods Suggestions")]
-        [Description("Show IntelliSense suggestions for unimported extension methods.")]
-        public bool EnableExtensionMethodsSuggestions { get; set; }
-
-        [Category("Unimported Symbols")]
-        [DefaultValue(true)]
         [DisplayName("Filter Out Obsolete symbols")]
         [Description("Do not show methods or types marked with Obsolete attribute.")]
         public bool FilterOutObsoleteSymbols { get; set; }
@@ -62,8 +50,6 @@ namespace IntelliSenseExtender.Options
         public OptionsPage()
         {
             SortCompletionsAfterImported = true;
-            EnableTypesSuggestions = true;
-            EnableExtensionMethodsSuggestions = true;
             FilterOutObsoleteSymbols = true;
             SuggestTypesOnObjectCreation = true;
             AddParethesisForNewSuggestions = true;
