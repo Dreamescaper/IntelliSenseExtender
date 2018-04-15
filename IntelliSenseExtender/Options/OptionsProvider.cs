@@ -23,7 +23,6 @@ namespace IntelliSenseExtender.Options
             var optionsPage = GetOptionsPageFunc();
             CachedOptions = new Options
             {
-                UserCodeOnlySuggestions = optionsPage.UserCodeOnlySuggestions,
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                 EnableTypesSuggestions = optionsPage.EnableTypesSuggestions,
                 EnableExtensionMethodsSuggestions = optionsPage.EnableExtensionMethodsSuggestions,

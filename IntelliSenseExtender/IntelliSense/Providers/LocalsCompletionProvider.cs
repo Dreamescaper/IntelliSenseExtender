@@ -3,78 +3,63 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
-using IntelliSenseExtender.Options;
+using IntelliSenseExtender.IntelliSense.Context;
+using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    [ExportCompletionProvider(nameof(LocalsCompletionProvider), LanguageNames.CSharp)]
-    public class LocalsCompletionProvider : AbstractCompletionProvider
+    public class LocalsCompletionProvider : ISimpleCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 
-        public LocalsCompletionProvider() : base()
+        public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-        }
-
-        public LocalsCompletionProvider(IOptionsProvider optionsProvider) : base(optionsProvider)
-        {
-        }
-
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
-        {
-            if (Options.SuggestLocalVariablesFirst)
+            if (!options.SuggestLocalVariablesFirst
+                || (syntaxContext.TypeInferredFrom != TypeInferredFrom.MethodArgument
+                && syntaxContext.TypeInferredFrom != TypeInferredFrom.ReturnValue))
             {
-                var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
-
-                var typeSymbol = syntaxContext.SemanticModel.GetTypeSymbol(syntaxContext.CurrentToken,
-                    variableDeclaration: false,
-                    assignment: false,
-                    methodArgument: true,
-                    returnValue: true);
-
-                if (typeSymbol != null)
-                {
-                    var locals = GetLocalVariables(syntaxContext);
-                    var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
-
-                    var lambdaParameters = GetLambdaParameters(syntaxContext);
-                    var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, typeSymbol);
-
-                    var typeMembers = GetTypeMembers(syntaxContext);
-                    ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
-                    var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, typeSymbol);
-
-                    var methodParameters = GetMethodParameters(syntaxContext);
-                    var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, typeSymbol);
-
-                    var localCompletions = suitableLocals
-                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_Locals));
-                    var lambdaParamsCompletions = suitableLambdaParameters
-                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_LambdaParameters));
-                    var typeMemberCompletions = suitableTypeMembers
-                        .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_TypeMembers));
-                    var methodParametersCompletions = suitableMethodParameters
-                        .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
-
-                    context.AddItems(localCompletions);
-                    context.AddItems(lambdaParamsCompletions);
-                    context.AddItems(typeMemberCompletions);
-                    context.AddItems(methodParametersCompletions);
-                }
+                return null;
             }
+
+            var typeSymbol = syntaxContext.InferredType;
+            var locals = GetLocalVariables(syntaxContext);
+            var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
+
+            var lambdaParameters = GetLambdaParameters(syntaxContext);
+            var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, typeSymbol);
+
+            var typeMembers = GetTypeMembers(syntaxContext);
+            ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
+            var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, typeSymbol);
+
+            var methodParameters = GetMethodParameters(syntaxContext);
+            var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, typeSymbol);
+
+            var localCompletions = suitableLocals
+                .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_Locals));
+            var lambdaParamsCompletions = suitableLambdaParameters
+                .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_LambdaParameters));
+            var typeMemberCompletions = suitableTypeMembers
+                .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_TypeMembers));
+            var methodParametersCompletions = suitableMethodParameters
+                .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
+
+            return localCompletions
+                .Concat(lambdaParamsCompletions)
+                .Concat(typeMemberCompletions)
+                .Concat(methodParametersCompletions);
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, Options.Options options)
         {
-            if (Options.SuggestLocalVariablesFirst)
+            if (options.SuggestLocalVariablesFirst)
             {
                 var sourceString = text.ToString();
 
@@ -85,8 +70,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     return true;
                 }
             }
-
-            return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
+            return false;
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
@@ -247,8 +231,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var currentNode = syntaxContext.CurrentToken.Parent;
 
             var methodOrPropertyNode = currentNode.AncestorsAndSelf()
-                .Where(node => node is MethodDeclarationSyntax || node is AccessorDeclarationSyntax)
-                .FirstOrDefault();
+                .FirstOrDefault(node => node is MethodDeclarationSyntax || node is AccessorDeclarationSyntax);
 
             if (methodOrPropertyNode is MethodDeclarationSyntax methodNode)
             {

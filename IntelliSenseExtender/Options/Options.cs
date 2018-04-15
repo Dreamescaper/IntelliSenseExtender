@@ -2,7 +2,6 @@
 {
     public class Options
     {
-        public bool UserCodeOnlySuggestions { get; set; }
         public bool SortCompletionsAfterImported { get; set; }
         public bool EnableTypesSuggestions { get; set; }
         public bool EnableExtensionMethodsSuggestions { get; set; }

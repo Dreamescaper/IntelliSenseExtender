@@ -2,70 +2,64 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
-using IntelliSenseExtender.Options;
+using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    [ExportCompletionProvider("Object creation provider", LanguageNames.CSharp)]
-    public class NewObjectCompletionProvider : AbstractCompletionProvider
+    public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITypeCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 
-        public NewObjectCompletionProvider() : base()
+        public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-        }
-
-        public NewObjectCompletionProvider(IOptionsProvider optionsProvider) : base(optionsProvider)
-        {
-        }
-
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
-        {
-            if (Options.SuggestTypesOnObjectCreation || Options.SuggestFactoryMethodsOnObjectCreation)
+            if (syntaxContext.InferredType != null)
             {
-                var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
-
-                bool newKeywordRequired = true;
-                var currentSyntaxNode = syntaxContext.CurrentToken.Parent;
-                if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+                var completions = GetSpecialCasesCompletions(syntaxContext.InferredType, syntaxContext);
+                if (options.SuggestFactoryMethodsOnObjectCreation)
                 {
-                    //if we already have new keyword - we don't need that
-                    newKeywordRequired = false;
+                    completions = completions.Concat(GetFactoryMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredType));
                 }
 
-                var typeSymbol = syntaxContext.SemanticModel.GetTypeSymbol(syntaxContext.CurrentToken);
-                if (typeSymbol != null)
-                {
-                    if (!typeSymbol.IsBuiltInType())
-                    {
-                        if (Options.SuggestTypesOnObjectCreation)
-                        {
-                            var typeCompletionItems = GetApplicableTypesCompletions(syntaxContext, typeSymbol, newKeywordRequired);
-                            context.AddItems(typeCompletionItems);
-                        }
-                        if (Options.SuggestFactoryMethodsOnObjectCreation)
-                        {
-                            var factoryMethodsCompletions = GetFactoryMethodsAndPropertiesCompletions(syntaxContext, typeSymbol);
-                            context.AddItems(factoryMethodsCompletions);
-                        }
-                    }
-
-                    context.AddItems(GetSpecialCasesCompletions(typeSymbol, syntaxContext));
-                    ReplaceNewKeywordSuggestion(context);
-                }
+                return completions;
             }
+
+            return null;
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (Options.SuggestTypesOnObjectCreation || Options.SuggestFactoryMethodsOnObjectCreation)
+            if (!options.SuggestTypesOnObjectCreation
+                || syntaxContext.InferredType == null
+                || syntaxContext.InferredType.IsBuiltInType()
+                || typeSymbol.IsBuiltInType()
+                || (typeSymbol.TypeKind != TypeKind.Class && typeSymbol.TypeKind != TypeKind.Struct)
+                || typeSymbol.IsAbstract
+                || !typeSymbol.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public))
+            {
+                return null;
+            }
+
+            bool newKeywordRequired = true;
+            var currentSyntaxNode = syntaxContext.CurrentToken.Parent;
+            if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+            {
+                //if we already have new keyword - we don't need that
+                newKeywordRequired = false;
+            }
+
+            var applicableCompletion = GetApplicableTypeCompletion(typeSymbol, syntaxContext, newKeywordRequired, options);
+            return applicableCompletion == null ? null : new[] { applicableCompletion };
+        }
+
+        public bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, Options.Options options)
+        {
+            if (options.SuggestTypesOnObjectCreation || options.SuggestFactoryMethodsOnObjectCreation)
             {
                 var sourceString = text.ToString();
 
@@ -80,8 +74,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     return true;
                 }
             }
-
-            return base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
+            return false;
         }
 
         private IEnumerable<CompletionItem> GetFactoryMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
@@ -100,42 +93,38 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         includeContainingClass: true));
         }
 
-        private IEnumerable<CompletionItem> GetApplicableTypesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol, bool newKeywordRequired)
+        private CompletionItem GetApplicableTypeCompletion(ITypeSymbol suggestedType, SyntaxContext syntaxContext, bool newKeywordRequired, Options.Options options)
         {
-            var symbols = GetAllTypes(syntaxContext, syntaxContext.CancellationToken)
-                .Select(type => syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(type, typeSymbol))
-                .Where(type => type != null && !type.IsBuiltInType());
+            var assignableSymbol = syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(suggestedType, syntaxContext.InferredType);
 
-            var completionItems = symbols.Select(symbol =>
+            if (assignableSymbol != null)
+            {
+                var symbolName = assignableSymbol.Name;
+                var inferredTypeName = syntaxContext.InferredType.Name;
+                bool unimported = !syntaxContext.ImportedNamespaces.Contains(assignableSymbol.GetNamespace());
+
+                int priority;
+                if (symbolName == inferredTypeName || "I" + symbolName == inferredTypeName)
                 {
-                    var symbolName = symbol.Name;
-                    var typeSymbolName = typeSymbol.Name;
-                    bool unimported = !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace());
+                    priority = Sorting.NewSuggestion_MatchingName;
+                }
+                else if (!unimported)
+                {
+                    priority = Sorting.NewSuggestion_Default;
+                }
+                else
+                {
+                    priority = Sorting.NewSuggestion_Unimported;
+                }
 
-                    int priority;
-                    if (symbolName == typeSymbolName || "I" + symbolName == typeSymbolName)
-                    {
-                        priority = Sorting.NewSuggestion_MatchingName;
-                    }
-                    else if (!unimported)
-                    {
-                        priority = Sorting.NewSuggestion_Default;
-                    }
-                    else
-                    {
-                        priority = Sorting.NewSuggestion_Unimported;
-                    }
-
-                    var item = CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
-                        priority, MatchPriority.Preselect,
-                        newPositionOffset: 0,
-                        unimported: unimported,
-                        newCreationSyntax: newKeywordRequired,
-                        showParenthesisForNewCreations: Options.AddParethesisForNewSuggestions);
-                    return item;
-                });
-
-            return completionItems;
+                return CompletionItemHelper.CreateCompletionItem(assignableSymbol, syntaxContext,
+                    priority, MatchPriority.Preselect,
+                    newPositionOffset: 0,
+                    unimported: unimported,
+                    newCreationSyntax: newKeywordRequired,
+                    showParenthesisForNewCreations: options.AddParethesisForNewSuggestions);
+            }
+            return null;
         }
 
         /// <summary>
@@ -150,8 +139,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var typeName = namedTypeSymbol.Name;
-                switch (typeName)
+                switch (namedTypeSymbol.Name)
                 {
                     case "List":
                     case "IList":
@@ -174,14 +162,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
 
             return Enumerable.Empty<CompletionItem>();
-        }
-
-        protected override bool FilterType(INamedTypeSymbol type, SyntaxContext syntaxContext)
-        {
-            return
-                (type.TypeKind == TypeKind.Class || type.TypeKind == TypeKind.Struct)
-                && !type.IsAbstract
-                && type.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public);
         }
 
         /// <summary>

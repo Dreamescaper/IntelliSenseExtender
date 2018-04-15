@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,9 +9,11 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SemanticModelExtensions
     {
-        public static ITypeSymbol GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken,
-            bool variableDeclaration = true, bool assignment = true, bool methodArgument = true, bool returnValue = true)
+        public static (ITypeSymbol typeSymbol, TypeInferredFrom inferredFrom) GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken)
         {
+            ITypeSymbol typeSymbol = null;
+            TypeInferredFrom inferredFrom = TypeInferredFrom.None;
+
             SyntaxNode currentSyntaxNode = currentToken.Parent;
 
             // If new keyword is already present, we need to work with parent node
@@ -21,27 +24,30 @@ namespace IntelliSenseExtender.Extensions
                 currentSyntaxNode = currentSyntaxNode.Parent;
             }
 
-            if (variableDeclaration
-                && currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
+            if (currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
                 && !varDeclarationSyntax.Type.IsVar)
             {
                 var typeInfo = semanticModel.GetTypeInfo(varDeclarationSyntax.Type);
-                return typeInfo.Type;
+                typeSymbol = typeInfo.Type;
+                inferredFrom = TypeInferredFrom.VariableDeclaration;
             }
-            if (assignment && currentSyntaxNode is AssignmentExpressionSyntax assigmentExpressionSyntax)
+            else if (currentSyntaxNode is AssignmentExpressionSyntax assigmentExpressionSyntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(assigmentExpressionSyntax.Left);
-                return typeInfo.Type;
+                typeSymbol = typeInfo.Type;
+                inferredFrom = TypeInferredFrom.Assignment;
             }
-            if (methodArgument && currentSyntaxNode is ArgumentSyntax argumentSyntax)
+            else if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
             {
-                return semanticModel.GetArgumentTypeSymbol(argumentSyntax);
+                typeSymbol = semanticModel.GetArgumentTypeSymbol(argumentSyntax);
+                inferredFrom = TypeInferredFrom.MethodArgument;
             }
-            if (methodArgument && currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
+            else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
             {
-                return semanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
+                typeSymbol = semanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
+                inferredFrom = TypeInferredFrom.MethodArgument;
             }
-            if (returnValue && currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
+            else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
             {
                 var parentMethodOrProperty = returnStatementSyntax
                     .Ancestors()
@@ -51,11 +57,17 @@ namespace IntelliSenseExtender.Extensions
                     ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
                 if (typeSyntax != null)
                 {
-                    return semanticModel.GetTypeInfo(typeSyntax).Type;
+                    typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
+                    inferredFrom = TypeInferredFrom.ReturnValue;
                 }
             }
 
-            return null;
+            if (typeSymbol == null)
+            {
+                inferredFrom = TypeInferredFrom.None;
+            }
+
+            return (typeSymbol, inferredFrom);
         }
 
         private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)

@@ -1,120 +1,18 @@
-﻿using System;
-using System.Linq;
-using IntelliSenseExtender.IntelliSense;
+﻿using System.Linq;
 using IntelliSenseExtender.IntelliSense.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using NUnit.Framework;
 
 namespace IntelliSenseExtender.Tests.CompletionProviders
 {
-    [TestFixture]
-    public class UnimportedCompletionProviderTests : AbstractCompletionProviderTest
+    public class ExtensionMethods : AbstractCompletionProviderTest
     {
-        #region Types
+        private readonly CompletionProvider Provider = new AggregateTypeCompletionProvider(
+            Options_Default,
+            new ExtensionMethodsCompletionProvider());
 
         [Test]
-        public void Types_ProvideReferencesCompletions_List()
-        {
-            const string source = @"
-                public class Test {
-                    public void Method() {
-                        var list = new 
-                    }
-                }";
-
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "var list = new ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("List<>  (System.Collections.Generic)"));
-        }
-
-        [Test]
-        public void Types_ProvideUserCodeCompletions()
-        {
-            const string mainSource = @"
-                public class Test {
-                    public void Method() {
-                        /*here*/
-                    }
-                }";
-            const string classFile = @"
-                namespace NM
-                {
-                    public class Class
-                    {
-                    }
-                }";
-
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Class  (NM)"));
-        }
-
-        [Test]
-        public void Types_DoNotProvideCompletionsIfTypeNotExpected()
-        {
-            const string mainSource = @"
-                public /*0*/ class Test {
-                    public void /*1*/ Method() {
-                        
-                    }
-                }";
-            const string classFile = @"
-                namespace NM
-                {
-                    public class Class
-                    {
-                    }
-                }";
-
-            var provider = new UnimportedCSharpCompletionProvider(Options_TypesOnly);
-
-            for (int i = 0; i < 3; i++)
-            {
-                var completions = GetCompletions(provider, mainSource, classFile, $"/*{i}*/");
-                Assert.That(completions, Is.Empty);
-            }
-        }
-
-        [Test]
-        public void Types_ShorterTypeGoesFirst()
-        {
-            const string mainSource = @"
-                public class Test {
-                    public void Method() {
-                        /*here*/
-                    }
-                }";
-            const string classFile = @"
-                namespace NM
-                {
-                    public class CoolClass
-                    {
-                    }
-                    public class CoolClassWithLongerName
-                    {
-                    }
-                }";
-
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, mainSource, classFile, "/*here*/")
-                .OrderBy(compl => compl.SortText, StringComparer.Ordinal)
-                .ToList();
-
-            int coolClassIndex = completions.FindIndex(i =>
-                i.Properties[CompletionItemProperties.SymbolName] == "CoolClass");
-            int coolClassWithLongerNameIndex = completions.FindIndex(i =>
-                i.Properties[CompletionItemProperties.SymbolName] == "CoolClassWithLongerName");
-
-            Assert.That(coolClassIndex < coolClassWithLongerNameIndex);
-        }
-
-        #endregion
-
-        #region Extension Methods
-
-        [Test]
-        public void ExtensionMethods_ProvideReferencesCompletions_Linq()
+        public void ProvideReferencesCompletions_Linq()
         {
             const string source = @"
                 using System.Collections.Generic;
@@ -125,14 +23,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "list.");
+            var completions = GetCompletions(Provider, source, "list.");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Select<>  (System.Linq)"));
         }
 
         [Test]
-        public void ExtensionMethods_ProvideUserCodeCompletions()
+        public void ProvideUserCodeCompletions()
         {
             const string mainSource = @"
                 public class Test {
@@ -151,14 +48,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.");
+            var completions = GetCompletions(Provider, mainSource, extensionsFile, "obj.");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Do  (NM)"));
         }
 
         [Test]
-        public void ExtensionMethods_ProvideCompletionsForLiterals()
+        public void ProvideCompletionsForLiterals()
         {
             const string mainSource = @"
                 public class Test {
@@ -176,14 +72,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "111.");
+            var completions = GetCompletions(Provider, mainSource, extensionsFile, "111.");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Do  (NM)"));
         }
 
         [Test]
-        public void ExtensionMethods_DoNotProvideCompletionsIfMemberIsNotAccessed()
+        public void DoNotProvideCompletionsIfMemberIsNotAccessed()
         {
             const string source = @"
                 using System;
@@ -213,13 +108,12 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
             var document = GetTestDocument(source, extensionsFile);
 
             for (int i = 0; i < source.Length; i++)
             {
-                var context = GetContext(document, provider, i);
-                provider.ProvideCompletionsAsync(context).Wait();
+                var context = GetContext(document, Provider, i);
+                Provider.ProvideCompletionsAsync(context).Wait();
                 var completions = GetCompletions(context);
 
                 Assert.That(completions, Is.Empty);
@@ -227,7 +121,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void ExtensionMethods_DoNotProvideCompletionsWhenTypeIsAccessed()
+        public void DoNotProvideCompletionsWhenTypeIsAccessed()
         {
             const string mainSource = @"
                 public class Test {
@@ -245,13 +139,12 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "object.");
+            var completions = GetCompletions(Provider, mainSource, extensionsFile, "object.");
             Assert.That(completions, Is.Empty);
         }
 
         [Test]
-        public void ExtensionMethods_DoNotProvideObsolete()
+        public void DoNotProvideObsolete()
         {
             const string mainSource = @"
                 public class Test {
@@ -278,8 +171,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.")
+            var completions = GetCompletions(Provider, mainSource, extensionsFile, "obj.")
                 .Select(c => c.DisplayText)
                 .ToList();
 
@@ -288,7 +180,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void ExtensionMethods_SuggestMethodsIfInvokedWithPresentText()
+        public void SuggestMethodsIfInvokedWithPresentText()
         {
             const string mainSource = @"
                 public class Test {
@@ -307,13 +199,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new UnimportedCSharpCompletionProvider(Options_ExtensionMethodsOnly);
-            var completions = GetCompletions(provider, mainSource, extensionsFile, "obj.Some")
+            var completions = GetCompletions(Provider, mainSource, extensionsFile, "obj.Some")
                 .Select(c => c.DisplayText);
 
             Assert.That(completions, Does.Contain("SomeExtension  (NM)"));
         }
-
-        #endregion
     }
 }

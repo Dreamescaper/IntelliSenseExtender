@@ -7,8 +7,12 @@ using NUnit.Framework;
 namespace IntelliSenseExtender.Tests.CompletionProviders
 {
     [TestFixture]
-    public class ObjectCreationProviderTests : AbstractCompletionProviderTest
+    public class ObjectCreation : AbstractCompletionProviderTest
     {
+        private readonly CompletionProvider Provider = new AggregateTypeCompletionProvider(
+            Options_Default,
+            new NewObjectCompletionProvider());
+
         [Test]
         public void SuggestInterfaceImplementation_LocalVariable()
         {
@@ -21,8 +25,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
@@ -37,8 +40,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                      private IList<string> list = 
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
@@ -59,8 +61,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                      }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<string>()"));
         }
@@ -81,8 +82,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                      }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "int res = DoSomething(");
+            var completions = GetCompletions(Provider, source, "int res = DoSomething(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<int>()"));
         }
@@ -98,7 +98,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                      public Test1(ICollection<int> par)
                      { }
                 }
-                
+
                 public class Test2
                 {
                     void DoSomething()
@@ -107,8 +107,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "new Test1(");
+            var completions = GetCompletions(Provider, source, "new Test1(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<int>()"));
         }
@@ -125,8 +124,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = new ");
+            var completions = GetCompletions(Provider, source, " = new ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("List<string>"));
         }
@@ -141,8 +139,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
                 Does.Contain("new List<string>()  (System.Collections.Generic)"));
@@ -175,8 +172,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
                 Does.Not.Contain("new TContraints<string>()"));
@@ -213,8 +209,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames,
                 Does.Contain("new TContraints<SomeClassDerived>()"));
@@ -230,8 +225,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new [] {}"));
         }
@@ -248,8 +242,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("TimeSpan.FromSeconds"));
         }
@@ -266,8 +259,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("DateTime.Now"));
         }
@@ -284,8 +276,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("new List<int> {}"));
         }
@@ -305,8 +296,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     @"}
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain($"new {shortName}()"));
             Assert.That(completionsNames, Does.Not.Contain($"new {typeName}()"));
@@ -322,8 +312,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, " = ");
+            var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("true"));
@@ -350,13 +339,12 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
             var document = GetTestDocument(source);
 
             for (int i = 0; i < source.Length; i++)
             {
-                var context = GetContext(document, provider, i);
-                provider.ProvideCompletionsAsync(context).Wait();
+                var context = GetContext(document, Provider, i);
+                Provider.ProvideCompletionsAsync(context).Wait();
                 var completions = GetCompletions(context);
 
                 Assert.That(completions, Is.Empty);
@@ -375,8 +363,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "return ");
+            var completions = GetCompletions(Provider, source, "return ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("new List<int>()"));
@@ -393,8 +380,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            bool triggerCompletion = provider.ShouldTriggerCompletion(
+            bool triggerCompletion = Provider.ShouldTriggerCompletion(
                 text: SourceText.From(source),
                 caretPosition: source.IndexOf(" = ") + 3,
                 trigger: CompletionTrigger.CreateInsertionTrigger(' '),
@@ -413,8 +399,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new NewObjectCompletionProvider(Options_Default);
-            bool triggerCompletion = provider.ShouldTriggerCompletion(
+            bool triggerCompletion = Provider.ShouldTriggerCompletion(
                 text: SourceText.From(source),
                 caretPosition: source.IndexOf("new ") + 4,
                 trigger: CompletionTrigger.CreateInsertionTrigger(' '),

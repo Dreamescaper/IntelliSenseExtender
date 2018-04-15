@@ -1,15 +1,16 @@
 ﻿using System.Linq;
 using System.Threading;
 using IntelliSenseExtender.Editor;
+using IntelliSenseExtender.Tests.CompletionProviders;
 using NUnit.Framework;
 
-namespace IntelliSenseExtender.Tests.CompletionProviders
+namespace IntelliSenseExtender.Tests
 {
     [TestFixture]
-    public class UtilsTests : AbstractCompletionProviderTest
+    public class NamespaceResolverTests : AbstractCompletionProviderTest
     {
         [Test]
-        public void NamespaceResolver_ShouldAddUsingAtSortedPlace()
+        public void ShouldAddUsingAtSortedPlace()
         {
             const string source = @"
                 using System;
@@ -36,7 +37,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void NamespaceResolver_ShouldAddUsingInsideNamespaceIfUsingsArePresent()
+        public void ShouldAddUsingInsideNamespaceIfUsingsArePresent()
         {
             const string source = @"
                 namespace ns.something
@@ -56,7 +57,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void NamespaceResolver_ShouldAddNamespaceRelativeToParentNamespace()
+        public void ShouldAddNamespaceRelativeToParentNamespace()
         {
             const string source = @"
                 namespace A.B.C

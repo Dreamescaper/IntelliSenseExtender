@@ -26,28 +26,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 SuggestTypesOnObjectCreation = true,
                 AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
-                SuggestLocalVariablesFirst = true,
-                UserCodeOnlySuggestions = false
-            });
-
-        public static OptionsProvider Options_ExtensionMethodsOnly => new OptionsProvider(
-            new Options.Options
-            {
-                EnableExtensionMethodsSuggestions = true,
-                EnableTypesSuggestions = false,
-                FilterOutObsoleteSymbols = true,
-                SortCompletionsAfterImported = true,
-                UserCodeOnlySuggestions = false
-            });
-
-        public static OptionsProvider Options_TypesOnly => new OptionsProvider(
-            new Options.Options
-            {
-                EnableExtensionMethodsSuggestions = false,
-                EnableTypesSuggestions = true,
-                FilterOutObsoleteSymbols = true,
-                SortCompletionsAfterImported = true,
-                UserCodeOnlySuggestions = false
+                SuggestLocalVariablesFirst = true
             });
 
         #endregion

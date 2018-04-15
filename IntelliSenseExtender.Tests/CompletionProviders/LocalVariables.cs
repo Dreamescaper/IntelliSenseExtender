@@ -1,12 +1,16 @@
 ﻿using System.Linq;
 using IntelliSenseExtender.IntelliSense.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using NUnit.Framework;
 
 namespace IntelliSenseExtender.Tests.CompletionProviders
 {
-    [TestFixture]
-    public class LocalVariablesCompletionProviderTests : AbstractCompletionProviderTest
+    public class LocalVariables : AbstractCompletionProviderTest
     {
+        private readonly CompletionProvider Provider = new AggregateTypeCompletionProvider(
+            Options_Default,
+            new LocalsCompletionProvider());
+
         [Test]
         public void SuggestLocalVariablesForMethodsParameters()
         {
@@ -20,8 +24,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
@@ -41,8 +44,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void StrMethod(string var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "StrMethod(");
+            var completions = GetCompletions(Provider, source, "StrMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("strVar"));
         }
@@ -63,8 +65,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
@@ -85,8 +86,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
@@ -109,8 +109,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void SrMethod(StreamReader var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "SrMethod(");
+            var completions = GetCompletions(Provider, source, "SrMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("v"));
         }
@@ -127,8 +126,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
@@ -142,8 +140,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public static Func<string, string, bool> F = (a,b) => a.Contains(
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "a.Contains(");
+            var completions = GetCompletions(Provider, source, "a.Contains(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("b"));
         }
@@ -162,8 +159,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
@@ -182,8 +178,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Prop"));
         }
@@ -202,8 +197,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("_field"));
         }
@@ -228,8 +222,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("ProtectedIntProperty"));
         }
@@ -259,8 +252,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "AMethod(");
+            var completions = GetCompletions(Provider, source, "AMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("bVar"));
         }
@@ -285,8 +277,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "Method(");
+            var completions = GetCompletions(Provider, source, "Method(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("value"));
         }
@@ -304,8 +295,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("s"));
         }
@@ -330,8 +320,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("PrivateIntProperty"));
         }
@@ -356,8 +345,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("outOfScope"));
         }
@@ -379,8 +367,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("undefinedSoFar"));
         }
@@ -401,8 +388,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("i"));
         }
@@ -424,8 +410,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("i"));
         }
@@ -444,8 +429,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public static void IntMethod(int var){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "IntMethod(");
+            var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("_field"));
         }
@@ -460,13 +444,12 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
             var document = GetTestDocument(source);
 
             for (int i = 0; i < source.Length; i++)
             {
-                var context = GetContext(document, provider, i);
-                provider.ProvideCompletionsAsync(context).Wait();
+                var context = GetContext(document, Provider, i);
+                Provider.ProvideCompletionsAsync(context).Wait();
                 var completions = GetCompletions(context);
 
                 Assert.That(completions, Is.Empty);
@@ -489,8 +472,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void MultiMethod(int intVar, string strVar, bool boolVar){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "MultiMethod(_intField, ");
+            var completions = GetCompletions(Provider, source, "MultiMethod(_intField, ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Not.Contain("_intField"));
@@ -514,8 +496,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void MultiMethod(int intVar, string strVar, bool boolVar){ }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "MultiMethod(boolVar:  ");
+            var completions = GetCompletions(Provider, source, "MultiMethod(boolVar:  ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Not.Contain("_intField"));
@@ -535,8 +516,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var provider = new LocalsCompletionProvider(Options_Default);
-            var completions = GetCompletions(provider, source, "return ");
+            var completions = GetCompletions(Provider, source, "return ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("i"));

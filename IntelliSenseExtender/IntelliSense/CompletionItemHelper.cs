@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using IntelliSenseExtender.Context;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
@@ -205,6 +206,8 @@ namespace IntelliSenseExtender.IntelliSense
                 case Accessibility.Internal:
                     return CompletionTags.Internal;
                 case Accessibility.Protected:
+                case Accessibility.ProtectedOrInternal:
+                case Accessibility.ProtectedAndInternal:
                     return CompletionTags.Protected;
                 case Accessibility.NotApplicable:
                     return string.Empty;

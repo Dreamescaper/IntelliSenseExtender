@@ -9,13 +9,6 @@ namespace IntelliSenseExtender.Options
     public class OptionsPage : DialogPage
     {
         [Category("Unimported Symbols")]
-        [DefaultValue(false)]
-        [DisplayName("User Code Only Suggestions")]
-        [Description("Enable, if you want to limit suggestion to user code only. " +
-            "If disabled search will be performed in user code and all referenced assemblies.")]
-        public bool UserCodeOnlySuggestions { get; set; }
-
-        [Category("Unimported Symbols")]
         [DefaultValue(true)]
         [DisplayName("Sort Added Suggestions Last")]
         [Description("If enabled, unimported completions are listed after imported ones. " +
@@ -68,7 +61,6 @@ namespace IntelliSenseExtender.Options
 
         public OptionsPage()
         {
-            UserCodeOnlySuggestions = false;
             SortCompletionsAfterImported = true;
             EnableTypesSuggestions = true;
             EnableExtensionMethodsSuggestions = true;

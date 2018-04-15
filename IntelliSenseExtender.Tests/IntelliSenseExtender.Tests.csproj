@@ -148,10 +148,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompletionProviders\LocalVariablesCompletionProviderTests.cs" />
-    <Compile Include="CompletionProviders\ObjectCreationProviderTests.cs" />
-    <Compile Include="CompletionProviders\UnimportedCompletionProviderTests.cs" />
-    <Compile Include="CompletionProviders\UtilsTests.cs" />
+    <Compile Include="CompletionProviders\ExtensionMethods.cs" />
+    <Compile Include="CompletionProviders\LocalVariables.cs" />
+    <Compile Include="CompletionProviders\ObjectCreation.cs" />
+    <Compile Include="CompletionProviders\Types.cs" />
+    <Compile Include="NamespaceResolverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CompletionProviders\AbstractCompletionProviderTest.cs" />
   </ItemGroup>
