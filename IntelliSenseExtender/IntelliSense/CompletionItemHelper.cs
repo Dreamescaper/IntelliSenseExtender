@@ -21,7 +21,7 @@ namespace IntelliSenseExtender.IntelliSense
             string displayText;
             string insertText;
 
-            var symbolName = symbol.Name;
+            var symbolName = symbol.GetAccessibleName();
 
             if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {

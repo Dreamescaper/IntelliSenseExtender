@@ -21,6 +21,22 @@ namespace IntelliSenseExtender.Extensions
             return symbol.ToDisplayString();
         }
 
+        /// <summary>
+        /// Get name including containing type name, if present
+        /// </summary>
+        public static string GetAccessibleName(this ISymbol symbol)
+        {
+            if (symbol is INamedTypeSymbol typeSymbol)
+            {
+                var containingType = typeSymbol.ContainingType;
+                if (containingType != null)
+                {
+                    return containingType.GetAccessibleName() + "." + symbol.Name;
+                }
+            }
+            return symbol.Name;
+        }
+
         public static bool IsObsolete(this ISymbol symbol)
         {
             return symbol
