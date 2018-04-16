@@ -108,6 +108,31 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void CorrectNestedTypesNaming()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public class NestedClass { }
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("NestedClass  (NM)"));
+            Assert.That(completionsNames, Does.Contain("ContainingClass.NestedClass  (NM)"));
+        }
+
+        [Test]
         public void DoNotProvideObsoleteTypes()
         {
             const string mainSource = @"
