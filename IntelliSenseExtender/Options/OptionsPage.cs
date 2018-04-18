@@ -21,6 +21,12 @@ namespace IntelliSenseExtender.Options
         [Description("Do not show methods or types marked with Obsolete attribute.")]
         public bool FilterOutObsoleteSymbols { get; set; }
 
+        [Category("Unimported Symbols")]
+        [DefaultValue(false)]
+        [DisplayName("Suggest Nested Types")]
+        [Description("Suggest nested types in arbitrary context.")]
+        public bool SuggestNestedTypes { get; set; }
+
         [Category("Object Creation")]
         [DefaultValue(true)]
         [DisplayName("Suggest types on object creation")]
@@ -51,6 +57,7 @@ namespace IntelliSenseExtender.Options
         {
             SortCompletionsAfterImported = true;
             FilterOutObsoleteSymbols = true;
+            SuggestNestedTypes = false;
             SuggestTypesOnObjectCreation = true;
             AddParethesisForNewSuggestions = true;
             SuggestFactoryMethodsOnObjectCreation = true;

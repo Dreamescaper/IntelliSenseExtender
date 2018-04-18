@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         #region Options
 
-        public static OptionsProvider Options_Default => new OptionsProvider(
+        private static Options.Options GetDefaultOptions() =>
             new Options.Options
             {
                 FilterOutObsoleteSymbols = true,
@@ -25,7 +26,15 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
                 SuggestLocalVariablesFirst = true
-            });
+            };
+
+        public static OptionsProvider Options_Default => new OptionsProvider(GetDefaultOptions());
+        public static OptionsProvider Options_With(Action<Options.Options> modifyOptions)
+        {
+            var options = GetDefaultOptions();
+            modifyOptions(options);
+            return new OptionsProvider(options);
+        }
 
         #endregion
 

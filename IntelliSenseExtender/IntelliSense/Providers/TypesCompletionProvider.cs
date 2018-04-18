@@ -10,13 +10,21 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if ((syntaxContext.IsAttributeContext && (!typeSymbol.IsAttribute() || typeSymbol.IsAbstract))
-               || syntaxContext.IsNamespaceImported(typeSymbol))
+            if (!syntaxContext.IsAttributeContext
+                || (typeSymbol.IsAttribute() && !typeSymbol.IsAbstract))
             {
-                return null;
+                if (!syntaxContext.IsNamespaceImported(typeSymbol))
+                {
+                    return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
+                }
+                // If nested types suggestions are enabled, we should return imported suggestions as well
+                else if (options.SuggestNestedTypes && typeSymbol.ContainingType != null)
+                {
+                    return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, unimported: false) };
+                }
             }
 
-            return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
+            return null;
         }
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)

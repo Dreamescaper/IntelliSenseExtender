@@ -14,6 +14,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             Options_Default,
             new TypesCompletionProvider());
 
+        private CompletionProvider Provider_WithOptions(Action<Options.Options> action) =>
+            new AggregateTypeCompletionProvider(Options_With(action),
+                new TypesCompletionProvider());
+
         [Test]
         public void ProvideReferencesCompletions_List()
         {
@@ -108,7 +112,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void CorrectNestedTypesNaming()
+        public void SuggestUnimportedNestedTypesIfEnabled()
         {
             const string mainSource = @"
                 public class Test {
@@ -125,11 +129,65 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = true),
+                mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Not.Contain("NestedClass  (NM)"));
             Assert.That(completionsNames, Does.Contain("ContainingClass.NestedClass  (NM)"));
+        }
+
+        [Test]
+        public void SuggestImportedNestedTypesIfEnabled()
+        {
+            const string mainSource = @"
+                using NM;
+
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public class NestedClass { }
+                    }
+                }";
+
+            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = true),
+                mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("ContainingClass.NestedClass"));
+        }
+
+        [Test]
+        public void DoNotSuggestNestedTypesIfDisabled()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public class NestedClass { }
+                    }
+                }";
+
+            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = false),
+                mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("NestedClass  (NM)"));
+            Assert.That(completionsNames, Does.Not.Contain("ContainingClass.NestedClass  (NM)"));
         }
 
         [Test]

@@ -111,7 +111,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                             && !(options.FilterOutObsoleteSymbols && namedTypeSymbol.IsObsolete()))
                         {
                             yield return namedTypeSymbol;
-                            symbolsToTraverse.Enqueue(namedTypeSymbol);
+
+                            if (options.SuggestNestedTypes)
+                            {
+                                symbolsToTraverse.Enqueue(namedTypeSymbol);
+                            }
                         }
                     }
                     else if (member is INamespaceSymbol ns)

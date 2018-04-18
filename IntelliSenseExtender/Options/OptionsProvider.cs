@@ -25,6 +25,7 @@ namespace IntelliSenseExtender.Options
             {
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                 FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
+                SuggestNestedTypes = optionsPage.SuggestNestedTypes,
                 SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
                 AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,
                 SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation,
