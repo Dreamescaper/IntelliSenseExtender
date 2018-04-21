@@ -144,8 +144,7 @@ namespace IntelliSenseExtender.IntelliSense
             props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
             props.Add(CompletionItemProperties.Unimported, unimported.ToString());
 
-            // Add namespace to the end so items with same name would be displayed
-            var sortText = GetSortText(symbol.Name, nsName, sortingPriority);
+            var sortText = GetSortText(symbol.Name, nsName, sortingPriority, unimported);
 
             return CompletionItem.Create(
                 displayText: displayText,
@@ -162,7 +161,7 @@ namespace IntelliSenseExtender.IntelliSense
                     matchPriority: MatchPriority.Preselect
                 );
 
-            var sortText = GetSortText(itemText, string.Empty, sortingPriority);
+            var sortText = GetSortText(itemText, string.Empty, sortingPriority, false);
             var properties = ImmutableDictionary<string, string>.Empty
                 .Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
@@ -174,7 +173,7 @@ namespace IntelliSenseExtender.IntelliSense
                 );
         }
 
-        private static string GetSortText(string symbolName, string namespaceName, int sortingPriority)
+        private static string GetSortText(string symbolName, string namespaceName, int sortingPriority, bool unimported)
         {
             string prefix;
             switch (sortingPriority)
@@ -190,9 +189,10 @@ namespace IntelliSenseExtender.IntelliSense
                     break;
             }
 
-            // Use '!' as separator between nsName and symbolName, so that shorter name item 
-            // would be shown higher than longer (e.g. ClassName < ClassNameWithLongName)
-            return $"{prefix}{symbolName}!{namespaceName}";
+            // Add namespace to the end so items with same name would be displayed
+            // (only for unimported values)
+            var suffix = unimported ? " " + namespaceName : string.Empty;
+            return prefix + symbolName + suffix;
         }
 
         private static string GetAccessabilityTag(ISymbol symbol)
