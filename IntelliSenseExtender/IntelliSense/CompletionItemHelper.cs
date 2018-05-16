@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -255,13 +255,13 @@ namespace IntelliSenseExtender.IntelliSense
             return string.Empty;
         }
 
-        private static (Document document, Dictionary<string, ISymbol> mapping) _symbolMappingCache;
-        private static Dictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
+        private static (Document document, ConcurrentDictionary<string, ISymbol> mapping) _symbolMappingCache;
+        private static ConcurrentDictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
         {
             if (_symbolMappingCache.document?.Id != currentDocument.Id)
             {
                 _symbolMappingCache.document = currentDocument;
-                _symbolMappingCache.mapping = new Dictionary<string, ISymbol>();
+                _symbolMappingCache.mapping = new ConcurrentDictionary<string, ISymbol>();
             }
             return _symbolMappingCache.mapping;
         }
