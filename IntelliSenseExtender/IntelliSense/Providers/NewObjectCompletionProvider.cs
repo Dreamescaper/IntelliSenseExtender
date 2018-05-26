@@ -77,7 +77,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
             return options.SuggestTypesOnObjectCreation
-                && syntaxContext.InferredType != null;
+                && syntaxContext.InferredType != null
+                // do not support enums and nullable enums
+                && syntaxContext.InferredType.TypeKind != TypeKind.Enum
+                && !(syntaxContext.InferredType is INamedTypeSymbol namedType
+                    && namedType.Name == "Nullable"
+                    && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum);
         }
 
         private IEnumerable<CompletionItem> GetFactoryMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)

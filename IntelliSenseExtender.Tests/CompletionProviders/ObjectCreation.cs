@@ -179,6 +179,33 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DoNotSuggestNewNullableEnums()
+        {
+            const string source = @"
+                using System;
+
+                namespace NM
+                {
+                    public class Test
+                    {
+                        private SomeEnum? enumField;
+
+                        public void Method()
+                        {
+                            enumField = 
+                        }
+                    }
+
+                    public enum SomeEnum { A, B, C}
+                }";
+
+            var completions = GetCompletions(Provider, source, "enumField = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames,
+                Does.Not.Contain("new SomeEnum?()"));
+        }
+
+        [Test]
         public void SuggestGenericTypesIfTypeConstraintSatisfied()
         {
             const string source = @"
