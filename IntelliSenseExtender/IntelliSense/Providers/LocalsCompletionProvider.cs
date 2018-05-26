@@ -71,7 +71,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return options.SuggestLocalVariablesFirst
                 && syntaxContext.InferredType != null
                 && (syntaxContext.TypeInferredFrom == TypeInferredFrom.MethodArgument
-                || syntaxContext.TypeInferredFrom == TypeInferredFrom.ReturnValue);
+                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.ReturnValue
+                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.Assignment);
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)

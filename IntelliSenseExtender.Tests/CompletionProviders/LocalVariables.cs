@@ -115,7 +115,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestMethodParameters()
+        public void SuggestMethodParametersAsArguments()
         {
             const string source = @"
                 public class Test {
@@ -127,6 +127,23 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
+
+        [Test]
+        public void SuggestMethodParametersForPropertiesAssignment()
+        {
+            const string source = @"
+                public class Test {
+                    private int SomeProperty {get; set;} 
+
+                    public void Method(int i) {
+                        SomeProperty = 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "SomeProperty = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
