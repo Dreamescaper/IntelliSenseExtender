@@ -23,7 +23,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var completions = GetSpecialCasesCompletions(syntaxContext.InferredType, syntaxContext);
                 if (options.SuggestFactoryMethodsOnObjectCreation)
                 {
-                    completions = completions.Concat(GetFactoryMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredType));
+                    completions = completions.Concat(GetStaticMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredType));
                 }
 
                 return completions;
@@ -85,8 +85,15 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum);
         }
 
-        private IEnumerable<CompletionItem> GetFactoryMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
+        private IEnumerable<CompletionItem> GetStaticMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
         {
+            // Do not suggest completions for static methods or properties for build-in types.
+            // There's too much of them, and they only pollute IntelliSence
+            if (typeSymbol.IsBuiltInType())
+            {
+                return Enumerable.Empty<CompletionItem>();
+            }
+
             var factorySymbols = typeSymbol.GetMembers()
                 .Where(symbol => symbol.IsStatic
                     && symbol.DeclaredAccessibility == Accessibility.Public

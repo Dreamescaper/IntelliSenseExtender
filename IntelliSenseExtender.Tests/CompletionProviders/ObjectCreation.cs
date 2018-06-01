@@ -263,7 +263,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             const string source = @"
                 using System;
                 public class Test {
-                    public static bool DoSmth(Test testInstance)
+                    public void DoSmth()
                     {
                         TimeSpan ts = 
                     }
@@ -272,6 +272,23 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("TimeSpan.FromSeconds"));
+        }
+
+        [Test]
+        public void DoNotSuggestStaticMethodsForBuiltInTypes()
+        {
+            const string source = @"
+                using System;
+                public class Test {
+                    public void DoSmth()
+                    {
+                        string str = 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("String.Concat"));
         }
 
         [Test]
