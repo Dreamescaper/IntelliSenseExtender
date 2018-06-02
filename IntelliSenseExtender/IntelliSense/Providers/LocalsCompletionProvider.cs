@@ -133,6 +133,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                                 break;
                             }
 
+                            // Simple local variables
                             if (childNode is LocalDeclarationStatementSyntax)
                             {
                                 var varDeclaratorSyntax = childNode
@@ -141,6 +142,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                                 if (varDeclaratorSyntax != null)
                                 {
                                     yield return varDeclaratorSyntax;
+                                }
+                            }
+                            // Deconstructed variables
+                            else if (childNode.IsKind(SyntaxKind.ExpressionStatement))
+                            {
+                                var tupleDeclaration = childNode
+                                    .ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                                    ?.ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.DeclarationExpression))
+                                    ?.ChildNodes().OfType<ParenthesizedVariableDesignationSyntax>().FirstOrDefault();
+
+                                if (tupleDeclaration != null)
+                                {
+                                    foreach (var variable in tupleDeclaration.Variables)
+                                    {
+                                        yield return variable;
+                                    }
                                 }
                             }
                         }

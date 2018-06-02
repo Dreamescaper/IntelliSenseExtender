@@ -1,6 +1,7 @@
 next
 
 + Performance improvements
++ Suggest deconstructed variables
 + Fix minor bug with namespace import
 + Fix extension methods not suggested if IntelliSense invoked with text present 
 + Do not suggest new enum

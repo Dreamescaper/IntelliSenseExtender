@@ -21,7 +21,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -62,7 +62,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         }
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -83,7 +83,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         }
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -115,6 +115,26 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestDeconstructedTuples()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method()
+                    {
+                        var tuple = (1, 2);
+                        var (d1, d2) = tuple;
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int v){ }
+                }";
+
+            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("d1") & Does.Contain("d2"));
+        }
+
+        [Test]
         public void SuggestMethodParametersAsArguments()
         {
             const string source = @"
@@ -123,7 +143,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -173,7 +193,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         Action<int> action = i => IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -192,7 +212,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -211,7 +231,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -236,7 +256,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -309,7 +329,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -334,7 +354,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -359,7 +379,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -381,7 +401,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         int undefinedSoFar = 0;
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -402,7 +422,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -424,7 +444,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public void IntMethod(int var){ }
+                    public void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
@@ -443,7 +463,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                         IntMethod(
                     }
 
-                    public static void IntMethod(int var){ }
+                    public static void IntMethod(int v){ }
                 }";
 
             var completions = GetCompletions(Provider, source, "IntMethod(");
