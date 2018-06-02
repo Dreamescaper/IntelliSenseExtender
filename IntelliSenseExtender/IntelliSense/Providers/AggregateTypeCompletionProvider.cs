@@ -29,7 +29,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                   new TypesCompletionProvider(),
                   new ExtensionMethodsCompletionProvider(),
                   new LocalsCompletionProvider(),
-                  new NewObjectCompletionProvider())
+                  new NewObjectCompletionProvider(),
+                  new EnumCompletionProvider())
         {
 
         }

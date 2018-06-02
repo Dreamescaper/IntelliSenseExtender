@@ -149,6 +149,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompletionProviders\Enums.cs" />
     <Compile Include="CompletionProviders\ExtensionMethods.cs" />
     <Compile Include="CompletionProviders\LocalVariables.cs" />
     <Compile Include="CompletionProviders\ObjectCreation.cs" />

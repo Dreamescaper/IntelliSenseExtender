@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
@@ -18,7 +18,7 @@ namespace IntelliSenseExtender.Context
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
 
-        public IReadOnlyList<string> ImportedNamespaces { get; }
+        public ImmutableHashSet<string> ImportedNamespaces { get; }
         public bool IsTypeContext { get; }
         public bool IsAttributeContext { get; }
 
@@ -33,7 +33,7 @@ namespace IntelliSenseExtender.Context
         public CancellationToken CancellationToken { get; }
 
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
-            IReadOnlyList<string> importedNamespaces, bool isTypeContext = false, bool isAttributeContext = false,
+            IEnumerable<string> importedNamespaces, bool isTypeContext = false, bool isAttributeContext = false,
             bool isMemberAccessContext = false, ITypeSymbol accessedSymbolType = null, ISymbol accessedSymbol = null,
             ITypeSymbol inferredType = null, TypeInferredFrom inferredFrom = TypeInferredFrom.None,
             SyntaxToken currentToken = default(SyntaxToken), CancellationToken token = default(CancellationToken))
@@ -42,7 +42,7 @@ namespace IntelliSenseExtender.Context
             SemanticModel = semanticModel;
             SyntaxTree = syntaxTree;
             Position = position;
-            ImportedNamespaces = importedNamespaces;
+            ImportedNamespaces = importedNamespaces.ToImmutableHashSet();
             IsTypeContext = isTypeContext;
             IsAttributeContext = isAttributeContext;
             IsMemberAccessContext = isMemberAccessContext;

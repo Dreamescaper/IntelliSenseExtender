@@ -69,6 +69,7 @@
     <Compile Include="IntelliSense\CompletionItemHelper.cs" />
     <Compile Include="IntelliSense\Context\TypeInferredFrom.cs" />
     <Compile Include="IntelliSense\Providers\AggregateTypeCompletionProvider.cs" />
+    <Compile Include="IntelliSense\Providers\EnumCompletionProvider.cs" />
     <Compile Include="IntelliSense\Providers\ExtensionMethodsCompletionProvider.cs" />
     <Compile Include="IntelliSense\Providers\Interfaces\ICompletionProvider.cs" />
     <Compile Include="IntelliSense\Providers\Interfaces\ISimpleCompletionProvider.cs" />
