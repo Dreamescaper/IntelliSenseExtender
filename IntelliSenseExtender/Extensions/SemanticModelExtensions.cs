@@ -49,17 +49,28 @@ namespace IntelliSenseExtender.Extensions
             }
             else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
             {
-                var parentMethodOrProperty = returnStatementSyntax
-                    .Ancestors()
-                    .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
+                typeSymbol = semanticModel.GetReturnTypeSymbol(returnStatementSyntax);
+                inferredFrom = TypeInferredFrom.ReturnValue;
+            }
 
-                var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
-                    ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
-                if (typeSyntax != null)
-                {
-                    typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
-                    inferredFrom = TypeInferredFrom.ReturnValue;
-                }
+            // If we have ValueTuple return value - try to infer element type
+            else if (currentSyntaxNode is ParenthesizedExpressionSyntax
+                && currentSyntaxNode.Parent is ReturnStatementSyntax parentReturnStatement)
+            {
+                // In such cases it's the first element - otherwise it would be TupleExpression
+
+                var returnTypeSymbol = semanticModel.GetReturnTypeSymbol(parentReturnStatement);
+                typeSymbol = GetTupleTypeFromReturnValue(returnTypeSymbol, 0);
+                inferredFrom = TypeInferredFrom.ReturnValue;
+            }
+            else if (currentSyntaxNode is TupleExpressionSyntax tupleSyntax
+                && currentSyntaxNode.Parent is ReturnStatementSyntax parentReturn)
+            {
+                //In this case we have non-first element
+                var tupleElementIndex = GetCurrentTupleElementIndex(tupleSyntax, currentToken);
+                var returnTypeSymbol = semanticModel.GetReturnTypeSymbol(parentReturn);
+                typeSymbol = GetTupleTypeFromReturnValue(returnTypeSymbol, tupleElementIndex);
+                inferredFrom = TypeInferredFrom.ReturnValue;
             }
 
             if (typeSymbol == null)
@@ -68,6 +79,24 @@ namespace IntelliSenseExtender.Extensions
             }
 
             return (typeSymbol, inferredFrom);
+        }
+
+        private static ITypeSymbol GetReturnTypeSymbol(this SemanticModel semanticModel, ReturnStatementSyntax returnStatementSyntax)
+        {
+            ITypeSymbol typeSymbol = null;
+
+            var parentMethodOrProperty = returnStatementSyntax
+                .Ancestors()
+                .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
+
+            var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
+                ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
+            if (typeSyntax != null)
+            {
+                typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
+            }
+
+            return typeSymbol;
         }
 
         private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
@@ -111,6 +140,20 @@ namespace IntelliSenseExtender.Extensions
             return parameters?.ElementAtOrDefault(parameterIndex)?.Type;
         }
 
+        private static ITypeSymbol GetTupleTypeFromReturnValue(ITypeSymbol returnTypeSymbol, int elementIndex)
+        {
+            ITypeSymbol typeSymbol = null;
+
+            if (returnTypeSymbol.IsTupleType
+                && returnTypeSymbol is INamedTypeSymbol namedType
+                && namedType.TupleElements.Length > elementIndex)
+            {
+                typeSymbol = namedType.TupleElements[elementIndex].Type;
+            }
+
+            return typeSymbol;
+        }
+
         /// <summary>
         /// Return list of parameters of invoked method. Returns null if no method symbol found.
         /// </summary>
@@ -121,6 +164,17 @@ namespace IntelliSenseExtender.Extensions
             var methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
 
             return methodSymbol?.Parameters;
+        }
+
+        private static int GetCurrentTupleElementIndex(TupleExpressionSyntax tupleSyntax, SyntaxToken currentToken)
+        {
+            // Simply count commas before current token
+            var commasCount = tupleSyntax.ChildTokens()
+                .Where(token => token.Kind() == SyntaxKind.CommaToken)
+                .TakeWhile(token => token != currentToken)
+                .Count();
+
+            return commasCount;
         }
     }
 }

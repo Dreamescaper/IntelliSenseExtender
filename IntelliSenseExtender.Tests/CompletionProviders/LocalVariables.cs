@@ -135,6 +135,65 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestLocalsForTupleMembers_FirstMember()
+        {
+            const string source = @"
+                public class Test {
+                    public (string r1, int r2) Method()
+                    {
+                        string v1 = ""a"";
+                        int v2 = 2;
+
+                        return (
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "return (");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("v1") & Does.Not.Contain("v2"));
+        }
+
+        [Test]
+        public void SuggestLocalsForTupleMembers_SecondMember()
+        {
+            const string source = @"
+                public class Test {
+                    public (string r1, int r2) Method()
+                    {
+                        string v1 = ""a"";
+                        int v2 = 2;
+
+                        return (v1, 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "return (");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("v1") & Does.Contain("v2"));
+        }
+
+        [Test]
+        public void SuggestLocalsForTupleMembers_ThirdMember()
+        {
+            const string source = @"
+                public class Test {
+                    public (string r1, int r2, char r3) Method()
+                    {
+                        string v1 = ""a"";
+                        int v2 = 2;
+                        char v3 = 'c';
+
+                        return (v1, v2, 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "return (");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("v1")
+                & Does.Not.Contain("v2") & Does.Contain("v3"));
+        }
+
+        [Test]
         public void SuggestMethodParametersAsArguments()
         {
             const string source = @"
