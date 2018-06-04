@@ -1,4 +1,4 @@
-next
+0.8
 
 + Performance improvements
 + Suggest deconstructed variables
