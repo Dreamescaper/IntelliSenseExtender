@@ -13,12 +13,41 @@ namespace IntelliSenseExtender.Extensions
 
         public static string GetNamespace(this ISymbol symbol)
         {
-            return symbol.ContainingNamespace.ToDisplayString();
+            // ToDisplayString would work here as well, but it is slower
+            var nsNames = new List<string>();
+
+            while (symbol != null)
+            {
+                if (symbol is INamespaceSymbol nsSymbol)
+                {
+                    if (nsSymbol.IsGlobalNamespace)
+                    {
+                        break;
+                    }
+
+                    nsNames.Add(symbol.Name);
+                }
+                symbol = symbol.ContainingSymbol;
+            }
+
+            nsNames.Reverse();
+            return string.Join(".", nsNames);
         }
 
         public static string GetFullyQualifiedName(this ISymbol symbol)
         {
-            return symbol.ToDisplayString();
+            if (symbol is ITypeSymbol)
+            {
+                // ToDisplayString would work in this case as well, but it is slower
+                var nsName = symbol.GetNamespace();
+                return string.IsNullOrEmpty(nsName)
+                    ? symbol.Name
+                    : nsName + "." + symbol.MetadataName;
+            }
+            else
+            {
+                return symbol.ToDisplayString();
+            }
         }
 
         /// <summary>
