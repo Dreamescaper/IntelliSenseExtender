@@ -4,6 +4,9 @@
     <NoWarn>VSTHRD200</NoWarn>
     <AssemblyTitle>IntelliSenseExtender.Tests</AssemblyTitle>
     <LangVersion>7.1</LangVersion>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject>IntelliSenseExtender.Tests.Performance</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\IntelliSenseExtender\IntelliSenseExtender.csproj" />
