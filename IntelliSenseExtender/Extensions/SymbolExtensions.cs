@@ -42,7 +42,7 @@ namespace IntelliSenseExtender.Extensions
                 var nsName = symbol.GetNamespace();
                 return string.IsNullOrEmpty(nsName)
                     ? symbol.Name
-                    : nsName + "." + symbol.MetadataName;
+                    : nsName + "." + symbol.Name;
             }
             else
             {
