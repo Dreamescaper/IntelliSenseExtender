@@ -18,11 +18,12 @@ namespace IntelliSenseExtender.Tests
 
                 namespace ns.something
                 {
-                    public class Test {}
+                    public class Test {/*here*/}
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System.Collections", document, CancellationToken.None).Result;
+            int position = source.IndexOf("/*here*/");
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System.Collections", document, position, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
             var usingIndexes = new[] {
@@ -44,11 +45,12 @@ namespace IntelliSenseExtender.Tests
                 {
                     using System;
 
-                    public class Test {}
+                    public class Test {/*here*/}
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System.Collections", document, CancellationToken.None).Result;
+            int position = source.IndexOf("/*here*/");
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("System.Collections", document, position, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
             Assert.That(newDocText, Does.Contain("using System.Collections;"));
@@ -63,10 +65,13 @@ namespace IntelliSenseExtender.Tests
                 namespace A.B.C
                 {
                     using System;
+
+                    public class Test {/*here*/}
                 }";
 
             var document = GetTestDocument(source);
-            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.Csmth.D.E", document, CancellationToken.None).Result;
+            int position = source.IndexOf("/*here*/");
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.Csmth.D.E", document, position, CancellationToken.None).Result;
             var newDocText = newDoc.GetTextAsync().Result.ToString();
 
             Assert.That(newDocText, Does.Not.Contain("using A.B.Csmth.D.E;"));

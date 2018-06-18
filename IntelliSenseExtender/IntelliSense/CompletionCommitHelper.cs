@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,33 +29,53 @@ namespace IntelliSenseExtender.IntelliSense
                 newPosition = originalNewPosition + positionOffset;
             }
 
-            // Add using for required symbol. 
-            // Any better place to put this?
+            var textChange = new TextChange(item.Span, insertText);
+
+            // Create TextChange with added using
             if (item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
                 && bool.Parse(unimportedString)
-                && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName)
-                && IsCommitContext())
+                && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName))
             {
-                await _namespaceResolver.AddNamespaceAndApplyAsync(nsName, document, cancellationToken).ConfigureAwait(false);
+                int position = item.Span.End;
+                var docWithUsing = await _namespaceResolver.AddNamespaceImportAsync(nsName, document, position, cancellationToken).ConfigureAwait(false);
+                var usingChange = await docWithUsing.GetTextChangesAsync(document, cancellationToken);
+
+                var sourceText = await document.GetTextAsync();
+                var changes = usingChange.Union(new[] { textChange }).ToList();
+                sourceText = sourceText.WithChanges(changes);
+
+                textChange = Collapse(sourceText, changes);
             }
 
-            return CompletionChange.Create(new TextChange(item.Span, insertText), newPosition);
+            return CompletionChange.Create(textChange, newPosition);
         }
 
-        private static bool IsCommitContext()
+        // Taken from
+        private static TextChange Collapse(SourceText newText, List<TextChange> changes)
         {
-            // GetChangeAsync is called not only before actual commit (e.g. in SpellCheck as well).
-            // Manual adding 'using' in that method causes random adding usings.
-            // To avoid that we verify that we are actually committing item.
-            // TODO: PLEASE FIND BETTER APPROACH!!!
+            if (changes.Count == 0)
+            {
+                return new TextChange(new TextSpan(0, 0), "");
+            }
+            else if (changes.Count == 1)
+            {
+                return changes[0];
+            }
 
-            var stacktrace = new StackTrace();
+            // The span we want to replace goes from the start of the first span to the end of
+            // the  last span.
+            var totalOldSpan = TextSpan.FromBounds(changes.Select(s => s.Span.Start).Min(), changes.Select(s => s.Span.End).Max());
 
-            bool isCommitContext = stacktrace.GetFrames()
-                .Select(frame => frame.GetMethod())
-                .Any(method => method.Name == "Commit" && method.DeclaringType.Name == "Controller");
+            // We figure out the text we're replacing with by actually just figuring out the
+            // new span in the newText and grabbing the text out of that.  The newSpan will
+            // start from the same position as the oldSpan, but it's length will be the old
+            // span's length + all the deltas we accumulate through each text change.  i.e.
+            // if the first change adds 2 characters and the second change adds 4, then 
+            // the newSpan will be 2+4=6 characters longer than the old span.
+            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
+            var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
 
-            return isCommitContext;
+            return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
         }
     }
 }

@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
 namespace IntelliSenseExtender.Tests.CompletionProviders
@@ -17,6 +22,35 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         private CompletionProvider Provider_WithOptions(Action<Options.Options> action) =>
             new AggregateTypeCompletionProvider(Options_With(action),
                 new TypesCompletionProvider());
+
+        [Test]
+        public async Task ShouldAddUsingOnCommit()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method() {
+                        var list = new 
+                    }
+                }";
+
+            var document = GetTestDocument(source);
+            var listCompletion = (await GetCompletions(Provider, document, "var list = new "))
+                .First(c => c.DisplayText == "List<>  (System.Collections.Generic)");
+            listCompletion = CompletionList
+                .Create(new TextSpan(source.IndexOf("var list = new "), 0), ImmutableArray.Create(listCompletion))
+                .Items[0];
+            var changes = await Provider.GetChangeAsync(document, listCompletion, ' ', CancellationToken.None);
+            var textWithChanges = (await document.GetTextAsync()).WithChanges(changes.TextChange).ToString();
+
+            Assert.That(NormSpaces(textWithChanges), Is.EqualTo(NormSpaces(@"
+                using System.Collections.Generic;
+
+                public class Test {
+                    public void Method() {
+                        var list = new List
+                    }
+                }")));
+        }
 
         [Test]
         public void ProvideReferencesCompletions_List()
@@ -211,6 +245,11 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("Class  (NM)"));
+        }
+
+        private static string NormSpaces(string str)
+        {
+            return Regex.Replace(@"\s+", str, " ").Trim();
         }
     }
 }

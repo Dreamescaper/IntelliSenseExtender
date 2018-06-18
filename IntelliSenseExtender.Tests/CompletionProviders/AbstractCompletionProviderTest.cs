@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -80,7 +81,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static IReadOnlyList<CompletionItem> GetCompletions(CompletionProvider provider, string source, string additinalFile, string searchText)
         {
-            int position = source.IndexOf(searchText) + searchText.Length;
+            int position = GetPosition(source, searchText);
 
             var document = GetTestDocument(source, additinalFile);
             var completionContext = GetContext(document, provider, position);
@@ -91,13 +92,29 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static IReadOnlyList<CompletionItem> GetCompletions(CompletionProvider provider, string source, string searchText)
         {
-            int position = source.IndexOf(searchText) + searchText.Length;
+            int position = GetPosition(source, searchText);
 
             var document = GetTestDocument(source);
             var completionContext = GetContext(document, provider, position);
             provider.ProvideCompletionsAsync(completionContext).Wait();
             var completions = GetCompletions(completionContext);
             return completions;
+        }
+
+        public static async Task<IReadOnlyList<CompletionItem>> GetCompletions(CompletionProvider provider, Document document, string searchText)
+        {
+            var sourceText = await document.GetTextAsync();
+            int position = GetPosition(sourceText.ToString(), searchText);
+
+            var completionContext = GetContext(document, provider, position);
+            provider.ProvideCompletionsAsync(completionContext).Wait();
+            var completions = GetCompletions(completionContext);
+            return completions;
+        }
+
+        public static int GetPosition(string source, string searchText)
+        {
+            return source.IndexOf(searchText) + searchText.Length;
         }
 
         public class OptionsProvider : IOptionsProvider
