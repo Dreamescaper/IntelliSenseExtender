@@ -4,10 +4,10 @@ namespace IntelliSenseExtender.Options
 {
     public class VsSettingsOptionsProvider : IOptionsProvider
     {
-        internal static Func<OptionsPage> GetOptionsPageFunc;
-        internal static Options CachedOptions;
+        internal static Options CachedOptions { get; set; }
+        internal static Func<OptionsPage> GetOptionsPageFunc { get; set; }
 
-        public static VsSettingsOptionsProvider Current = new VsSettingsOptionsProvider();
+        public static VsSettingsOptionsProvider Current { get; set; } = new VsSettingsOptionsProvider();
 
         public Options GetOptions()
         {

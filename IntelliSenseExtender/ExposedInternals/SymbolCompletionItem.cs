@@ -13,7 +13,6 @@ namespace IntelliSenseExtender.ExposedInternals
     /// </summary>
     public static class SymbolCompletionItem
     {
-        private static readonly Type _internalType;
         private static readonly EncodeSymbolHandler _encodeSymbolMethod;
         private static readonly GetDescriptionAsyncHandler _getDescriptionAsyncMethod;
 
@@ -23,7 +22,7 @@ namespace IntelliSenseExtender.ExposedInternals
 
         static SymbolCompletionItem()
         {
-            _internalType = Type.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem," +
+            var _internalType = Type.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem," +
                 "Microsoft.CodeAnalysis.Features");
             _encodeSymbolMethod = (EncodeSymbolHandler)_internalType.GetMethod("EncodeSymbol").CreateDelegate(typeof(EncodeSymbolHandler));
             _getDescriptionAsyncMethod = (GetDescriptionAsyncHandler)_internalType.GetMethods()

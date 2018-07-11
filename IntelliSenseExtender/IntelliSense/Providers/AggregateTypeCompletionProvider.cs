@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
-using IntelliSenseExtender.Editor;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using IntelliSenseExtender.Options;
@@ -17,7 +16,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     [ExportCompletionProvider(nameof(AggregateTypeCompletionProvider), LanguageNames.CSharp)]
     public class AggregateTypeCompletionProvider : CompletionProvider
     {
-        private readonly NamespaceResolver _namespaceResolver;
         private readonly IOptionsProvider _optionsProvider;
 
         private readonly List<ITypeCompletionProvider> typeCompletionProviders;
@@ -42,7 +40,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             triggerCompletions = completionProviders.OfType<ITriggerCompletions>().ToList();
 
             _optionsProvider = optionsProvider;
-            _namespaceResolver = new NamespaceResolver();
         }
 
         public Options.Options Options => _optionsProvider.GetOptions();

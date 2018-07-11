@@ -14,11 +14,9 @@ namespace IntelliSenseExtender.ExposedInternals
         private delegate bool IsTypeContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, SemanticModel semanticModelOpt = null);
         private delegate bool IsAttributeNameContextHandler(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
-        private static readonly Type _contextQueryInternalType;
         private static readonly IsTypeContextHandler _isTypeContextMethod;
         private static readonly IsAttributeNameContextHandler _isAttributeNameContextMethod;
 
-        private static readonly Type _sharedInternalType;
         private static readonly FindTokenOnLeftOfPositionHandler _findTokenOnLeftOfPositionMethod;
 
         private delegate SyntaxToken FindTokenOnLeftOfPositionHandler(
@@ -34,12 +32,12 @@ namespace IntelliSenseExtender.ExposedInternals
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var cSharpWorkspacesAssembly = assemblies.First(a => a.GetName().Name == "Microsoft.CodeAnalysis.CSharp.Workspaces");
 
-            _contextQueryInternalType = cSharpWorkspacesAssembly.GetType("Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery.SyntaxTreeExtensions");
+            var _contextQueryInternalType = cSharpWorkspacesAssembly.GetType("Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery.SyntaxTreeExtensions");
             _isTypeContextMethod = (IsTypeContextHandler)_contextQueryInternalType.GetMethod("IsTypeContext").CreateDelegate(typeof(IsTypeContextHandler));
             _isAttributeNameContextMethod = (IsAttributeNameContextHandler)_contextQueryInternalType.GetMethod("IsAttributeNameContext").CreateDelegate(typeof(IsAttributeNameContextHandler));
 
             var workspacesAssembly = assemblies.First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
-            _sharedInternalType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions");
+            var _sharedInternalType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.Shared.Extensions.SyntaxTreeExtensions");
             _findTokenOnLeftOfPositionMethod = (FindTokenOnLeftOfPositionHandler)_sharedInternalType.GetMethod("FindTokenOnLeftOfPosition").CreateDelegate(typeof(FindTokenOnLeftOfPositionHandler));
         }
 
