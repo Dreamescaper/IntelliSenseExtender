@@ -572,6 +572,23 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DontSuggestSelfDuringAssignment()
+        {
+            const string source = @"
+                public class Test {
+                    private int Prop {get; set;}
+
+                    public void Method() {
+                        Prop = 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "Prop = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("Prop"));
+        }
+
+        [Test]
         public void SuggestCorrectArgumentType()
         {
             const string source = @"

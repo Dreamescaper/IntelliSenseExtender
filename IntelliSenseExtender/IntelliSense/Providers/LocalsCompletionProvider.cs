@@ -242,6 +242,20 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 fieldsAndProperties = fieldsAndProperties.Where(member => member.IsStatic);
             }
 
+            // In case of assignment - do not suggest self
+            if (syntaxContext.CurrentToken.Parent is AssignmentExpressionSyntax assignment)
+            {
+                var assignedSymbol = syntaxContext.SemanticModel
+                    .GetSymbolInfo(assignment.Left, syntaxContext.CancellationToken)
+                    .Symbol;
+
+                if (assignedSymbol != null)
+                {
+                    fieldsAndProperties = fieldsAndProperties.Where(s => s != assignedSymbol);
+                }
+
+            }
+
             return fieldsAndProperties;
         }
 
