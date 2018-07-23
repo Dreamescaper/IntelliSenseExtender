@@ -225,11 +225,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 return Enumerable.Empty<ISymbol>();
             }
 
-            var currentTypeMembers = typeSymbol.GetMembers();
+            var currentTypeMembers = typeSymbol.GetMembers()
+                .Where(member => member.CanBeReferencedByName);
             var inheritedMembers = typeSymbol.GetBaseTypes()
                 .SelectMany(type => type.GetMembers())
-                .Where(member => member.DeclaredAccessibility == Accessibility.Public
-                    || member.DeclaredAccessibility == Accessibility.Protected);
+                .Where(member => member.CanBeReferencedByName
+                    && (member.DeclaredAccessibility == Accessibility.Public
+                    || member.DeclaredAccessibility == Accessibility.Protected));
 
             var fieldsAndProperties = currentTypeMembers.Union(inheritedMembers)
                 .Where(member => member is IFieldSymbol || member is IPropertySymbol);

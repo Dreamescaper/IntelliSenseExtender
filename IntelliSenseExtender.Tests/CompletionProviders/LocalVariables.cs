@@ -553,6 +553,25 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DontSuggestSuggestAutoPropertiesBackingFields()
+        {
+            const string source = @"
+                public class Test {
+                    private int Prop {get; set;}
+
+                    public void Method() {
+                        IntMethod(
+                    }
+
+                    public void IntMethod(int v){ }
+                }";
+
+            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Has.All.Not.Contain("BackingField").IgnoreCase);
+        }
+
+        [Test]
         public void SuggestCorrectArgumentType()
         {
             const string source = @"
