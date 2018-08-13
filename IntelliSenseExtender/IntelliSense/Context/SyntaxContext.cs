@@ -58,7 +58,7 @@ namespace IntelliSenseExtender.Context
         public bool IsNamespaceImported(INamedTypeSymbol typeSymbol)
         {
             return ImportedNamespaces.Contains(typeSymbol.GetNamespace())
-                && !typeSymbol.ContainingNamespace.IsGlobalNamespace;
+                || typeSymbol.ContainingNamespace.IsGlobalNamespace;
         }
 
         public bool IsAccessible(ISymbol typeSymbol)

@@ -247,6 +247,25 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             Assert.That(completionsNames, Does.Not.Contain("Class  (NM)"));
         }
 
+        [Test]
+        public void DoNotSuggestTypesInGlobalNamespace()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                public class GlobalNsClass
+                {
+                }";
+
+            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Has.None.Contains("GlobalNsClass"));
+        }
+
         private static string NormSpaces(string str)
         {
             return Regex.Replace(@"\s+", str, " ").Trim();
