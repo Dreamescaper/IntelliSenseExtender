@@ -273,13 +273,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
                 return methodSymbol.Parameters;
             }
-            //Special case - property set method
+            //Special case - property / indexed property set method
             else if (methodOrPropertyNode is AccessorDeclarationSyntax accessorNode
                 && accessorNode.Kind() == SyntaxKind.SetAccessorDeclaration)
             {
-                var propertyNode = accessorNode.Ancestors().OfType<PropertyDeclarationSyntax>().First();
-                var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(propertyNode);
-                return propertySymbol.SetMethod.Parameters;
+                var basePropertyNode = accessorNode.Ancestors().OfType<BasePropertyDeclarationSyntax>().FirstOrDefault();
+
+                if (basePropertyNode is PropertyDeclarationSyntax propertyNode)
+                {
+                    var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(propertyNode);
+                    return propertySymbol.SetMethod.Parameters;
+                }
+                else if (basePropertyNode is IndexerDeclarationSyntax indexerNode)
+                {
+                    var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(indexerNode);
+                    return propertySymbol.SetMethod.Parameters;
+                }
             }
 
             return Enumerable.Empty<IParameterSymbol>();

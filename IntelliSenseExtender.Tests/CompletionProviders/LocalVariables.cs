@@ -354,7 +354,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestSetterValueParameter()
+        public void SuggestSetterValueParameter_Property()
         {
             const string source = @"
                 public class TestClass
@@ -376,6 +376,54 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(Provider, source, "Method(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("value"));
+        }
+
+        [Test]
+        public void SuggestSetterValueParameter_IndexedProperty()
+        {
+            const string source = @"
+                public class TestClass
+                {
+                    public int this[string key]
+                    {
+                        set
+                        {
+                            Method(
+                        }
+                    }
+
+                    public void Method(int i)
+                    {
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "Method(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("value"));
+        }
+
+        [Test]
+        public void SuggestIndexedPropertyIndexParameter()
+        {
+            const string source = @"
+                public class TestClass
+                {
+                    public int this[string key]
+                    {
+                        set
+                        {
+                            Method(
+                        }
+                    }
+
+                    public void Method(string str)
+                    {
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "Method(");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("key"));
         }
 
         [Test]
@@ -569,6 +617,27 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = GetCompletions(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Has.All.Not.Contain("BackingField").IgnoreCase);
+        }
+
+        [Test]
+        public void DoNotSuggestAnythingForWrongMemberName()
+        {
+            const string source = @"
+                internal class Test
+                {
+                    public object this[string key]
+                    {
+                        set
+                        {
+                            this.name = 
+                        }
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Is.Empty);
         }
 
         [Test]

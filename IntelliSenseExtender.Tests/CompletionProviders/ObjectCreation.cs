@@ -396,6 +396,27 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void DoNotSuggestAnythingForWrongMemberName()
+        {
+            const string source = @"
+                internal class Test
+                {
+                    public object this[string key]
+                    {
+                        set
+                        {
+                            this.name = 
+                        }
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Is.Empty);
+        }
+
+        [Test]
         public void SuggestOnReturn()
         {
             const string source = @"
