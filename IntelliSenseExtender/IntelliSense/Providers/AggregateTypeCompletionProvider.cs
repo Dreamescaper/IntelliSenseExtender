@@ -46,6 +46,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
+            if (await IsWatchWindowAsync(context).ConfigureAwait(false))
+            {
+                // Completions are not usable in watch window
+                return;
+            }
+
             var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
@@ -122,6 +128,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     }
                 }
             }
+        }
+
+        private async Task<bool> IsWatchWindowAsync(CompletionContext completionContext)
+        {
+            // Current line in watch window starts with ';'. Any other options to determine that?
+            var sourceText = await completionContext.Document.GetTextAsync().ConfigureAwait(false);
+            var currentLine = sourceText.Lines.GetLineFromPosition(completionContext.Position);
+            return currentLine.ToString().StartsWith(";");
         }
     }
 }
