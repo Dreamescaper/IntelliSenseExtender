@@ -1,7 +1,11 @@
-next
+0.9
 
 + Do not suggest types in global namespace
 + Fix crash with indexed properties
++ Don't suggest auto properties backing fields
++ Don't suggest self during assignment
++ Don't trigger IntelliSense in attribute constructor
++ Disable completions in Watch window while debugging
 
 0.8
 
