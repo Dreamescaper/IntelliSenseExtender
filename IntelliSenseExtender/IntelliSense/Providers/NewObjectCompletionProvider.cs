@@ -15,6 +15,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITypeCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
+        private static readonly Regex AttributeRegex = new Regex(@"\[\w+\((\S+(, )?)*$");
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -64,9 +65,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var textBeforeCaret = sourceString.Substring(0, caretPosition);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
                     && (textBeforeCaret.EndsWith(" = ")
-                    || textBeforeCaret.EndsWith(" = new ")
-                    || textBeforeCaret.EndsWith("return ")
-                    || BracketRegex.IsMatch(textBeforeCaret)))
+                        || textBeforeCaret.EndsWith(" = new ")
+                        || textBeforeCaret.EndsWith("return ")
+                        || BracketRegex.IsMatch(textBeforeCaret))
+                    && !AttributeRegex.IsMatch(textBeforeCaret))
                 {
                     return true;
                 }
