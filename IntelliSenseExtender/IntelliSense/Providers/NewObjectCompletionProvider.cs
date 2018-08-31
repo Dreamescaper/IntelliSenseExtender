@@ -8,6 +8,7 @@ using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
@@ -171,9 +172,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         return new[]
                         {
                              CompletionItemHelper.CreateCompletionItem("true", Sorting.NewSuggestion_Literal)
-                                .WithTags(ImmutableArray.Create(CompletionTags.Keyword)),
+                                .WithTags(ImmutableArray.Create(WellKnownTags.Keyword)),
                              CompletionItemHelper.CreateCompletionItem("false", Sorting.NewSuggestion_Literal)
-                                .WithTags(ImmutableArray.Create(CompletionTags.Keyword))
+                                .WithTags(ImmutableArray.Create(WellKnownTags.Keyword))
                         };
                 }
             }
@@ -192,7 +193,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var newSuggestion = CompletionItem.Create(
                 displayText: "new",
                 filterText: "new  ",
-                tags: ImmutableArray.Create(CompletionTags.Keyword));
+                tags: ImmutableArray.Create(WellKnownTags.Keyword));
             context.AddItem(newSuggestion);
         }
     }

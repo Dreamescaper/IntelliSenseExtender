@@ -9,6 +9,7 @@ using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace IntelliSenseExtender.IntelliSense
 {
@@ -200,15 +201,15 @@ namespace IntelliSenseExtender.IntelliSense
             switch (symbol.DeclaredAccessibility)
             {
                 case Accessibility.Public:
-                    return CompletionTags.Public;
+                    return WellKnownTags.Public;
                 case Accessibility.Private:
-                    return CompletionTags.Private;
+                    return WellKnownTags.Private;
                 case Accessibility.Internal:
-                    return CompletionTags.Internal;
+                    return WellKnownTags.Internal;
                 case Accessibility.Protected:
                 case Accessibility.ProtectedOrInternal:
                 case Accessibility.ProtectedAndInternal:
-                    return CompletionTags.Protected;
+                    return WellKnownTags.Protected;
                 case Accessibility.NotApplicable:
                     return string.Empty;
                 default:
@@ -226,30 +227,30 @@ namespace IntelliSenseExtender.IntelliSense
                         switch (typeSymbol.TypeKind)
                         {
                             case TypeKind.Class:
-                                return CompletionTags.Class;
+                                return WellKnownTags.Class;
                             case TypeKind.Interface:
-                                return CompletionTags.Interface;
+                                return WellKnownTags.Interface;
                             case TypeKind.Enum:
-                                return CompletionTags.Enum;
+                                return WellKnownTags.Enum;
                             case TypeKind.Struct:
-                                return CompletionTags.Structure;
+                                return WellKnownTags.Structure;
                             case TypeKind.Delegate:
-                                return CompletionTags.Delegate;
+                                return WellKnownTags.Delegate;
                         }
                     }
                     break;
                 case SymbolKind.Method when ((IMethodSymbol)symbol).IsExtensionMethod:
-                    return CompletionTags.ExtensionMethod;
+                    return WellKnownTags.ExtensionMethod;
                 case SymbolKind.Method:
-                    return CompletionTags.Method;
+                    return WellKnownTags.Method;
                 case SymbolKind.Local:
-                    return CompletionTags.Local;
+                    return WellKnownTags.Local;
                 case SymbolKind.Parameter:
-                    return CompletionTags.Parameter;
+                    return WellKnownTags.Parameter;
                 case SymbolKind.Field:
-                    return CompletionTags.Field;
+                    return WellKnownTags.Field;
                 case SymbolKind.Property:
-                    return CompletionTags.Property;
+                    return WellKnownTags.Property;
             }
 
             return string.Empty;
