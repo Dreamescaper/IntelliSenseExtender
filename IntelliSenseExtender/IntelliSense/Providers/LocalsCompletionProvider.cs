@@ -18,7 +18,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class LocalsCompletionProvider : ISimpleCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
-        private static readonly Regex AttributeRegex = new Regex(@"\[\w+\((\S+(, )?)*$");
+        private static readonly Regex AttributeRegex = new Regex(@"\[\w+\(([^\] ]+(, )?)*$");
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -55,9 +55,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (options.SuggestLocalVariablesFirst)
             {
-                var sourceString = text.ToString();
+                var currentLine = text.Lines.GetLineFromPosition(caretPosition);
+                var textBeforeCaret = currentLine.ToString().Substring(0, caretPosition - currentLine.Start);
 
-                var textBeforeCaret = sourceString.Substring(0, caretPosition);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
                     && (BracketRegex.IsMatch(textBeforeCaret) || textBeforeCaret.EndsWith(", ") || textBeforeCaret.EndsWith("return "))
                     && !AttributeRegex.IsMatch(textBeforeCaret))

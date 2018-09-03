@@ -16,7 +16,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITypeCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
-        private static readonly Regex AttributeRegex = new Regex(@"\[\w+\((\S+(, )?)*$");
+        private static readonly Regex AttributeRegex = new Regex(@"\[\w+\(([^\] ]+(, )?)*$");
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -60,10 +60,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             if (options.SuggestTypesOnObjectCreation || options.SuggestFactoryMethodsOnObjectCreation)
             {
-                var sourceString = text.ToString();
+                var currentLine = text.Lines.GetLineFromPosition(caretPosition);
 
                 //trigger completion automatically when assigning values
-                var textBeforeCaret = sourceString.Substring(0, caretPosition);
+                var textBeforeCaret = currentLine.ToString().Substring(0, caretPosition - currentLine.Start);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
                     && (textBeforeCaret.EndsWith(" = ")
                         || textBeforeCaret.EndsWith(" = new ")
