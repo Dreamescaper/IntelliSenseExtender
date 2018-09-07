@@ -435,6 +435,25 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void ShouldSuggestTaskGenericTypeForAsyncMethods()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class Test {
+                    public async Task<List<int>> MethodAsync() {
+                        return 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("new List<int>()"));
+        }
+
+        [Test]
         public void TriggerCompletionAfterAssignment()
         {
             const string source = @"

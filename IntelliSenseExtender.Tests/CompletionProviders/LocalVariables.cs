@@ -725,6 +725,26 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestReturnValuesOfTaskGenericTypeForAsyncMethods()
+        {
+            const string source = @"                
+                using System.Threading.Tasks;
+
+                public class Test {
+                    public async Task<int> MethodAsync()
+                    {
+                        int i = 0;
+                        return 
+                    }
+                }";
+
+            var completions = GetCompletions(Provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("i"));
+        }
+
+        [Test]
         public void DontTriggerInAttributeConstructor_FirstArgument()
         {
             // Due to strange default behavior with suggestion non-static members

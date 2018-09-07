@@ -89,11 +89,27 @@ namespace IntelliSenseExtender.Extensions
                 .Ancestors()
                 .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
 
-            var typeSyntax = (parentMethodOrProperty as MethodDeclarationSyntax)?.ReturnType
-                ?? (parentMethodOrProperty as PropertyDeclarationSyntax)?.Type;
-            if (typeSyntax != null)
+            if (parentMethodOrProperty is MethodDeclarationSyntax methodSyntax)
             {
-                typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
+                var typeSyntax = methodSyntax.ReturnType;
+
+                if (typeSyntax != null)
+                    typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
+
+                if (typeSymbol != null
+                    && methodSyntax.Modifiers.Any(m => m.Kind() == SyntaxKind.AsyncKeyword)
+                    && typeSymbol.Name == "Task"
+                    && typeSymbol is INamedTypeSymbol namedTypeSymbol
+                    && namedTypeSymbol.IsGenericType)
+                {
+                    typeSymbol = namedTypeSymbol.TypeArguments.FirstOrDefault();
+                }
+            }
+            else if (parentMethodOrProperty is PropertyDeclarationSyntax propertySyntax)
+            {
+                var typeSyntax = propertySyntax.Type;
+                if (typeSyntax != null)
+                    typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
             }
 
             return typeSymbol;

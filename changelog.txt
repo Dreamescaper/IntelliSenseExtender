@@ -6,6 +6,7 @@
 + Don't suggest self during assignment
 + Don't trigger IntelliSense in attribute constructor
 + Disable completions in Watch window while debugging
++ Fix inferring type for async methods
 
 0.8
 
