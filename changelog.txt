@@ -1,3 +1,7 @@
+0.9.1
+
++ Fix crash on some VS installations
+
 0.9
 
 + Do not suggest types in global namespace
