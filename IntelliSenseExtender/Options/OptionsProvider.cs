@@ -1,27 +1,14 @@
-﻿using System;
-
-namespace IntelliSenseExtender.Options
+﻿namespace IntelliSenseExtender.Options
 {
     public class VsSettingsOptionsProvider : IOptionsProvider
     {
-        internal static Options CachedOptions { get; set; }
-        internal static Func<OptionsPage> GetOptionsPageFunc { get; set; }
-
         public static VsSettingsOptionsProvider Current { get; set; } = new VsSettingsOptionsProvider();
 
         public Options GetOptions()
         {
-            if (CachedOptions == null)
-            {
-                UpdateCachedOptions();
-            }
-            return CachedOptions;
-        }
+            var optionsPage = IntelliSenseExtenderPackage.OptionsPage;
 
-        private void UpdateCachedOptions()
-        {
-            var optionsPage = GetOptionsPageFunc();
-            CachedOptions = new Options
+            return new Options
             {
                 SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                 FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,

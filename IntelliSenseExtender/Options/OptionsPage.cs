@@ -63,11 +63,5 @@ namespace IntelliSenseExtender.Options
             SuggestFactoryMethodsOnObjectCreation = true;
             SuggestLocalVariablesFirst = true;
         }
-
-        public override void SaveSettingsToStorage()
-        {
-            base.SaveSettingsToStorage();
-            VsSettingsOptionsProvider.CachedOptions = null;
-        }
     }
 }
