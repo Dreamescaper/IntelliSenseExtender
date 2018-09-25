@@ -1,6 +1,7 @@
 next
 
 + Use background load
++ Fix hang during attributes editing
 
 0.9.1
 
