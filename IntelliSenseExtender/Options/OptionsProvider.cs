@@ -8,16 +8,18 @@
         {
             var optionsPage = IntelliSenseExtenderPackage.OptionsPage;
 
-            return new Options
-            {
-                SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
-                FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
-                SuggestNestedTypes = optionsPage.SuggestNestedTypes,
-                SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
-                AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,
-                SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation,
-                SuggestLocalVariablesFirst = optionsPage.SuggestLocalVariablesFirst
-            };
+            return optionsPage == null
+                ? null
+                : new Options
+                {
+                    SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
+                    FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
+                    SuggestNestedTypes = optionsPage.SuggestNestedTypes,
+                    SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
+                    AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,
+                    SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation,
+                    SuggestLocalVariablesFirst = optionsPage.SuggestLocalVariablesFirst
+                };
         }
     }
 }

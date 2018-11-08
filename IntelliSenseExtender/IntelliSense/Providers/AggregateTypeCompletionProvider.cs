@@ -46,6 +46,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
+            if (Options == null)
+            {
+                // Package not loaded yet (e.g. no solution opened)
+                return;
+            }
             if (await IsWatchWindowAsync(context).ConfigureAwait(false))
             {
                 // Completions are not usable in watch window
@@ -80,6 +85,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
+            if (Options == null)
+            {
+                // Package not loaded yet (e.g. no solution opened)
+                return false;
+            }
+
             bool shouldTrigger = triggerCompletions.Any(c => c.ShouldTriggerCompletion(text, caretPosition, trigger, Options));
 
             return shouldTrigger || base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
