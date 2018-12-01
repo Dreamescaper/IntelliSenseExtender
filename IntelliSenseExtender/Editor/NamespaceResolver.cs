@@ -15,12 +15,13 @@ namespace IntelliSenseExtender.Editor
     {
         public async Task<Document> AddNamespaceImportAsync(string nsName, Document document, int position, CancellationToken cancellationToken)
         {
+            var documentOptionsTask = document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
 
             var currentNode = root.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).Parent;
 
+            var documentOptions = await documentOptionsTask;
             bool placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
 
             var existingUsingContext = root.DescendantNodes()
@@ -58,33 +59,31 @@ namespace IntelliSenseExtender.Editor
             }
         }
 
-        // Has to be better way
         private string ReduceNamespaceName(string nsToImport, string containingNs)
         {
-            IEnumerable<string> GetParentNamespaces(string ns)
-            {
-                yield return ns;
+            const char dot = '.';
 
-                while (ns.Contains('.'))
-                {
-                    ns = ns.Substring(0, ns.LastIndexOf('.'));
-                    yield return ns;
-                }
+            var indexFromCopy = 0;
+            var maxIndex = Math.Min(nsToImport.Length, containingNs.Length) - 1;
+
+            var index = 0;
+            for (; index <= maxIndex; index++)
+            {
+                if (nsToImport[index] != containingNs[index])
+                    break;
+
+                if (nsToImport[index] == dot)
+                    indexFromCopy = index + 1;
             }
 
-            if (nsToImport == containingNs)
-            {
-                return string.Empty;
-            }
+            var isLastComparisionSuccessful = maxIndex > 0 && index > maxIndex
+                && nsToImport[maxIndex] == containingNs[maxIndex];
+            var nextSymbolIsDot = index < nsToImport.Length - 1 && nsToImport[index] == dot;
 
-            foreach (var ns in GetParentNamespaces(containingNs))
-            {
-                if (nsToImport.StartsWith(ns + "."))
-                {
-                    return nsToImport.Substring(Math.Min(ns.Length + 1, nsToImport.Length));
-                }
-            }
-            return nsToImport;
+            if (isLastComparisionSuccessful && nextSymbolIsDot)
+                indexFromCopy = index + 1;
+
+            return nsToImport.Substring(indexFromCopy);
         }
     }
 }

@@ -9,39 +9,35 @@ namespace IntelliSenseExtender.Extensions
     {
         public static IReadOnlyList<string> GetImportedNamespaces(this SyntaxTree tree)
         {
-            if (tree.GetRoot() is CompilationUnitSyntax compilationUnitSyntax)
-            {
-                var childNodes = compilationUnitSyntax.ChildNodes().ToArray();
-
-                var namespaces = childNodes
-                    .OfType<UsingDirectiveSyntax>()
-                    .Select(u => u.Name.ToString()).ToList();
-
-                var currentNamespaces = childNodes
-                    .OfType<NamespaceDeclarationSyntax>()
-                    .Select(nsSyntax => nsSyntax.Name.ToString());
-
-                namespaces.AddRange(currentNamespaces);
-                namespaces.AddRange(currentNamespaces.SelectMany(GetParentNamespaces));
-
-                return namespaces;
-            }
-            else
-            {
+            if (!(tree.GetRoot() is CompilationUnitSyntax compilationUnitSyntax))
                 return new string[] { };
-            }
+
+            var childNodes = compilationUnitSyntax.ChildNodes().ToArray();
+
+            var namespaces = childNodes
+                .OfType<UsingDirectiveSyntax>()
+                .Select(u => u.Name.ToString()).ToList();
+
+            var currentNamespaces = childNodes
+                .OfType<NamespaceDeclarationSyntax>()
+                .Select(nsSyntax => nsSyntax.Name.ToString());
+
+            namespaces.AddRange(currentNamespaces.SelectMany(GetParentNamespaces));
+
+            return namespaces;
         }
 
         private static IReadOnlyList<string> GetParentNamespaces(string nsName)
         {
-            var splittedNs = nsName.Split('.');
+            const char dot = '.';
 
-            var parentNamespaces = new List<string>();
-            for (int i = 1; i < splittedNs.Length; i++)
-            {
-                var parentNs = string.Join(".", splittedNs.Take(i));
-                parentNamespaces.Add(parentNs);
-            }
+            var parentNamespaces = nsName
+                .Select((c, index) => c == dot ? index : -1)
+                .Where(i => i != -1)
+                .Select(dotIndex => nsName.Substring(0, dotIndex))
+                .ToList();
+
+            parentNamespaces.Add(nsName);
 
             return parentNamespaces;
         }

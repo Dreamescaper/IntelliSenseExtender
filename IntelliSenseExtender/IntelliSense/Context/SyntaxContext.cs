@@ -69,10 +69,11 @@ namespace IntelliSenseExtender.Context
 
         public static async Task<SyntaxContext> CreateAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
-            var syntaxTree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
+            var semanticModelTask = document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             var importedNamespaces = syntaxTree.GetImportedNamespaces();
+            var semanticModel = await semanticModelTask;
             var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
             var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);
 

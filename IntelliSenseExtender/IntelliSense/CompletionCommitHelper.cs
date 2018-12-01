@@ -37,11 +37,12 @@ namespace IntelliSenseExtender.IntelliSense
                 && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName))
             {
                 int position = item.Span.End;
+                var sourceTextTask = document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var docWithUsing = await _namespaceResolver.AddNamespaceImportAsync(nsName, document, position, cancellationToken).ConfigureAwait(false);
-                var usingChange = await docWithUsing.GetTextChangesAsync(document, cancellationToken);
+                var usingChange = await docWithUsing.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var sourceText = await document.GetTextAsync();
                 var changes = usingChange.Union(new[] { textChange }).ToList();
+                var sourceText = await sourceTextTask;
                 sourceText = sourceText.WithChanges(changes);
 
                 textChange = Collapse(sourceText, changes);

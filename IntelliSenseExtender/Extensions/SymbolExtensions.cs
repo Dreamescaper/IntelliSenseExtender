@@ -14,7 +14,7 @@ namespace IntelliSenseExtender.Extensions
         public static string GetNamespace(this ISymbol symbol)
         {
             // ToDisplayString would work here as well, but it is slower
-            var nsNames = new List<string>();
+            var nsNames = new LinkedList<string>();
 
             while (symbol != null)
             {
@@ -25,12 +25,11 @@ namespace IntelliSenseExtender.Extensions
                         break;
                     }
 
-                    nsNames.Add(symbol.Name);
+                    nsNames.AddFirst(symbol.Name);
                 }
                 symbol = symbol.ContainingSymbol;
             }
 
-            nsNames.Reverse();
             return string.Join(".", nsNames);
         }
 
@@ -42,7 +41,7 @@ namespace IntelliSenseExtender.Extensions
                 var nsName = symbol.GetNamespace();
                 return string.IsNullOrEmpty(nsName)
                     ? symbol.Name
-                    : nsName + "." + symbol.Name;
+                    : $"{nsName}.{symbol.Name}";
             }
             else
             {
@@ -60,7 +59,7 @@ namespace IntelliSenseExtender.Extensions
                 var containingType = typeSymbol.ContainingType;
                 if (containingType != null)
                 {
-                    return containingType.GetAccessibleName() + "." + symbol.Name;
+                    return $"{containingType.GetAccessibleName()}.{symbol.Name}";
                 }
             }
             return symbol.Name;
