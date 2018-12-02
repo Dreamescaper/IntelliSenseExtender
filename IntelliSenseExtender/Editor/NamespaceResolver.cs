@@ -67,7 +67,7 @@ namespace IntelliSenseExtender.Editor
             var maxIndex = Math.Min(nsToImport.Length, containingNs.Length) - 1;
 
             var index = 0;
-            for (; index <= maxIndex; index++)
+            for (; index < maxIndex; index++)
             {
                 if (nsToImport[index] != containingNs[index])
                     break;
@@ -76,9 +76,8 @@ namespace IntelliSenseExtender.Editor
                     indexFromCopy = index + 1;
             }
 
-            var isLastComparisionSuccessful = maxIndex > 0 && index > maxIndex
-                && nsToImport[maxIndex] == containingNs[maxIndex];
-            var nextSymbolIsDot = index < nsToImport.Length - 1 && nsToImport[index] == dot;
+            var isLastComparisionSuccessful = index == maxIndex && nsToImport[index] == containingNs[index];
+            var nextSymbolIsDot = ++index < nsToImport.Length - 1 && nsToImport[index] == dot;
 
             if (isLastComparisionSuccessful && nextSymbolIsDot)
                 indexFromCopy = index + 1;

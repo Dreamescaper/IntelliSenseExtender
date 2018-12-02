@@ -41,7 +41,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static Document GetTestDocument(string source)
         {
-            return GetTestDocument(source, new string[] { });
+            return GetTestDocument(source, Array.Empty<string>());
         }
 
         public static Document GetTestDocument(string source, params string[] additionalFiles)
