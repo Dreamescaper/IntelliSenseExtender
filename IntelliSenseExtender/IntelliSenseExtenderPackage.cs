@@ -17,6 +17,7 @@ namespace IntelliSenseExtender
     [ProvideProfile(typeof(OptionsPage),
         "IntelliSense Extender", "General", 0, 0, true)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class IntelliSenseExtenderPackage : AsyncPackage
     {
         /// <summary>
