@@ -87,10 +87,12 @@ namespace IntelliSenseExtender.IntelliSense
                 string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
                 item = item.AddProperty(CompletionItemProperties.Symbols, symbolKey);
 
-                var description = await SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
+                var descriptionTask = SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
                 bool unimported = item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
                     && bool.Parse(unimportedString);
+
+                var description = await descriptionTask;
 
                 if (unimported)
                 {

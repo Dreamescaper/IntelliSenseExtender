@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,39 +10,35 @@ namespace IntelliSenseExtender.Extensions
     {
         public static IReadOnlyList<string> GetImportedNamespaces(this SyntaxTree tree)
         {
-            if (tree.GetRoot() is CompilationUnitSyntax compilationUnitSyntax)
-            {
-                var childNodes = compilationUnitSyntax.ChildNodes().ToArray();
+            if (!(tree.GetRoot() is CompilationUnitSyntax compilationUnitSyntax))
+                return Array.Empty<string>();
 
-                var namespaces = childNodes
-                    .OfType<UsingDirectiveSyntax>()
-                    .Select(u => u.Name.ToString()).ToList();
+            var childNodes = compilationUnitSyntax.ChildNodes().ToArray();
 
-                var currentNamespaces = childNodes
-                    .OfType<NamespaceDeclarationSyntax>()
-                    .Select(nsSyntax => nsSyntax.Name.ToString());
+            var namespaces = childNodes
+                .OfType<UsingDirectiveSyntax>()
+                .Select(u => u.Name.ToString()).ToList();
 
-                namespaces.AddRange(currentNamespaces);
-                namespaces.AddRange(currentNamespaces.SelectMany(GetParentNamespaces));
+            var currentNamespaces = childNodes
+                .OfType<NamespaceDeclarationSyntax>()
+                .Select(nsSyntax => nsSyntax.Name.ToString());
 
-                return namespaces;
-            }
-            else
-            {
-                return new string[] { };
-            }
+            namespaces.AddRange(currentNamespaces.SelectMany(GetParentNamespaces));
+
+            return namespaces;
         }
 
         private static IReadOnlyList<string> GetParentNamespaces(string nsName)
         {
-            var splittedNs = nsName.Split('.');
-
             var parentNamespaces = new List<string>();
-            for (int i = 1; i < splittedNs.Length; i++)
+
+            for (int i = 0; i < nsName.Length; i++)
             {
-                var parentNs = string.Join(".", splittedNs.Take(i));
-                parentNamespaces.Add(parentNs);
+                if (nsName[i] == '.')
+                    parentNamespaces.Add(nsName.Substring(0, i));
             }
+
+            parentNamespaces.Add(nsName);
 
             return parentNamespaces;
         }

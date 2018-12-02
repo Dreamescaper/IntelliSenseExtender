@@ -11,6 +11,7 @@ namespace IntelliSenseExtender.ExposedInternals
     {
         private static readonly Type _addImportServiceType;
         private static readonly MethodInfo _addImportsMethod;
+        private static readonly MethodInfo _getServiceMethod;
 
         static LanguageServices()
         {
@@ -18,6 +19,8 @@ namespace IntelliSenseExtender.ExposedInternals
                 .First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
             _addImportServiceType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImports.IAddImportsService");
             _addImportsMethod = _addImportServiceType.GetMethod("AddImports");
+            _getServiceMethod = typeof(HostLanguageServices)
+                .GetMethod(nameof(HostLanguageServices.GetService));
         }
 
         public static SyntaxNode AddImports(this HostLanguageServices hostServices,
@@ -30,10 +33,8 @@ namespace IntelliSenseExtender.ExposedInternals
 
         private static object GetService(HostLanguageServices hostServices, Type serviceType)
         {
-            var method = typeof(HostLanguageServices)
-                .GetMethod(nameof(HostLanguageServices.GetService))
-                .MakeGenericMethod(serviceType);
-            return method.Invoke(hostServices, new object[] { });
+            return _getServiceMethod.MakeGenericMethod(serviceType)
+                .Invoke(hostServices, new object[] { });
         }
     }
 }

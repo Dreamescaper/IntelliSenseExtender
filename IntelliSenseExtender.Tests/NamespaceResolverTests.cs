@@ -58,24 +58,27 @@ namespace IntelliSenseExtender.Tests
                 Is.GreaterThan(newDocText.IndexOf("namespace ns.something")));
         }
 
-        [Test]
-        public void ShouldAddNamespaceRelativeToParentNamespace()
+        [TestCase("A.B.C", "A.B.Csmth.D.E", "Csmth.D.E")]
+        [TestCase("A.B.C", "A.B.C.smth.D.E", "smth.D.E")]
+        [TestCase("A.B.C.D", "A.B.C.smth.D.E", "smth.D.E")]
+        public void ShouldAddNamespaceRelativeToParentNamespace(string currentNamespace, string namespaceToImport, string expectedNamespace)
         {
-            const string source = @"
-                namespace A.B.C
-                {
+            const string here = "/*here*/";
+            string source = $@"
+                namespace {currentNamespace}
+                {{
                     using System;
 
-                    public class Test {/*here*/}
-                }";
+                    public class Test {{{here}}}
+                }}";
 
             var document = GetTestDocument(source);
-            int position = source.IndexOf("/*here*/");
-            var newDoc = new NamespaceResolver().AddNamespaceImportAsync("A.B.Csmth.D.E", document, position, CancellationToken.None).Result;
-            var newDocText = newDoc.GetTextAsync().Result.ToString();
+            int position = source.IndexOf(here);
+            var newDoc = new NamespaceResolver().AddNamespaceImportAsync(namespaceToImport, document, position, CancellationToken.None).GetAwaiter().GetResult();
+            var newDocText = newDoc.GetTextAsync().GetAwaiter().GetResult().ToString();
 
-            Assert.That(newDocText, Does.Not.Contain("using A.B.Csmth.D.E;"));
-            Assert.That(newDocText, Does.Contain("using Csmth.D.E;"));
+            Assert.That(newDocText, Does.Not.Contain($"using {namespaceToImport};"));
+            Assert.That(newDocText, Does.Contain($"using {expectedNamespace};"));
         }
     }
 }
