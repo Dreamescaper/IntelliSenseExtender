@@ -142,8 +142,10 @@ namespace IntelliSenseExtender.IntelliSense
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
             props.Add(CompletionItemProperties.Namespace, nsName);
             props.Add(CompletionItemProperties.InsertText, insertText);
-            props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
             props.Add(CompletionItemProperties.Unimported, unimported.ToString());
+
+            if (newPositionOffset != 0)
+                props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
             var sortText = GetSortText(symbol.Name, nsName, sortingPriority, unimported);
 
