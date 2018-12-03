@@ -1,5 +1,6 @@
 next
 + Fix loading for created solution 
++ Minor performance improvements
 
 0.9.3
 + Fix crash trying to edit file when no solution loaded

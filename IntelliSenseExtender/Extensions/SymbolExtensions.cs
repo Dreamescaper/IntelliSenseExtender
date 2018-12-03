@@ -33,15 +33,15 @@ namespace IntelliSenseExtender.Extensions
             return string.Join(".", nsNames);
         }
 
-        public static string GetFullyQualifiedName(this ISymbol symbol)
+        public static string GetFullyQualifiedName(this ISymbol symbol, string @namespace = null)
         {
             if (symbol is ITypeSymbol)
             {
                 // ToDisplayString would work in this case as well, but it is slower
-                var nsName = symbol.GetNamespace();
-                return string.IsNullOrEmpty(nsName)
+                @namespace = @namespace ?? symbol.GetNamespace();
+                return string.IsNullOrEmpty(@namespace)
                     ? symbol.Name
-                    : $"{nsName}.{symbol.Name}";
+                    : $"{@namespace}.{symbol.Name}";
             }
             else
             {

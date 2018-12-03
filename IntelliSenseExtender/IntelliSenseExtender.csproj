@@ -58,7 +58,7 @@
     <Compile Include="ExposedInternals\LanguageServices.cs" />
     <Compile Include="ExposedInternals\SymbolCompletionItem.cs" />
     <Compile Include="ExposedInternals\SyntaxTreeExtensions.cs" />
-    <Compile Include="Extensions\ComplilationExtensions.cs" />
+    <Compile Include="Extensions\CompilationExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\SyntaxTokenExtensions.cs" />

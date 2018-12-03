@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace IntelliSenseExtender.Extensions
 {
-    public static class ComplilationExtensions
+    public static class CompilationExtensions
     {
         /// <summary>
         /// If toSymbol is assignable from fromSymbol, and types are not generic - returns fromSymbol.

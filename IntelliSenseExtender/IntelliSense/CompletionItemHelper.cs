@@ -127,8 +127,8 @@ namespace IntelliSenseExtender.IntelliSense
                     matchPriority: matchPriority
                 );
 
-            var fullSymbolName = symbol.GetFullyQualifiedName();
             var nsName = symbol.GetNamespace();
+            var fullSymbolName = symbol.GetFullyQualifiedName(nsName);
 
             // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
             // for all items. However, for huge items quantity
@@ -139,8 +139,6 @@ namespace IntelliSenseExtender.IntelliSense
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
                 nsName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
-            props.Add(CompletionItemProperties.ContextPosition, context.Position.ToString());
-            props.Add(CompletionItemProperties.SymbolName, symbol.Name);
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
             props.Add(CompletionItemProperties.Namespace, nsName);
             props.Add(CompletionItemProperties.InsertText, insertText);

@@ -138,9 +138,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 .ToList();
 
             int coolClassIndex = completions.FindIndex(i =>
-                i.Properties[CompletionItemProperties.SymbolName] == "CoolClass");
+                i.Properties[CompletionItemProperties.FullSymbolName].EndsWith("CoolClass"));
             int coolClassWithLongerNameIndex = completions.FindIndex(i =>
-                i.Properties[CompletionItemProperties.SymbolName] == "CoolClassWithLongerName");
+                i.Properties[CompletionItemProperties.FullSymbolName].EndsWith("CoolClassWithLongerName"));
 
             Assert.That(coolClassIndex < coolClassWithLongerNameIndex);
         }
