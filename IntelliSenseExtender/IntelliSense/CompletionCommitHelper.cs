@@ -32,9 +32,7 @@ namespace IntelliSenseExtender.IntelliSense
             var textChange = new TextChange(item.Span, insertText);
 
             // Create TextChange with added using
-            if (item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
-                && bool.Parse(unimportedString)
-                && item.Properties.TryGetValue(CompletionItemProperties.Namespace, out string nsName))
+            if (item.Properties.TryGetValue(CompletionItemProperties.NamespaceToImport, out string nsName))
             {
                 int position = item.Span.End;
                 var sourceTextTask = document.GetTextAsync(cancellationToken).ConfigureAwait(false);

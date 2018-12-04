@@ -89,8 +89,7 @@ namespace IntelliSenseExtender.IntelliSense
 
                 var descriptionTask = SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
-                bool unimported = item.Properties.TryGetValue(CompletionItemProperties.Unimported, out string unimportedString)
-                    && bool.Parse(unimportedString);
+                bool unimported = item.Properties.ContainsValue(CompletionItemProperties.NamespaceToImport);
 
                 var description = await descriptionTask;
 
@@ -140,9 +139,10 @@ namespace IntelliSenseExtender.IntelliSense
                 nsName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
-            props.Add(CompletionItemProperties.Namespace, nsName);
             props.Add(CompletionItemProperties.InsertText, insertText);
-            props.Add(CompletionItemProperties.Unimported, unimported.ToString());
+
+            if (unimported)
+                props.Add(CompletionItemProperties.NamespaceToImport, nsName);
 
             if (newPositionOffset != 0)
                 props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
