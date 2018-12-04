@@ -2,12 +2,17 @@
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.VSSDK.BuildTools.15.8.3247\build\Microsoft.VSSDK.BuildTools.props" Condition="Exists('..\packages\Microsoft.VSSDK.BuildTools.15.8.3247\build\Microsoft.VSSDK.BuildTools.props')" />
   <PropertyGroup>
-    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <UseCodebase>true</UseCodebase>
     <TargetFrameworkProfile />
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>15.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
