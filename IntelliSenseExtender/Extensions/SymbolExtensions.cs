@@ -7,6 +7,8 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SymbolExtensions
     {
+        private const int DefaultSize = 8;
+
         private static readonly HashSet<string> BuiltInTypes = new HashSet<string>(new[] { "Byte", "SByte", "Int32",
             "UInt32", "Int16", "UInt16", "Int64", "UInt64", "Single", "Double", "Char",
             "Boolean", "Object", "String", "Decimal" });
@@ -14,7 +16,7 @@ namespace IntelliSenseExtender.Extensions
         public static string GetNamespace(this ISymbol symbol)
         {
             // ToDisplayString would work here as well, but it is slower
-            var nsNames = new LinkedList<string>();
+            var nsNames = new Stack<string>(DefaultSize);
 
             while (symbol != null)
             {
@@ -25,12 +27,12 @@ namespace IntelliSenseExtender.Extensions
                         break;
                     }
 
-                    nsNames.AddFirst(symbol.Name);
+                    nsNames.Push(symbol.Name);
                 }
                 symbol = symbol.ContainingSymbol;
             }
 
-            return string.Join(".", nsNames);
+            return string.Join(".", nsNames.ToArray());
         }
 
         public static string GetFullyQualifiedName(this ISymbol symbol, string @namespace = null)
