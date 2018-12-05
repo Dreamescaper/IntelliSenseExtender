@@ -114,7 +114,12 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static int GetPosition(string source, string searchText)
         {
-            return source.IndexOf(searchText) + searchText.Length;
+            var beforePosision = source.IndexOf(searchText);
+
+            if (beforePosision == -1)
+                throw new Exception("Search text not found!");
+
+            return beforePosision + searchText.Length;
         }
 
         public class OptionsProvider : IOptionsProvider

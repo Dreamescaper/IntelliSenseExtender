@@ -428,6 +428,25 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public void SuggestForBinaryExpressions([Values("==", "!=", ">", "<", ">=", "<=")] string @operator)
+        {
+            string source = $@"
+                public class TestClass
+                {{
+                    public void Method()
+                    {{
+                        int a = 0;
+                        int b = 1;
+                        if (a {@operator} 
+                    }}
+                }}";
+
+            var completions = GetCompletions(Provider, source, $"if (a {@operator} ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("b") & Does.Not.Contain("a"));
+        }
+
+        [Test]
         public void DontSuggestNotSuitableVariables()
         {
             const string source = @"

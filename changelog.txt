@@ -1,3 +1,6 @@
+next
++ Infer type from binary expressions
+
 0.9.4
 + Fix loading for created solution 
 + Minor performance improvements

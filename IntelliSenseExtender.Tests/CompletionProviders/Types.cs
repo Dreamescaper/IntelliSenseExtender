@@ -93,22 +93,19 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         public void DoNotProvideCompletionsIfTypeNotExpected()
         {
             const string mainSource = @"
-                public /*0*/ class Test {
-                    public void /*1*/ Method() {
-                        
-                    }
-                }";
-            const string classFile = @"
-                namespace NM
+                /*0*/
+                namespace /*1*/ NM
                 {
-                    public class Class
-                    {
+                    public /*2*/ class Test {
+                        public void /*3*/ Method() {
+                        
+                        }
                     }
                 }";
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
-                var completions = GetCompletions(Provider, mainSource, classFile, $"/*{i}*/");
+                var completions = GetCompletions(Provider, mainSource, $"/*{i}*/");
                 Assert.That(completions, Is.Empty);
             }
         }

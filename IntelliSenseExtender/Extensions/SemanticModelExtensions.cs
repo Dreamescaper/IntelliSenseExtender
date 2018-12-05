@@ -52,6 +52,11 @@ namespace IntelliSenseExtender.Extensions
                 typeSymbol = semanticModel.GetReturnTypeSymbol(returnStatementSyntax);
                 inferredFrom = TypeInferredFrom.ReturnValue;
             }
+            else if (currentSyntaxNode is BinaryExpressionSyntax expressionSyntax)
+            {
+                typeSymbol = semanticModel.GetTypeInfo(expressionSyntax.Left).Type;
+                inferredFrom = TypeInferredFrom.BinaryExpression;
+            }
 
             // If we have ValueTuple return value - try to infer element type
             else if (currentSyntaxNode is ParenthesizedExpressionSyntax

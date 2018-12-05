@@ -19,6 +19,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
         private static readonly Regex AttributeArgumentRegex = new Regex(@"\[\w+\((|[^\]]+, )$");
+        private static readonly string[] SymbolsToTriggerCompletion = new[] {
+            ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= "
+        };
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -59,7 +62,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var textBeforeCaret = currentLine.ToString().Substring(0, caretPosition - currentLine.Start);
 
                 if (trigger.Kind == CompletionTriggerKind.Insertion
-                    && (BracketRegex.IsMatch(textBeforeCaret) || textBeforeCaret.EndsWith(", ") || textBeforeCaret.EndsWith("return "))
+                    && (BracketRegex.IsMatch(textBeforeCaret) || SymbolsToTriggerCompletion.Any(s => textBeforeCaret.EndsWith(s)))
                     && !AttributeArgumentRegex.IsMatch(textBeforeCaret))
                 {
                     return true;
@@ -74,7 +77,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && syntaxContext.InferredType != null
                 && (syntaxContext.TypeInferredFrom == TypeInferredFrom.MethodArgument
                     || syntaxContext.TypeInferredFrom == TypeInferredFrom.ReturnValue
-                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.Assignment);
+                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.Assignment
+                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.BinaryExpression);
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
@@ -172,7 +176,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
-            return getVariableSyntaxes()
+            var symbols = getVariableSyntaxes()
                 .Select(syntaxNode =>
                 {
                     var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
@@ -180,6 +184,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     return declaredSymbol as ILocalSymbol;
                 })
                 .Where(symbol => symbol != null);
+
+            return FilterUnneededSymbols(symbols, syntaxContext);
         }
 
         private IEnumerable<IParameterSymbol> GetLambdaParameters(SyntaxContext syntaxContext)
@@ -210,7 +216,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
-            return getLambdaParameterSyntaxes().Select(p => syntaxContext.SemanticModel.GetDeclaredSymbol(p));
+            var symbols = getLambdaParameterSyntaxes().Select(p => syntaxContext.SemanticModel.GetDeclaredSymbol(p));
+
+            return FilterUnneededSymbols(symbols, syntaxContext);
         }
 
         private IEnumerable<ISymbol> GetTypeMembers(SyntaxContext syntaxContext)
@@ -244,21 +252,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 fieldsAndProperties = fieldsAndProperties.Where(member => member.IsStatic);
             }
 
-            // In case of assignment - do not suggest self
-            if (syntaxContext.CurrentToken.Parent is AssignmentExpressionSyntax assignment)
-            {
-                var assignedSymbol = syntaxContext.SemanticModel
-                    .GetSymbolInfo(assignment.Left, syntaxContext.CancellationToken)
-                    .Symbol;
-
-                if (assignedSymbol != null)
-                {
-                    fieldsAndProperties = fieldsAndProperties.Where(s => s != assignedSymbol);
-                }
-
-            }
-
-            return fieldsAndProperties;
+            return FilterUnneededSymbols(fieldsAndProperties, syntaxContext); ;
         }
 
         private IEnumerable<IParameterSymbol> GetMethodParameters(SyntaxContext syntaxContext)
@@ -301,6 +295,39 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             return symbols.Where(symbol =>
                 syntaxContext.SemanticModel.Compilation.ClassifyConversion(getSymbolType(symbol), toSymbol).IsImplicit);
+        }
+
+        private IEnumerable<TSymbol> FilterUnneededSymbols<TSymbol>(IEnumerable<TSymbol> symbols, SyntaxContext syntaxContext)
+            where TSymbol : ISymbol
+        {
+            var currentSyntax = syntaxContext.CurrentToken.Parent;
+
+            // Do not suggest self for assignments
+            if (currentSyntax is AssignmentExpressionSyntax assignment)
+            {
+                var assignedSymbol = syntaxContext.SemanticModel
+                    .GetSymbolInfo(assignment.Left, syntaxContext.CancellationToken)
+                    .Symbol;
+
+                if (assignedSymbol != null)
+                {
+                    symbols = symbols.Where(s => !s.Equals(assignedSymbol));
+                }
+            }
+            // Do not suggest self for binary expressions
+            else if (currentSyntax is BinaryExpressionSyntax binaryExpression)
+            {
+                var assignedSymbol = syntaxContext.SemanticModel
+                    .GetSymbolInfo(binaryExpression.Left, syntaxContext.CancellationToken)
+                    .Symbol;
+
+                if (assignedSymbol != null)
+                {
+                    symbols = symbols.Where(s => !s.Equals(assignedSymbol));
+                }
+            }
+
+            return symbols;
         }
 
         private CompletionItem CreateCompletion(SyntaxContext syntaxContext, ISymbol symbol, int sorting)

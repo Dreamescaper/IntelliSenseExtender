@@ -6,6 +6,7 @@
         VariableDeclaration,
         Assignment,
         MethodArgument,
-        ReturnValue
+        ReturnValue,
+        BinaryExpression
     }
 }
