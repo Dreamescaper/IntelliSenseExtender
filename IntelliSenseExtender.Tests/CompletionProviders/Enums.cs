@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             new EnumCompletionProvider());
 
         [Test]
-        public void SuggestInferedEnumType()
+        public async Task SuggestInferedEnumType()
         {
             const string mainSource = @"
                 public class Test {
@@ -29,13 +30,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("SomeEnum  (NM)"));
         }
 
         [Test]
-        public void DoNotSuggestInArbitraryContext()
+        public async Task DoNotSuggestInArbitraryContext()
         {
             const string mainSource = @"
                 public class Test {
@@ -52,7 +53,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Is.Empty);
         }

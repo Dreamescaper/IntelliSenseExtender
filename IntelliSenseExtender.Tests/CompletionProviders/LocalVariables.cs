@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
@@ -13,7 +14,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             new LocalsCompletionProvider());
 
         [Test]
-        public void SuggestLocalVariablesForMethodsParameters()
+        public async Task SuggestLocalVariablesForMethodsParameters()
         {
             const string source = @"
                 public class Test {
@@ -25,13 +26,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestInlineDeclaredLocalVariables()
+        public async Task SuggestInlineDeclaredLocalVariables()
         {
             const string source = @"
                 public class Test {
@@ -45,13 +46,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void StrMethod(string var){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "StrMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "StrMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("strVar"));
         }
 
         [Test]
-        public void SuggestForeachVariable()
+        public async Task SuggestForeachVariable()
         {
             const string source = @"
                 public class Test {
@@ -66,13 +67,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestForVariable()
+        public async Task SuggestForVariable()
         {
             const string source = @"
                 public class Test {
@@ -87,13 +88,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestUsingVariable()
+        public async Task SuggestUsingVariable()
         {
             const string source = @"
                 using System.IO;
@@ -110,13 +111,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void SrMethod(StreamReader var){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "SrMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "SrMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("v"));
         }
 
         [Test]
-        public void SuggestDeconstructedTuples()
+        public async Task SuggestDeconstructedTuples()
         {
             const string source = @"
                 public class Test {
@@ -130,13 +131,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("d1") & Does.Contain("d2"));
         }
 
         [Test]
-        public void SuggestLocalsForTupleMembers_FirstMember()
+        public async Task SuggestLocalsForTupleMembers_FirstMember()
         {
             const string source = @"
                 public class Test {
@@ -149,13 +150,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "return (");
+            var completions = await GetCompletionsAsync(Provider, source, "return (");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("v1") & Does.Not.Contain("v2"));
         }
 
         [Test]
-        public void SuggestLocalsForTupleMembers_SecondMember()
+        public async Task SuggestLocalsForTupleMembers_SecondMember()
         {
             const string source = @"
                 public class Test {
@@ -168,13 +169,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "return (");
+            var completions = await GetCompletionsAsync(Provider, source, "return (");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("v1") & Does.Contain("v2"));
         }
 
         [Test]
-        public void SuggestLocalsForTupleMembers_ThirdMember()
+        public async Task SuggestLocalsForTupleMembers_ThirdMember()
         {
             const string source = @"
                 public class Test {
@@ -188,14 +189,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "return (");
+            var completions = await GetCompletionsAsync(Provider, source, "return (");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("v1")
                 & Does.Not.Contain("v2") & Does.Contain("v3"));
         }
 
         [Test]
-        public void SuggestMethodParametersAsArguments()
+        public async Task SuggestMethodParametersAsArguments()
         {
             const string source = @"
                 public class Test {
@@ -206,13 +207,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestMethodParametersForPropertiesAssignment()
+        public async Task SuggestMethodParametersForPropertiesAssignment()
         {
             const string source = @"
                 public class Test {
@@ -223,13 +224,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "SomeProperty = ");
+            var completions = await GetCompletionsAsync(Provider, source, "SomeProperty = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestLambdaParameterOutsideMethod()
+        public async Task SuggestLambdaParameterOutsideMethod()
         {
             const string source = @"
                 using System;
@@ -237,13 +238,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public static Func<string, string, bool> F = (a,b) => a.Contains(
                 }";
 
-            var completions = GetCompletions(Provider, source, "a.Contains(");
+            var completions = await GetCompletionsAsync(Provider, source, "a.Contains(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("b"));
         }
 
         [Test]
-        public void SuggestLabmdaParameters()
+        public async Task SuggestLabmdaParameters()
         {
             const string source = @"
                 using System;
@@ -256,13 +257,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestProperties()
+        public async Task SuggestProperties()
         {
             const string source = @"
                 public class Test {
@@ -275,13 +276,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Prop"));
         }
 
         [Test]
-        public void SuggestFields()
+        public async Task SuggestFields()
         {
             const string source = @"
                 public class Test {
@@ -294,13 +295,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("_field"));
         }
 
         [Test]
-        public void SuggestProtectedProperties()
+        public async Task SuggestProtectedProperties()
         {
             const string source = @"
                 using System;
@@ -319,13 +320,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("ProtectedIntProperty"));
         }
 
         [Test]
-        public void SuggestAssignableVariables()
+        public async Task SuggestAssignableVariables()
         {
             const string source = @"
                 public class A
@@ -349,13 +350,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "AMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "AMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("bVar"));
         }
 
         [Test]
-        public void SuggestSetterValueParameter_Property()
+        public async Task SuggestSetterValueParameter_Property()
         {
             const string source = @"
                 public class TestClass
@@ -374,13 +375,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "Method(");
+            var completions = await GetCompletionsAsync(Provider, source, "Method(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("value"));
         }
 
         [Test]
-        public void SuggestSetterValueParameter_IndexedProperty()
+        public async Task SuggestSetterValueParameter_IndexedProperty()
         {
             const string source = @"
                 public class TestClass
@@ -398,13 +399,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "Method(");
+            var completions = await GetCompletionsAsync(Provider, source, "Method(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("value"));
         }
 
         [Test]
-        public void SuggestIndexedPropertyIndexParameter()
+        public async Task SuggestIndexedPropertyIndexParameter()
         {
             const string source = @"
                 public class TestClass
@@ -422,13 +423,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "Method(");
+            var completions = await GetCompletionsAsync(Provider, source, "Method(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("key"));
         }
 
         [Test]
-        public void SuggestForBinaryExpressions([Values("==", "!=", ">", "<", ">=", "<=")] string @operator)
+        public async Task SuggestForBinaryExpressions([Values("==", "!=", ">", "<", ">=", "<=")] string @operator)
         {
             string source = $@"
                 public class TestClass
@@ -441,13 +442,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }}
                 }}";
 
-            var completions = GetCompletions(Provider, source, $"if (a {@operator} ");
+            var completions = await GetCompletionsAsync(Provider, source, $"if (a {@operator} ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("b") & Does.Not.Contain("a"));
         }
 
         [Test]
-        public void DontSuggestNotSuitableVariables()
+        public async Task DontSuggestNotSuitableVariables()
         {
             const string source = @"
                 public class Test {
@@ -459,13 +460,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("s"));
         }
 
         [Test]
-        public void DontSuggestPrivatePropertiesFromBaseClass()
+        public async Task DontSuggestPrivatePropertiesFromBaseClass()
         {
             const string source = @"
                 using System;
@@ -484,13 +485,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("PrivateIntProperty"));
         }
 
         [Test]
-        public void DontSuggestLocalsOutOfScope()
+        public async Task DontSuggestLocalsOutOfScope()
         {
             const string source = @"
                 using System;
@@ -509,13 +510,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("outOfScope"));
         }
 
         [Test]
-        public void DontSuggestLocalsDefinedLater()
+        public async Task DontSuggestLocalsDefinedLater()
         {
             const string source = @"
                 using System;
@@ -531,13 +532,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("undefinedSoFar"));
         }
 
         [Test]
-        public void DontSuggestForVariableOutOfFor()
+        public async Task DontSuggestForVariableOutOfFor()
         {
             const string source = @"
                 public class Test {
@@ -552,13 +553,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("i"));
         }
 
         [Test]
-        public void DontSuggestForeachVariableOutOfForeach()
+        public async Task DontSuggestForeachVariableOutOfForeach()
         {
             const string source = @"
                 public class Test {
@@ -574,13 +575,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("i"));
         }
 
         [Test]
-        public void DontSuggestInstanceMembersInStaticMethod()
+        public async Task DontSuggestInstanceMembersInStaticMethod()
         {
             const string source = @"
                 public class Test {
@@ -593,13 +594,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public static void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("_field"));
         }
 
         [Test]
-        public void DontSuggestAnythingInArbitraryContext()
+        public async Task DontSuggestAnythingInArbitraryContext()
         {
             const string source = @"
                 public class Test {
@@ -613,7 +614,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             for (int i = 0; i < source.Length; i++)
             {
                 var context = GetContext(document, Provider, i);
-                Provider.ProvideCompletionsAsync(context).Wait();
+                await Provider.ProvideCompletionsAsync(context);
                 var completions = GetCompletions(context);
 
                 Assert.That(completions, Is.Empty);
@@ -621,7 +622,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void DontSuggestSuggestAutoPropertiesBackingFields()
+        public async Task DontSuggestSuggestAutoPropertiesBackingFields()
         {
             const string source = @"
                 public class Test {
@@ -634,13 +635,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void IntMethod(int v){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "IntMethod(");
+            var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Has.All.Not.Contain("BackingField").IgnoreCase);
         }
 
         [Test]
-        public void DoNotSuggestAnythingForWrongMemberName()
+        public async Task DoNotSuggestAnythingForWrongMemberName()
         {
             const string source = @"
                 internal class Test
@@ -654,14 +655,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, " = ");
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Is.Empty);
         }
 
         [Test]
-        public void DontSuggestSelfDuringAssignment()
+        public async Task DontSuggestSelfDuringAssignment()
         {
             const string source = @"
                 public class Test {
@@ -672,13 +673,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "Prop = ");
+            var completions = await GetCompletionsAsync(Provider, source, "Prop = ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("Prop"));
         }
 
         [Test]
-        public void SuggestCorrectArgumentType()
+        public async Task SuggestCorrectArgumentType()
         {
             const string source = @"
                 public class Test {
@@ -693,7 +694,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void MultiMethod(int intVar, string strVar, bool boolVar){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "MultiMethod(_intField, ");
+            var completions = await GetCompletionsAsync(Provider, source, "MultiMethod(_intField, ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Not.Contain("_intField"));
@@ -702,7 +703,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestCorrectNamedArgumentType()
+        public async Task SuggestCorrectNamedArgumentType()
         {
             const string source = @"
                 public class Test {
@@ -717,7 +718,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     public void MultiMethod(int intVar, string strVar, bool boolVar){ }
                 }";
 
-            var completions = GetCompletions(Provider, source, "MultiMethod(boolVar:  ");
+            var completions = await GetCompletionsAsync(Provider, source, "MultiMethod(boolVar:  ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Not.Contain("_intField"));
@@ -726,7 +727,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestReturnValues()
+        public async Task SuggestReturnValues()
         {
             const string source = @"
                 public class Test {
@@ -737,14 +738,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "return ");
+            var completions = await GetCompletionsAsync(Provider, source, "return ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("i"));
         }
 
         [Test]
-        public void SuggestReturnValuesOfTaskGenericTypeForAsyncMethods()
+        public async Task SuggestReturnValuesOfTaskGenericTypeForAsyncMethods()
         {
             const string source = @"                
                 using System.Threading.Tasks;
@@ -757,7 +758,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "return ");
+            var completions = await GetCompletionsAsync(Provider, source, "return ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("i"));

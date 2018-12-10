@@ -34,7 +34,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var document = GetTestDocument(source);
-            var listCompletion = (await GetCompletions(Provider, document, "var list = new "))
+            var listCompletion = (await GetCompletionsAsync(Provider, document, "var list = new "))
                 .First(c => c.DisplayText == "List<>  (System.Collections.Generic)");
             listCompletion = CompletionList
                 .Create(new TextSpan(source.IndexOf("var list = new "), 0), ImmutableArray.Create(listCompletion))
@@ -53,7 +53,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void ProvideReferencesCompletions_List()
+        public async Task ProvideReferencesCompletions_List()
         {
             const string source = @"
                 public class Test {
@@ -62,13 +62,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, source, "var list = new ");
+            var completions = await GetCompletionsAsync(Provider, source, "var list = new ");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("List<>  (System.Collections.Generic)"));
         }
 
         [Test]
-        public void ProvideUserCodeCompletions()
+        public async Task ProvideUserCodeCompletions()
         {
             const string mainSource = @"
                 public class Test {
@@ -84,20 +84,20 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Contain("Class  (NM)"));
         }
 
         [Test]
-        public void DoNotProvideCompletionsIfTypeNotExpected()
+        public async Task DoNotProvideCompletionsIfTypeNotExpected()
         {
             const string mainSource = @"
                 /*0*/
                 namespace /*1*/ NM
                 {
                     public /*2*/ class Test {
-                        public void /*3*/ Method() {
+                        public async Task /*3*/ Method() {
                         
                         }
                     }
@@ -105,13 +105,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             for (int i = 0; i < 4; i++)
             {
-                var completions = GetCompletions(Provider, mainSource, $"/*{i}*/");
+                var completions = await GetCompletionsAsync(Provider, mainSource, $"/*{i}*/");
                 Assert.That(completions, Is.Empty);
             }
         }
 
         [Test]
-        public void ShorterTypeGoesFirst()
+        public async Task ShorterTypeGoesFirst()
         {
             const string mainSource = @"
                 public class Test {
@@ -130,7 +130,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/")
+            var completions = (await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/"))
                 .OrderBy(compl => compl.SortText, StringComparer.Ordinal)
                 .ToList();
 
@@ -143,7 +143,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestUnimportedNestedTypesIfEnabled()
+        public async Task SuggestUnimportedNestedTypesIfEnabled()
         {
             const string mainSource = @"
                 public class Test {
@@ -160,7 +160,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = true),
+            var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
                 mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
@@ -169,7 +169,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void SuggestImportedNestedTypesIfEnabled()
+        public async Task SuggestImportedNestedTypesIfEnabled()
         {
             const string mainSource = @"
                 using NM;
@@ -188,7 +188,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = true),
+            var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
                 mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
@@ -196,7 +196,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void DoNotSuggestNestedTypesIfDisabled()
+        public async Task DoNotSuggestNestedTypesIfDisabled()
         {
             const string mainSource = @"
                 public class Test {
@@ -213,7 +213,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider_WithOptions(o => o.SuggestNestedTypes = false),
+            var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = false),
                 mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
@@ -222,7 +222,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public void DoNotProvideObsoleteTypes()
+        public async Task DoNotProvideObsoleteTypes()
         {
             const string mainSource = @"
                 public class Test {
@@ -239,13 +239,13 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Does.Not.Contain("Class  (NM)"));
         }
 
         [Test]
-        public void DoNotSuggestTypesInGlobalNamespace()
+        public async Task DoNotSuggestTypesInGlobalNamespace()
         {
             const string mainSource = @"
                 public class Test {
@@ -258,7 +258,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 {
                 }";
 
-            var completions = GetCompletions(Provider, mainSource, classFile, "/*here*/");
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Has.None.Contains("GlobalNsClass"));
         }

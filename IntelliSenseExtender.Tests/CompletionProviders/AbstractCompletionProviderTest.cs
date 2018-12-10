@@ -60,17 +60,14 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 solution = solution.AddDocument(DocumentId.CreateNewId(projectId), $"{i}.cs", additionalFiles[i]);
             }
 
-            var document = solution.GetDocument(documentId);
-
-            return document;
+            return solution.GetDocument(documentId);
         }
 
         public static CompletionContext GetContext(Document document, CompletionProvider provider, int position)
         {
-            var context = new CompletionContext(provider, document, position,
+            return new CompletionContext(provider, document, position,
                 new TextSpan(), CompletionTrigger.Invoke, document.Project.Solution.Workspace.Options,
                 default(CancellationToken));
-            return context;
         }
 
         public static IReadOnlyList<CompletionItem> GetCompletions(CompletionContext context)
@@ -79,37 +76,34 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             return (IReadOnlyList<CompletionItem>)property.GetValue(context);
         }
 
-        public static IReadOnlyList<CompletionItem> GetCompletions(CompletionProvider provider, string source, string additinalFile, string searchText)
+        public static async Task<IReadOnlyList<CompletionItem>> GetCompletionsAsync(CompletionProvider provider, string source, string additinalFile, string searchText)
         {
             int position = GetPosition(source, searchText);
 
             var document = GetTestDocument(source, additinalFile);
             var completionContext = GetContext(document, provider, position);
-            provider.ProvideCompletionsAsync(completionContext).Wait();
-            var completions = GetCompletions(completionContext);
-            return completions;
+            await provider.ProvideCompletionsAsync(completionContext);
+            return GetCompletions(completionContext);
         }
 
-        public static IReadOnlyList<CompletionItem> GetCompletions(CompletionProvider provider, string source, string searchText)
+        public static async Task<IReadOnlyList<CompletionItem>> GetCompletionsAsync(CompletionProvider provider, string source, string searchText)
         {
             int position = GetPosition(source, searchText);
 
             var document = GetTestDocument(source);
             var completionContext = GetContext(document, provider, position);
-            provider.ProvideCompletionsAsync(completionContext).Wait();
-            var completions = GetCompletions(completionContext);
-            return completions;
+            await provider.ProvideCompletionsAsync(completionContext);
+            return GetCompletions(completionContext);
         }
 
-        public static async Task<IReadOnlyList<CompletionItem>> GetCompletions(CompletionProvider provider, Document document, string searchText)
+        public static async Task<IReadOnlyList<CompletionItem>> GetCompletionsAsync(CompletionProvider provider, Document document, string searchText)
         {
             var sourceText = await document.GetTextAsync();
             int position = GetPosition(sourceText.ToString(), searchText);
 
             var completionContext = GetContext(document, provider, position);
-            provider.ProvideCompletionsAsync(completionContext).Wait();
-            var completions = GetCompletions(completionContext);
-            return completions;
+            await provider.ProvideCompletionsAsync(completionContext);
+            return GetCompletions(completionContext);
         }
 
         public static int GetPosition(string source, string searchText)
