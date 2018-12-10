@@ -141,7 +141,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="StreamJsonRpc" Version="1.4.134" />
-    <PackageReference Include="System.Composition" Version="1.2.0" />
+    <PackageReference Include="System.Composition" Version="1.1.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>

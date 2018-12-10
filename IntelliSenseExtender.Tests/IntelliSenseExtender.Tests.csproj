@@ -57,18 +57,8 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.2">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="0.10.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.10.0" />
-    <PackageReference Include="Microsoft.Composition" Version="1.0.31" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.11.2" />
-    <PackageReference Include="System.Composition" Version="1.2.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
