@@ -158,7 +158,9 @@ namespace IntelliSenseExtender.IntelliSense
                 rules: rules);
         }
 
-        public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority, int newPositionOffset = 0)
+        public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority,
+            ImmutableArray<string> tags = default,
+            int newPositionOffset = 0)
         {
             var rules = CompletionItemRules.Create(
                     matchPriority: MatchPriority.Preselect
@@ -171,6 +173,7 @@ namespace IntelliSenseExtender.IntelliSense
             return CompletionItem.Create(
                     displayText: itemText,
                     sortText: sortText,
+                    tags: tags,
                     properties: properties,
                     rules: rules
                 );

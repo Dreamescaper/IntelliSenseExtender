@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
@@ -47,11 +49,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Select(symbol => CreateCompletion(syntaxContext, symbol, Sorting.Suitable_TypeMembers));
             var methodParametersCompletions = suitableMethodParameters
                 .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
+            var thisCompletion = GetThisCompletionIfApplicable(syntaxContext);
 
             return localCompletions
                 .Concat(lambdaParamsCompletions)
                 .Concat(typeMemberCompletions)
-                .Concat(methodParametersCompletions);
+                .Concat(methodParametersCompletions)
+                .Concat(thisCompletion);
         }
 
         public bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, Options.Options options)
@@ -227,8 +231,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             var enclosingSymbol = syntaxContext.SemanticModel.GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken);
 
-            var methodSymbol = enclosingSymbol.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
-            var typeSymbol = enclosingSymbol.ContainingType;
+            var methodSymbol = enclosingSymbol?.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
+            var typeSymbol = enclosingSymbol?.ContainingType;
 
             if (typeSymbol == null || methodSymbol == null)
             {
@@ -328,6 +332,29 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
 
             return symbols;
+        }
+
+        private IEnumerable<CompletionItem> GetThisCompletionIfApplicable(SyntaxContext syntaxContext)
+        {
+            var enclosingSymbol = syntaxContext.SemanticModel.GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken);
+
+            var methodSymbol = enclosingSymbol?.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
+            var typeSymbol = enclosingSymbol?.ContainingType;
+
+            if (typeSymbol == null || methodSymbol == null || methodSymbol.IsStatic)
+                return Enumerable.Empty<CompletionItem>();
+
+            var typeMatches = syntaxContext.SemanticModel.Compilation
+                .ClassifyConversion(typeSymbol, syntaxContext.InferredType).IsImplicit;
+            if (!typeMatches)
+                return Enumerable.Empty<CompletionItem>();
+
+            var newSuggestion = CompletionItemHelper.CreateCompletionItem(
+                "this",
+                Sorting.Suitable_Locals,
+                ImmutableArray.Create(WellKnownTags.Keyword));
+
+            return new[] { newSuggestion };
         }
 
         private CompletionItem CreateCompletion(SyntaxContext syntaxContext, ISymbol symbol, int sorting)

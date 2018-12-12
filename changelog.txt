@@ -1,5 +1,6 @@
 next
 + Infer type from binary expressions
++ Suggest 'this' if applicable
 
 0.9.4
 + Fix loading for created solution 

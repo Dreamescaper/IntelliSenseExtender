@@ -181,20 +181,5 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             return Enumerable.Empty<CompletionItem>();
         }
-
-        /// <summary>
-        /// Default new keyword completion item is auto-committed on space button, which 
-        /// is not desired for new object creation suggestions.
-        /// </summary>
-        /// <param name="context">CompletionContext to replace keyword in</param>
-        private void ReplaceNewKeywordSuggestion(CompletionContext context)
-        {
-            //Add two spaces to filter text so it wouldn't be automatically selected when 'new' is typed
-            var newSuggestion = CompletionItem.Create(
-                displayText: "new",
-                filterText: "new  ",
-                tags: ImmutableArray.Create(WellKnownTags.Keyword));
-            context.AddItem(newSuggestion);
-        }
     }
 }

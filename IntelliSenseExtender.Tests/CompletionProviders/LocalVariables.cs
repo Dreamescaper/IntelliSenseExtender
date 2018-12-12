@@ -765,6 +765,63 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task SuggestThisIfTypeApplicable()
+        {
+            const string source = @"                
+                using System.Threading.Tasks;
+
+                public class Test {
+                    public Test Method()
+                    {
+                        return 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("this"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestThisIfTypeNotApplicable()
+        {
+            const string source = @"                
+                using System.Threading.Tasks;
+
+                public class Test {
+                    public int Method()
+                    {
+                        return 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("this"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestThisInStaticContext()
+        {
+            const string source = @"                
+                using System.Threading.Tasks;
+
+                public class Test {
+                    public static Test StaticMethod()
+                    {
+                        return 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("this"));
+        }
+
+        [Test]
         public void DontTriggerInAttributeConstructor_FirstArgument()
         {
             // Due to strange default behavior with suggestion non-static members
