@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -20,7 +21,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-            if (syntaxContext.InferredType != null)
+            var isNewKeywordPresent = syntaxContext.CurrentToken.Parent is ObjectCreationExpressionSyntax;
+
+            if (!isNewKeywordPresent && syntaxContext.InferredType != null)
             {
                 var completions = GetSpecialCasesCompletions(syntaxContext.InferredType, syntaxContext);
                 if (options.SuggestFactoryMethodsOnObjectCreation)
@@ -84,7 +87,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 // do not support enums and nullable enums
                 && syntaxContext.InferredType.TypeKind != TypeKind.Enum
                 && !(syntaxContext.InferredType is INamedTypeSymbol namedType
-                    && namedType.Name == "Nullable"
+                    && namedType.Name == nameof(Nullable)
                     && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum);
         }
 
@@ -164,8 +167,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         var typeParameter = namedTypeSymbol.TypeArguments.FirstOrDefault();
                         if (typeParameter != null)
                         {
+                            var unimported = !syntaxContext.IsNamespaceImported(namedTypeSymbol);
                             var displayName = typeParameter.ToMinimalDisplayString(syntaxContext.SemanticModel, syntaxContext.Position);
-                            return new[] { CompletionItemHelper.CreateCompletionItem($"new List<{displayName}> {{}}", Sorting.NewSuggestion_CollectionInitializer, newPositionOffset: -1) };
+                            var completion = CompletionItemHelper.CreateCompletionItem(
+                                    $"new List<{displayName}> {{}}",
+                                    Sorting.NewSuggestion_CollectionInitializer,
+                                    namespaceToImport: unimported ? namedTypeSymbol.GetNamespace() : null,
+                                    newPositionOffset: -1);
+                            return new[] { completion };
                         }
                         break;
                     case "Boolean":

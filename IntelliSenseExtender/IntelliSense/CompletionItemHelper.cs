@@ -160,6 +160,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority,
             ImmutableArray<string> tags = default,
+            string namespaceToImport = null,
             int newPositionOffset = 0)
         {
             var rules = CompletionItemRules.Create(
@@ -167,16 +168,27 @@ namespace IntelliSenseExtender.IntelliSense
                 );
 
             var sortText = GetSortText(itemText, string.Empty, sortingPriority, false);
-            var properties = ImmutableDictionary<string, string>.Empty
-                .Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+            var properties = ImmutableDictionary<string, string>.Empty;
+
+            if (newPositionOffset != 0)
+                properties = properties.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+
+            if (namespaceToImport != null)
+            {
+                properties = properties
+                    .Add(CompletionItemProperties.NamespaceToImport, namespaceToImport)
+                    .Add(CompletionItemProperties.InsertText, itemText);
+
+                itemText += $"  ({namespaceToImport})";
+            }
 
             return CompletionItem.Create(
-                    displayText: itemText,
-                    sortText: sortText,
-                    tags: tags,
-                    properties: properties,
-                    rules: rules
-                );
+                        displayText: itemText,
+                        sortText: sortText,
+                        tags: tags,
+                        properties: properties,
+                        rules: rules
+                    );
         }
 
         private static string GetSortText(string symbolName, string namespaceName, int sortingPriority, bool unimported)

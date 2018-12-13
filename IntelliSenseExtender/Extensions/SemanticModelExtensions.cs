@@ -24,7 +24,8 @@ namespace IntelliSenseExtender.Extensions
                 currentSyntaxNode = currentSyntaxNode.Parent;
             }
 
-            if (currentSyntaxNode?.Parent?.Parent is VariableDeclarationSyntax varDeclarationSyntax
+            if (currentSyntaxNode?.Parent is VariableDeclaratorSyntax varDeclaratorSyntax
+                && varDeclaratorSyntax.Parent is VariableDeclarationSyntax varDeclarationSyntax
                 && !varDeclarationSyntax.Type.IsVar)
             {
                 var typeInfo = semanticModel.GetTypeInfo(varDeclarationSyntax.Type);
