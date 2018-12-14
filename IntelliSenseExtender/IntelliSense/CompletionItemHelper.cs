@@ -147,7 +147,7 @@ namespace IntelliSenseExtender.IntelliSense
             if (newPositionOffset != 0)
                 props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
-            var sortText = GetSortText(symbol.Name, nsName, sortingPriority, unimported);
+            var sortText = GetSortText(symbol.GetAccessibleName(), nsName, sortingPriority, unimported);
 
             return CompletionItem.Create(
                 displayText: displayText,
