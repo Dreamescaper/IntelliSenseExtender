@@ -1,4 +1,4 @@
-next
+1.0
 + Infer type from binary expressions
 + Suggest 'this' if applicable
 + Minor fixes for new object suggestions
