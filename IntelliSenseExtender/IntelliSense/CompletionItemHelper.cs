@@ -15,6 +15,8 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
+        private static SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
+
         public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
         {
             const string AttributeSuffix = nameof(Attribute);
@@ -39,7 +41,7 @@ namespace IntelliSenseExtender.IntelliSense
                 }
                 else
                 {
-                    displayText = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                    displayText = symbol.ToDisplayString(BoundGenericFormat);
                     insertText = displayText;
                 }
             }

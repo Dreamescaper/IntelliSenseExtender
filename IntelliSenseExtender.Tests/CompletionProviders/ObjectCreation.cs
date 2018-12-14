@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
@@ -13,6 +14,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         private readonly CompletionProvider Provider = new AggregateTypeCompletionProvider(
             Options_Default,
             new NewObjectCompletionProvider());
+
+        private CompletionProvider Provider_WithOptions(Action<Options.Options> action) =>
+            new AggregateTypeCompletionProvider(Options_With(action),
+                new NewObjectCompletionProvider());
 
         [Test]
         public async Task SuggestInterfaceImplementation_LocalVariable()
@@ -452,6 +457,52 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Does.Contain("new List<int>()"));
+        }
+
+        [Test]
+        public async Task ShouldSuggestNestedTypesIfEnabled()
+        {
+            const string source = @"
+                public class OuterClass
+                {
+                    public class InnerClass { }
+                }
+
+                public class Test {
+                    public OuterClass.InnerClass Method() {
+                        return 
+                    }
+                }";
+
+            var provider = Provider_WithOptions(o => o.SuggestNestedTypes = true);
+            var completions = await GetCompletionsAsync(provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("new OuterClass.InnerClass()"));
+        }
+
+        [Test]
+        public async Task ShouldSuggestNestedTypesAsGenericParameter()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+
+                public class OuterClass
+                {
+                    public class InnerClass { }
+                }
+
+                public class Test {
+                    public List<OuterClass.InnerClass> Method() {
+                        return 
+                    }
+                }";
+
+            var provider = Provider_WithOptions(o => o.SuggestNestedTypes = true);
+            var completions = await GetCompletionsAsync(provider, source, "return ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("new List<OuterClass.InnerClass>()"));
         }
 
         [Test]

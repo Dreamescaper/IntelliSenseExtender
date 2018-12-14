@@ -55,7 +55,7 @@ namespace IntelliSenseExtender.Context
             CancellationToken = token;
         }
 
-        public bool IsNamespaceImported(INamedTypeSymbol typeSymbol)
+        public bool IsNamespaceImported(ITypeSymbol typeSymbol)
         {
             return ImportedNamespaces.Contains(typeSymbol.GetNamespace())
                 || typeSymbol.ContainingNamespace.IsGlobalNamespace;

@@ -122,7 +122,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             {
                 var symbolName = assignableSymbol.Name;
                 var inferredTypeName = syntaxContext.InferredType.Name;
-                bool unimported = !syntaxContext.ImportedNamespaces.Contains(assignableSymbol.GetNamespace());
+                bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol);
 
                 int priority;
                 if (symbolName == inferredTypeName || "I" + symbolName == inferredTypeName)
