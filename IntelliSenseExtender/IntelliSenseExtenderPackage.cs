@@ -36,7 +36,7 @@ namespace IntelliSenseExtender
 
         protected override async System.Threading.Tasks.Task InitializeAsync(System.Threading.CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await base.InitializeAsync(cancellationToken, progress);
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
             // When initialized asynchronously, we *may* be on a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.

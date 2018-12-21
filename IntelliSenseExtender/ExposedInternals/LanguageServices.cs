@@ -20,7 +20,7 @@ namespace IntelliSenseExtender.ExposedInternals
             _addImportServiceType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImports.IAddImportsService");
             _addImportsMethod = _addImportServiceType.GetMethod("AddImports");
             _getServiceMethod = typeof(HostLanguageServices)
-                .GetMethod(nameof(HostLanguageServices.GetService));
+                .GetMethod(nameof(HostLanguageServices.GetService), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         }
 
         public static SyntaxNode AddImports(this HostLanguageServices hostServices,
@@ -34,7 +34,7 @@ namespace IntelliSenseExtender.ExposedInternals
         private static object GetService(HostLanguageServices hostServices, Type serviceType)
         {
             return _getServiceMethod.MakeGenericMethod(serviceType)
-                .Invoke(hostServices, new object[] { });
+                .Invoke(hostServices, null);
         }
     }
 }

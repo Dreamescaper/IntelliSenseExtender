@@ -21,9 +21,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
         private static readonly Regex AttributeArgumentRegex = new Regex(@"\[\w+\((|[^\]]+, )$");
-        private static readonly string[] SymbolsToTriggerCompletion = new[] {
-            ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= "
-        };
+
+        private static readonly string[] SymbolsToTriggerCompletion
+            = new[] { ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= " };
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -256,7 +256,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 fieldsAndProperties = fieldsAndProperties.Where(member => member.IsStatic);
             }
 
-            return FilterUnneededSymbols(fieldsAndProperties, syntaxContext); ;
+            return FilterUnneededSymbols(fieldsAndProperties, syntaxContext);
         }
 
         private IEnumerable<IParameterSymbol> GetMethodParameters(SyntaxContext syntaxContext)

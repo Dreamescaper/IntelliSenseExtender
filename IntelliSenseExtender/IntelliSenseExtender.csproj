@@ -142,6 +142,11 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3032">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="ReflectionAnalyzers">
+      <Version>0.1.19-dev</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="StreamJsonRpc" Version="1.4.134" />
     <PackageReference Include="System.Composition" Version="1.1.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />

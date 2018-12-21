@@ -36,7 +36,7 @@ namespace IntelliSenseExtender.Context
             IEnumerable<string> importedNamespaces, bool isTypeContext = false, bool isAttributeContext = false,
             bool isMemberAccessContext = false, ITypeSymbol accessedSymbolType = null, ISymbol accessedSymbol = null,
             ITypeSymbol inferredType = null, TypeInferredFrom inferredFrom = TypeInferredFrom.None,
-            SyntaxToken currentToken = default(SyntaxToken), CancellationToken token = default(CancellationToken))
+            SyntaxToken currentToken = default, CancellationToken token = default)
         {
             Document = document;
             SemanticModel = semanticModel;

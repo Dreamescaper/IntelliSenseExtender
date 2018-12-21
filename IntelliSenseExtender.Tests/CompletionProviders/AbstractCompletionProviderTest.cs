@@ -67,7 +67,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         {
             return new CompletionContext(provider, document, position,
                 new TextSpan(), CompletionTrigger.Invoke, document.Project.Solution.Workspace.Options,
-                default(CancellationToken));
+                default);
         }
 
         public static IReadOnlyList<CompletionItem> GetCompletions(CompletionContext context)

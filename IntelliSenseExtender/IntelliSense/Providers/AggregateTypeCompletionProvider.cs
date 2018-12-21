@@ -30,7 +30,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                   new NewObjectCompletionProvider(),
                   new EnumCompletionProvider())
         {
-
         }
 
         public AggregateTypeCompletionProvider(IOptionsProvider optionsProvider, params ICompletionProvider[] completionProviders)

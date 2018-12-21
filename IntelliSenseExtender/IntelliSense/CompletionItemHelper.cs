@@ -15,7 +15,7 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public static class CompletionItemHelper
     {
-        private static SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
+        private static readonly SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
 
         public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
         {
@@ -276,6 +276,7 @@ namespace IntelliSenseExtender.IntelliSense
         }
 
         private static (Document document, ConcurrentDictionary<string, ISymbol> mapping) _symbolMappingCache;
+
         private static ConcurrentDictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
         {
             if (_symbolMappingCache.document?.Id != currentDocument.Id)
