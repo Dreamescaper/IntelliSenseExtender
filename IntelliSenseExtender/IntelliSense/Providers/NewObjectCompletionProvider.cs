@@ -84,6 +84,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             return options.SuggestTypesOnObjectCreation
                 && syntaxContext.InferredType != null
+                // do not suggest for object
+                && syntaxContext.InferredType.Name != nameof(System.Object)
                 // do not support enums and nullable enums
                 && syntaxContext.InferredType.TypeKind != TypeKind.Enum
                 && !(syntaxContext.InferredType is INamedTypeSymbol namedType

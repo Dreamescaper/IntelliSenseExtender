@@ -443,6 +443,24 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task DoNotSuggestAnythingIfVariableHasObjectType()
+        {
+            const string source = @"
+                public class Test
+                {
+                    public void Method()
+                    {
+                        object o = 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Is.Empty);
+        }
+
+        [Test]
         public async Task SuggestOnReturn()
         {
             const string source = @"
