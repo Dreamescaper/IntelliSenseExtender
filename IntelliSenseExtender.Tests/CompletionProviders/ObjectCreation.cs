@@ -423,6 +423,26 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task DoNotSuggestToCreateNullableInstance()
+        {
+            const string source = @"
+                using System;
+
+                public class Test
+                {
+                    public void Method()
+                    {
+                        Guid? g = 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Contain("new Guid()") & Does.Not.Contain("new Guid?()"));
+        }
+
+        [Test]
         public async Task SuggestOnReturn()
         {
             const string source = @"

@@ -118,34 +118,36 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var assignableSymbol = syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(suggestedType, syntaxContext.InferredType);
 
-            if (assignableSymbol != null)
+            if (assignableSymbol == null
+                || assignableSymbol.Name == nameof(Nullable))
             {
-                var symbolName = assignableSymbol.Name;
-                var inferredTypeName = syntaxContext.InferredType.Name;
-                bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol);
-
-                int priority;
-                if (symbolName == inferredTypeName || "I" + symbolName == inferredTypeName)
-                {
-                    priority = Sorting.NewSuggestion_MatchingName;
-                }
-                else if (!unimported)
-                {
-                    priority = Sorting.NewSuggestion_Default;
-                }
-                else
-                {
-                    priority = Sorting.NewSuggestion_Unimported;
-                }
-
-                return CompletionItemHelper.CreateCompletionItem(assignableSymbol, syntaxContext,
-                    priority, MatchPriority.Preselect,
-                    newPositionOffset: 0,
-                    unimported: unimported,
-                    newCreationSyntax: newKeywordRequired,
-                    showParenthesisForNewCreations: options.AddParethesisForNewSuggestions);
+                return null;
             }
-            return null;
+
+            var symbolName = assignableSymbol.Name;
+            var inferredTypeName = syntaxContext.InferredType.Name;
+            bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol);
+
+            int priority;
+            if (symbolName == inferredTypeName || "I" + symbolName == inferredTypeName)
+            {
+                priority = Sorting.NewSuggestion_MatchingName;
+            }
+            else if (!unimported)
+            {
+                priority = Sorting.NewSuggestion_Default;
+            }
+            else
+            {
+                priority = Sorting.NewSuggestion_Unimported;
+            }
+
+            return CompletionItemHelper.CreateCompletionItem(assignableSymbol, syntaxContext,
+                priority, MatchPriority.Preselect,
+                newPositionOffset: 0,
+                unimported: unimported,
+                newCreationSyntax: newKeywordRequired,
+                showParenthesisForNewCreations: options.AddParethesisForNewSuggestions);
         }
 
         /// <summary>
