@@ -13,7 +13,7 @@ namespace IntelliSenseExtender.Extensions
         /// </summary>
         public static ITypeSymbol GetAssignableSymbol(this Compilation compilation, ITypeSymbol fromSymbol, ITypeSymbol toSymbol)
         {
-            if (compilation.ClassifyConversion(fromSymbol, toSymbol).IsImplicit)
+            if (IsAssignable(compilation, fromSymbol, toSymbol))
             {
                 return fromSymbol;
             }
@@ -27,12 +27,12 @@ namespace IntelliSenseExtender.Extensions
             {
                 var toTypeAgruments = nToSymbol.TypeArguments.ToArray();
                 var constructedFromSymbol = nFromSymbol.Construct(toTypeAgruments);
-                if (compilation.ClassifyConversion(constructedFromSymbol, nToSymbol).IsImplicit)
+                if (IsAssignable(compilation, constructedFromSymbol, nToSymbol))
                 {
                     // Verify if type parameters constraints (e.g. 'where T:IComparable') are satisfied
                     var typeParametersSatisfyConditions = nFromSymbol.TypeParameters
                             .Select((typeParam, i) => typeParam.ConstraintTypes
-                                .All(constraintType => compilation.ClassifyConversion(toTypeAgruments[i], constraintType).IsImplicit))
+                                .All(constraintType => IsAssignable(compilation, toTypeAgruments[i], constraintType)))
                             .All(satisfies => satisfies);
                     if (typeParametersSatisfyConditions)
                     {
@@ -41,6 +41,12 @@ namespace IntelliSenseExtender.Extensions
                 }
             }
             return null;
+        }
+
+        private static bool IsAssignable(Compilation compilation, ITypeSymbol fromSymbol, ITypeSymbol toSymbol)
+        {
+            var conversion = compilation.ClassifyConversion(fromSymbol, toSymbol);
+            return conversion.IsImplicit && !conversion.IsUserDefined;
         }
     }
 }

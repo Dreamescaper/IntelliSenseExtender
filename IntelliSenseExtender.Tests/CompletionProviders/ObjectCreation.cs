@@ -20,6 +20,23 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 new NewObjectCompletionProvider());
 
         [Test]
+        public async Task SuggestNonGenericInterfaceImplementation()
+        {
+            const string source = @"
+                using System.Collections;
+
+                public class Test {
+                    public void Method() {
+                        IList list = 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("new ArrayList()"));
+        }
+
+        [Test]
         public async Task SuggestInterfaceImplementation_LocalVariable()
         {
             const string source = @"
@@ -458,6 +475,29 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completionsNames = completions.Select(completion => completion.DisplayText);
 
             Assert.That(completionsNames, Is.Empty);
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfRequiresConversion()
+        {
+            const string source = @"
+                public class ClassWithConversion
+                {
+                    public static implicit operator string(ClassWithConversion c) => """";
+                }
+
+                public class Test
+                {
+                    public void Method()
+                    {
+                        string s = 
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("new ClassWithConversion()"));
         }
 
         [Test]
