@@ -182,9 +182,34 @@ namespace IntelliSenseExtender.Extensions
         private static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
             var invocationSyntax = argumentListSyntax.Parent;
-            var methodInfo = semanticModel.GetSymbolInfo(node: invocationSyntax);
-            var methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
+            var methodInfo = semanticModel.GetSymbolInfo(invocationSyntax);
 
+            IMethodSymbol methodSymbol = null;
+            if (methodInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
+                && methodInfo.CandidateSymbols.Length > 1
+                && argumentListSyntax.Arguments.Any(a => !a.IsMissing)
+                && argumentListSyntax.Arguments.All(a => a.NameColon == null))
+            {
+                // If failed to resolve overload - try to find suitable based on existing parameters
+
+                var presentArguments = argumentListSyntax.Arguments.TakeWhile(a => !a.IsMissing).ToList();
+
+                methodSymbol = methodInfo.CandidateSymbols
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(s =>
+                    {
+                        for (int i = 0; i < presentArguments.Count; i++)
+                        {
+                            if (!semanticModel.ClassifyConversion(presentArguments[i].Expression, s.Parameters[i].Type).IsImplicit)
+                                return false;
+                        }
+                        return true;
+                    });
+            }
+            else
+            {
+                methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
+            }
             return methodSymbol?.Parameters;
         }
 

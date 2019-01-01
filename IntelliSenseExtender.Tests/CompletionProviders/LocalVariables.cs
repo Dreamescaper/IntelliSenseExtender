@@ -213,6 +213,42 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task ResolveMethodsOverloadsBasedOnExistingArguments_1()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(int i, string s) {
+                        TestMethod(i, 
+                    }
+
+                    public void TestMethod(string s1, string s2) { }
+                    public void TestMethod(int i1, int i2) { }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "TestMethod(i, ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("i") & Does.Not.Contain("s"));
+        }
+
+        [Test]
+        public async Task ResolveMethodsOverloadsBasedOnExistingArguments_2()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(int i, string s) {
+                        TestMethod(s, 
+                    }
+
+                    public void TestMethod(string s1, string s2) { }
+                    public void TestMethod(int i1, int i2) { }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "TestMethod(s, ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("s") & Does.Not.Contain("i"));
+        }
+
+        [Test]
         public async Task SuggestMethodParametersForPropertiesAssignment()
         {
             const string source = @"
