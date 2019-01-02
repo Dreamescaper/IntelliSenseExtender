@@ -196,6 +196,7 @@ namespace IntelliSenseExtender.Extensions
 
                 methodSymbol = methodInfo.CandidateSymbols
                     .OfType<IMethodSymbol>()
+                    .Where(s => s.Parameters.Length >= argumentListSyntax.Arguments.Count)
                     .FirstOrDefault(s =>
                     {
                         for (int i = 0; i < presentArguments.Count; i++)
