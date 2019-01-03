@@ -69,6 +69,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var textBeforeCaret = currentLine.ToString().Substring(0, caretPosition - currentLine.Start);
                 if (trigger.Kind == CompletionTriggerKind.Insertion
                     && (textBeforeCaret.EndsWith(" = ")
+                        || textBeforeCaret.EndsWith(": ")
                         || textBeforeCaret.EndsWith(" = new ")
                         || textBeforeCaret.EndsWith("return ")
                         || BracketRegex.IsMatch(textBeforeCaret))

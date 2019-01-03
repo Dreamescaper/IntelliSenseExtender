@@ -23,7 +23,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private static readonly Regex AttributeArgumentRegex = new Regex(@"\[\w+\((|[^\]]+, )$");
 
         private static readonly string[] SymbolsToTriggerCompletion
-            = new[] { ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= " };
+            = new[] { ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= ", ": " };
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
