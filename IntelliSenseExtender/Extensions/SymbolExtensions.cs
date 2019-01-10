@@ -9,10 +9,6 @@ namespace IntelliSenseExtender.Extensions
     {
         private const int DefaultSize = 8;
 
-        private static readonly HashSet<string> BuiltInTypes = new HashSet<string>(new[] { "Byte", "SByte", "Int32",
-            "UInt32", "Int16", "UInt16", "Int64", "UInt64", "Single", "Double", "Char",
-            "Boolean", "Object", "String", "Decimal" });
-
         public static string GetNamespace(this ISymbol symbol)
         {
             // ToDisplayString would work here as well, but it is slower
@@ -92,7 +88,8 @@ namespace IntelliSenseExtender.Extensions
 
         public static bool IsBuiltInType(this ITypeSymbol typeSymbol)
         {
-            return BuiltInTypes.Contains(typeSymbol.Name);
+            return typeSymbol.SpecialType >= SpecialType.System_Object
+                && typeSymbol.SpecialType <= SpecialType.System_Array;
         }
 
         public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol typeSymbol)
