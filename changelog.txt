@@ -1,3 +1,6 @@
+1.1.1
++ Revert changes that made extension not working on older VS versions
+
 1.1
 + Type suggestions improvements
 
