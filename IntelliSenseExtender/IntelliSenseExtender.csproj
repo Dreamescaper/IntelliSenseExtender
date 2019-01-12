@@ -94,9 +94,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -121,23 +118,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Madskristensen.VisualStudio.SDK" Version="15.3.81-pre" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.2">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="0.10.6" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.10.0" />
-    <PackageReference Include="Microsoft.Composition" Version="1.0.31" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="15.8.525" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="15.9.28307" />
-    <PackageReference Include="Microsoft.VisualStudio.Language" Version="15.8.525" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="15.8.525" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="2.10.0" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="15.8.36" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.9.28307" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="15.8.209" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="15.8.209" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="15.3.58" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.10.0" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3032">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
