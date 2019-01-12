@@ -14,7 +14,7 @@ namespace IntelliSenseExtender.Context
 {
     public class SyntaxContext
     {
-        private NamespacesTree _importedNamespacesTree;
+        private readonly NamespacesTree _importedNamespacesTree;
 
         public Document Document { get; }
         public SemanticModel SemanticModel { get; }
@@ -111,7 +111,8 @@ namespace IntelliSenseExtender.Context
         }
 
         /// <summary>
-        /// Build tree of namespaces to optimize verification for imported namespace
+        /// Build tree of namespaces to optimize verification for imported namespace.
+        /// (Cannot compare INamespaceSymbols directly, as there might be different symbols - merged / unmerged namespaces)
         /// </summary>
         private class NamespacesTree : Dictionary<string, NamespacesTree>
         {
