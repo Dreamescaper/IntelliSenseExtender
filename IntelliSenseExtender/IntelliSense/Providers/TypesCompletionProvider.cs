@@ -10,10 +10,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (!syntaxContext.IsAttributeContext
-                || (typeSymbol.IsAttribute() && !typeSymbol.IsAbstract))
+            if ((!syntaxContext.IsAttributeContext || (typeSymbol.IsAttribute() && !typeSymbol.IsAbstract))
+                && (typeSymbol.ContainingType == null || !syntaxContext.StaticImports.Contains(typeSymbol.ContainingType)))
             {
-                if (!syntaxContext.IsNamespaceImported(typeSymbol))
+                if (!syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
+                    && !syntaxContext.Aliases.ContainsKey(typeSymbol))
                 {
                     return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
                 }

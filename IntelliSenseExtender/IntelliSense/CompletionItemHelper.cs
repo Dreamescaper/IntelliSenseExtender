@@ -17,21 +17,22 @@ namespace IntelliSenseExtender.IntelliSense
     {
         private static readonly SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
 
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context, string @namespace, bool unimported, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
+        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
+            string @namespace, string alias, bool unimported, bool includeContainingType, bool newCreation,
+            bool showParenthesisForNewCreations)
         {
             const string AttributeSuffix = nameof(Attribute);
 
             string displayText;
             string insertText;
 
-            var symbolName = symbol.GetAccessibleName();
-
+            string symbolName = alias ?? symbol.GetAccessibleName();
             if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {
                 displayText = symbolName.Substring(0, symbolName.Length - AttributeSuffix.Length);
                 insertText = displayText;
             }
-            else if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
+            else if (alias == null && symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
             {
                 //If generic type is unbound - do not show generic arguments
                 if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters))
@@ -131,6 +132,10 @@ namespace IntelliSenseExtender.IntelliSense
             var nsName = symbol.GetNamespace();
             var fullSymbolName = symbol.GetFullyQualifiedName(nsName);
 
+            string aliasName = null;
+            if (symbol is ITypeSymbol typeSymbol && context.Aliases.TryGetValue(typeSymbol, out aliasName))
+                unimported = false;
+
             // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
             // for all items. However, for huge items quantity
             // encoding has significant performance impact. We will put it in GetDescriptionAsync,
@@ -138,7 +143,7 @@ namespace IntelliSenseExtender.IntelliSense
             GetSymbolMapping(context.Document)[fullSymbolName] = symbol;
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
-                nsName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
+                nsName, aliasName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
             props.Add(CompletionItemProperties.InsertText, insertText);

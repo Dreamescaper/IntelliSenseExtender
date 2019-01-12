@@ -41,6 +41,10 @@ namespace IntelliSenseExtender.Extensions
                     ? symbol.Name
                     : $"{@namespace}.{symbol.Name}";
             }
+            if (symbol is INamespaceSymbol)
+            {
+                return symbol.GetNamespace();
+            }
             else
             {
                 return symbol.ToDisplayString();

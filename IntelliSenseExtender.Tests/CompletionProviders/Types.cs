@@ -222,6 +222,33 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task DoNotSuggestNestedTypeIfStaticImportPresent()
+        {
+            const string mainSource = @"
+                using static NM.ContainingClass;
+            
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public class NestedClass { }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
+                mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Has.None.Contains("NestedClass"));
+        }
+
+        [Test]
         public async Task DoNotProvideObsoleteTypes()
         {
             const string mainSource = @"
@@ -261,6 +288,145 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
             var completionsNames = completions.Select(completion => completion.DisplayText);
             Assert.That(completionsNames, Has.None.Contains("GlobalNsClass"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAlreadyImported_OutsideNamespace()
+        {
+            const string mainSource = @"
+                using System.Collections.Generic;
+
+                namespace TestNamespace
+                {
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            /*here*/
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAlreadyImported_InsideRegion()
+        {
+            const string mainSource = @"
+                #region Test
+
+                using System.Collections.Generic;
+
+                namespace TestNamespace
+                {
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            /*here*/
+                        }
+                    }
+                }
+
+                #endregion";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAlreadyImported_InsideNamespace()
+        {
+            const string mainSource = @"
+                namespace TestNamespace
+                {
+                    using System.Collections.Generic;
+
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            /*here*/
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAlreadyImported_InsideNamespace_PartialPath()
+        {
+            const string mainSource = @"
+                namespace System.Collections
+                {
+                    using Generic;
+
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            /*here*/
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAlreadyImported_ParentNamespace()
+        {
+            const string mainSource = @"
+                namespace System.Collections.Generic.Some.Child.Name.Space
+                {
+                    public class Test
+                    {
+                        public void Method()
+                        {
+                            /*here*/
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestIfAliasUsingIsPresent()
+        {
+            const string mainSource = @"
+                using ContainingClass = NM.ContainingClass;
+            
+                public class Test
+                {
+                    public void Method()
+                    {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+
+            Assert.That(completionsNames, Does.Not.Contain("ContainingClass  (NM)"));
         }
 
         private static string NormSpaces(string str)
