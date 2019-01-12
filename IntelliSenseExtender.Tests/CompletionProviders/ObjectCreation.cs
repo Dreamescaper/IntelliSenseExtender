@@ -584,6 +584,42 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task ShouldAccountForUsingAliases_Generic()
+        {
+            const string source = @"
+                using TestAlias = System.Collections.Generic.List<string>;
+
+                public class Test {
+                    public void Method() {
+                        System.Collections.Generic.IList<string> list =  
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "list = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("new List<string>()  (System.Collections.Generic)"));
+            Assert.That(completionsNames, Does.Contain("new TestAlias()"));
+        }
+
+        [Test]
+        public async Task ShouldAccountForUsingAliases_NonGeneric()
+        {
+            const string source = @"
+                using TestAlias = System.Collections.ArrayList;
+
+                public class Test {
+                    public void Method() {
+                        System.Collections.IList list =  
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "list = ");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Not.Contain("new ArrayList()  (System.Collections)"));
+            Assert.That(completionsNames, Does.Contain("new TestAlias()"));
+        }
+
+        [Test]
         public void TriggerCompletionAfterAssignment()
         {
             const string source = @"

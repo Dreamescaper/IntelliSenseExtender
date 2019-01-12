@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using IntelliSenseExtender.Context;
-using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,7 +16,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 return new[]
                 {
                     CompletionItemHelper.CreateCompletionItem(namedType, syntaxContext,
-                        unimported: !syntaxContext.ImportedNamespaces.Contains(namedType.GetNamespace()),
+                        unimported: !syntaxContext.IsNamespaceImported(namedType.ContainingNamespace),
                         matchPriority: MatchPriority.Preselect,
                         sortingPriority: Sorting.Suitable_Enum)
                 };

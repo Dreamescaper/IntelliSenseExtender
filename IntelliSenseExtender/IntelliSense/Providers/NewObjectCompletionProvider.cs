@@ -113,7 +113,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return factorySymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         Sorting.NewSuggestion_FactoryMethod,
                         MatchPriority.Preselect,
-                        unimported: !syntaxContext.ImportedNamespaces.Contains(symbol.GetNamespace()),
+                        unimported: !syntaxContext.IsNamespaceImported(symbol.ContainingNamespace),
                         includeContainingClass: true));
         }
 
@@ -129,7 +129,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             var symbolName = assignableSymbol.Name;
             var inferredTypeName = syntaxContext.InferredType.Name;
-            bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol);
+            bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol.ContainingNamespace);
 
             int priority;
             if (symbolName == inferredTypeName || "I" + symbolName == inferredTypeName)
@@ -172,7 +172,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         var typeParameter = namedTypeSymbol.TypeArguments.FirstOrDefault();
                         if (typeParameter != null)
                         {
-                            var unimported = !syntaxContext.IsNamespaceImported(namedTypeSymbol);
+                            var unimported = !syntaxContext.IsNamespaceImported(namedTypeSymbol.ContainingNamespace);
                             var displayName = typeParameter.ToMinimalDisplayString(syntaxContext.SemanticModel, syntaxContext.Position);
                             var completion = CompletionItemHelper.CreateCompletionItem(
                                     $"new List<{displayName}> {{}}",

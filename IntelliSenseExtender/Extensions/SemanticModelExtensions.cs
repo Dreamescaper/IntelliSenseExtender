@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
@@ -9,6 +10,77 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SemanticModelExtensions
     {
+        public static (ImmutableHashSet<INamespaceSymbol> importedNamespaces, ImmutableHashSet<ITypeSymbol> staticImports,
+            ImmutableDictionary<INamespaceOrTypeSymbol, string> aliases)
+            GetUsings(this SemanticModel semanticModel, SyntaxToken currentToken)
+        {
+            IEnumerable<INamespaceSymbol> GetParentNamespaces(INamespaceSymbol nsSymbol)
+            {
+                while (nsSymbol != null)
+                {
+                    yield return nsSymbol;
+                    nsSymbol = nsSymbol.ContainingNamespace;
+                }
+            }
+
+            if (currentToken.Parent == null)
+            {
+                return (ImmutableHashSet<INamespaceSymbol>.Empty,
+                    ImmutableHashSet<ITypeSymbol>.Empty,
+                    ImmutableDictionary<INamespaceOrTypeSymbol, string>.Empty);
+            }
+
+            var ancestors = currentToken.Parent.Ancestors().ToArray();
+
+            var usings = ancestors
+                .Select(a =>
+                {
+                    if (a is CompilationUnitSyntax compilationUnit)
+                        return compilationUnit.Usings;
+                    if (a is NamespaceDeclarationSyntax namespaceDeclaration)
+                        return namespaceDeclaration.Usings;
+
+                    return default;
+                })
+                .SelectMany(u => u)
+                .ToArray();
+
+            var importedNamespacesFromUsing = usings
+                .Where(u => u.Alias == null && u.StaticKeyword.IsKind(SyntaxKind.None))
+                .Select(ns => semanticModel.GetSymbolInfo(ns.Name).Symbol)
+                .OfType<INamespaceSymbol>()
+                .SelectMany(nsSymbol => nsSymbol.ConstituentNamespaces);
+
+            var currentNamespaces = ancestors.OfType<NamespaceDeclarationSyntax>()
+                .Select(ns => semanticModel.GetSymbolInfo(ns.Name).Symbol)
+                .OfType<INamespaceSymbol>()
+                .ToArray();
+
+            if (currentNamespaces.Length == 0)
+                currentNamespaces = new[] { semanticModel.Compilation.GlobalNamespace };
+
+            var importedNamespaces = importedNamespacesFromUsing
+                .Concat(currentNamespaces.SelectMany(GetParentNamespaces))
+                .ToImmutableHashSet();
+
+            var staticImports = usings
+                .Where(u => u.Alias == null && u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+                .Select(ns => semanticModel.GetSymbolInfo(ns.Name).Symbol)
+                .OfType<ITypeSymbol>()
+                .ToImmutableHashSet();
+
+            var aliases = usings
+                .Where(u => u.Alias != null && u.StaticKeyword.IsKind(SyntaxKind.None))
+                .Select(u => (
+                    symbol: semanticModel.GetSymbolInfo(u.Name).Symbol as INamespaceOrTypeSymbol,
+                    alias: u.Alias.Name.Identifier.Text))
+                .Where(a => a.symbol != null)
+                .GroupBy(a => a.symbol)
+                .ToImmutableDictionary(g => g.Key, g => g.First().alias);
+
+            return (importedNamespaces, staticImports, aliases);
+        }
+
         public static (ITypeSymbol typeSymbol, TypeInferredFrom inferredFrom) GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken)
         {
             ITypeSymbol typeSymbol = null;

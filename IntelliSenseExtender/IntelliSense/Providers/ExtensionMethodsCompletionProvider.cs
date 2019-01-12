@@ -11,7 +11,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
-            if (syntaxContext.IsNamespaceImported(typeSymbol)
+            if (syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
                 || !typeSymbol.MightContainExtensionMethods)
             {
                 return null;
