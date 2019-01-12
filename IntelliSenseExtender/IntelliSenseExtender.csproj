@@ -118,7 +118,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Madskristensen.VisualStudio.SDK" Version="15.3.81-pre" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.2">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -126,6 +125,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.10.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>15.0.26606</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3032">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
