@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
@@ -10,13 +12,22 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-            if (syntaxContext.InferredType is INamedTypeSymbol namedType
-                && namedType.EnumUnderlyingType != null)
+            var typeSymbol = syntaxContext.InferredType;
+
+            // Unwrap nullable enum
+            if (typeSymbol is INamedTypeSymbol namedType
+                && namedType.Name == nameof(Nullable)
+                && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum)
+            {
+                typeSymbol = namedType.TypeArguments[0];
+            }
+
+            if (typeSymbol?.TypeKind == TypeKind.Enum)
             {
                 return new[]
                 {
-                    CompletionItemHelper.CreateCompletionItem(namedType, syntaxContext,
-                        unimported: !syntaxContext.IsNamespaceImported(namedType.ContainingNamespace),
+                    CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext,
+                        unimported: !syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace),
                         matchPriority: MatchPriority.Preselect,
                         sortingPriority: Sorting.Suitable_Enum)
                 };

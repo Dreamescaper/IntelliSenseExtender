@@ -13,12 +13,35 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             new EnumCompletionProvider());
 
         [Test]
-        public async Task SuggestInferedEnumType()
+        public async Task SuggestInferredEnumType()
         {
             const string mainSource = @"
                 public class Test {
                     public void Method() {
                         NM.SomeEnum e = /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public enum SomeEnum
+                    {
+                        A, B, C
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("SomeEnum  (NM)"));
+        }
+
+        [Test]
+        public async Task SuggestInferredEnumType_Nullable()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        NM.SomeEnum? e = /*here*/
                     }
                 }";
             const string classFile = @"
