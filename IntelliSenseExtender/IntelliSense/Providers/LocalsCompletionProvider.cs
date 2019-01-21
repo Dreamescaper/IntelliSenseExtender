@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using IntelliSenseExtender.Context;
+using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
@@ -87,107 +87,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
         {
-            IEnumerable<SyntaxNode> getVariableSyntaxes()
-            {
-                var currentNode = syntaxContext.CurrentToken.Parent;
-                var parentNode = currentNode?.Parent;
-                var containingMethodNode = parentNode?.AncestorsAndSelf()
-                    .FirstOrDefault(node =>
-                        node is MethodDeclarationSyntax
-                        || node is AccessorDeclarationSyntax
-                        || node is ConstructorDeclarationSyntax);
-
-                if (containingMethodNode != null)
-                {
-                    while (parentNode != null && currentNode != containingMethodNode)
-                    {
-                        // foreach and using statements
-                        if (parentNode is ForEachStatementSyntax
-                            || parentNode is VariableDeclaratorSyntax)
-                        {
-                            yield return parentNode;
-                        }
-
-                        // for statement
-                        else if (parentNode is ForStatementSyntax)
-                        {
-                            var varDeclaratorSyntax = parentNode
-                                .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
-                                ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
-                            if (varDeclaratorSyntax != null)
-                            {
-                                yield return varDeclaratorSyntax;
-                            }
-                        }
-
-                        // is pattern variable
-                        // Currently only isPattern inside parent 'if' is supported
-                        else if (parentNode is IfStatementSyntax)
-                        {
-                            var patternDeclarator = parentNode
-                                .ChildNodes().FirstOrDefault(node => node is IsPatternExpressionSyntax)
-                                ?.ChildNodes().FirstOrDefault(node => node is DeclarationPatternSyntax)
-                                ?.ChildNodes().FirstOrDefault(node => node is SingleVariableDesignationSyntax);
-
-                            if (patternDeclarator != null)
-                            {
-                                yield return patternDeclarator;
-                            }
-                        }
-
-                        foreach (var childNode in parentNode.ChildNodes())
-                        {
-                            // We don't need to look further then current node
-                            if (childNode == currentNode)
-                            {
-                                break;
-                            }
-
-                            // Simple local variables
-                            if (childNode is LocalDeclarationStatementSyntax)
-                            {
-                                var varDeclaratorSyntax = childNode
-                                    .ChildNodes().FirstOrDefault(node => node is VariableDeclarationSyntax)
-                                    ?.ChildNodes().FirstOrDefault(node => node is VariableDeclaratorSyntax);
-                                if (varDeclaratorSyntax != null)
-                                {
-                                    yield return varDeclaratorSyntax;
-                                }
-                            }
-                            // Deconstructed variables
-                            else if (childNode.IsKind(SyntaxKind.ExpressionStatement))
-                            {
-                                var tupleDeclaration = childNode
-                                    .ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression))
-                                    ?.ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.DeclarationExpression))
-                                    ?.ChildNodes().OfType<ParenthesizedVariableDesignationSyntax>().FirstOrDefault();
-
-                                if (tupleDeclaration != null)
-                                {
-                                    foreach (var variable in tupleDeclaration.Variables)
-                                    {
-                                        yield return variable;
-                                    }
-                                }
-                            }
-                        }
-
-                        currentNode = parentNode;
-                        parentNode = currentNode.Parent;
-                    }
-                }
-            }
-
-            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
-
-            var symbols = getVariableSyntaxes()
-                .Select(syntaxNode =>
-                {
-                    var declaredSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxNode);
-                    Debug.Assert(declaredSymbol is ILocalSymbol, "Found Symbol is not ILocalSymbol!");
-                    return declaredSymbol as ILocalSymbol;
-                })
-                .Where(symbol => symbol != null);
+            var symbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position)
+                .OfType<ILocalSymbol>()
+                .Where(s => !s.IsInaccessibleLocal(syntaxContext.Position));
 
             return FilterUnneededSymbols(symbols, syntaxContext);
         }
