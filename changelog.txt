@@ -1,6 +1,8 @@
 next
 + Fix wrong handling of usings inside namespace
 + Take static usings and aliases into account
++ Fix displaying description for added items
++ Minor fixes
 
 1.1
 + Type suggestions improvements

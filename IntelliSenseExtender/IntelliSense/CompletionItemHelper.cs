@@ -92,7 +92,7 @@ namespace IntelliSenseExtender.IntelliSense
 
                 var descriptionTask = SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
 
-                bool unimported = item.Properties.ContainsValue(CompletionItemProperties.NamespaceToImport);
+                bool unimported = item.Properties.ContainsKey(CompletionItemProperties.NamespaceToImport);
 
                 var description = await descriptionTask;
 

@@ -22,12 +22,17 @@ namespace IntelliSenseExtender.ExposedInternals
 
         static SymbolCompletionItem()
         {
-            var _internalType = Type.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem," +
-                "Microsoft.CodeAnalysis.Features");
-            _encodeSymbolMethod = (EncodeSymbolHandler)_internalType.GetMethod("EncodeSymbol").CreateDelegate(typeof(EncodeSymbolHandler));
-            _getDescriptionAsyncMethod = (GetDescriptionAsyncHandler)_internalType.GetMethods()
-                .Single(method => method.Name == "GetDescriptionAsync"
-                    && method.GetParameters().Length == 3).CreateDelegate(typeof(GetDescriptionAsyncHandler));
+            var featuresAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Features");
+            var _internalType = featuresAssembly.GetType("Microsoft.CodeAnalysis.Completion.Providers.SymbolCompletionItem");
+
+            _encodeSymbolMethod = (EncodeSymbolHandler)_internalType
+                .GetMethod("EncodeSymbol", new[] { typeof(ISymbol) })
+                .CreateDelegate(typeof(EncodeSymbolHandler));
+
+            _getDescriptionAsyncMethod = (GetDescriptionAsyncHandler)_internalType
+                .GetMethod("GetDescriptionAsync", new[] { typeof(CompletionItem), typeof(Document), typeof(CancellationToken) })
+                .CreateDelegate(typeof(GetDescriptionAsyncHandler));
         }
 
         public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken) => _getDescriptionAsyncMethod(item, document, cancellationToken);
