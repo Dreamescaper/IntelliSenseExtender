@@ -27,14 +27,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
+            var lookedUpSymbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position);
+
             var typeSymbol = syntaxContext.InferredType;
-            var locals = GetLocalVariables(syntaxContext);
+            var locals = GetLocalVariables(lookedUpSymbols, syntaxContext);
             var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
 
-            var lambdaParameters = GetLambdaParameters(syntaxContext);
+            var lambdaParameters = GetLambdaParameters(lookedUpSymbols, syntaxContext);
             var suitableLambdaParameters = GetAssignableSymbols(syntaxContext, lambdaParameters, s => s.Type, typeSymbol);
 
-            var typeMembers = GetTypeMembers(syntaxContext);
+            var typeMembers = GetTypeMembers(lookedUpSymbols, syntaxContext);
             ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
             var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, typeSymbol);
 
@@ -85,78 +87,38 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                     || syntaxContext.TypeInferredFrom == TypeInferredFrom.BinaryExpression);
         }
 
-        private IEnumerable<ILocalSymbol> GetLocalVariables(SyntaxContext syntaxContext)
+        private IEnumerable<ILocalSymbol> GetLocalVariables(IEnumerable<ISymbol> availableSymbols, SyntaxContext syntaxContext)
         {
-            var symbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position)
+            var symbols = availableSymbols
                 .OfType<ILocalSymbol>()
                 .Where(s => !s.IsInaccessibleLocal(syntaxContext.Position));
 
             return FilterUnneededSymbols(symbols, syntaxContext);
         }
 
-        private IEnumerable<IParameterSymbol> GetLambdaParameters(SyntaxContext syntaxContext)
+        private IEnumerable<IParameterSymbol> GetLambdaParameters(IEnumerable<ISymbol> availableSymbols, SyntaxContext syntaxContext)
         {
-            IEnumerable<ParameterSyntax> getLambdaParameterSyntaxes()
-            {
-                var currentNode = syntaxContext.CurrentToken.Parent;
-                var lambdas = currentNode?.Ancestors().Where(node => node is LambdaExpressionSyntax);
-
-                if (lambdas != null)
-                {
-                    foreach (var lambdaSyntax in lambdas)
-                    {
-                        if (lambdaSyntax is SimpleLambdaExpressionSyntax simpleLambda)
-                        {
-                            yield return simpleLambda.Parameter;
-                        }
-                        else if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
-                        {
-                            foreach (var parameter in parenthesizedLambda.ParameterList.Parameters)
-                            {
-                                yield return parameter;
-                            }
-                        }
-                    }
-                }
-            }
-
-            syntaxContext.CancellationToken.ThrowIfCancellationRequested();
-
-            var symbols = getLambdaParameterSyntaxes().Select(p => syntaxContext.SemanticModel.GetDeclaredSymbol(p));
+            var symbols = availableSymbols
+                .OfType<IParameterSymbol>()
+                .Where(ps => ps.ContainingSymbol is IMethodSymbol ms
+                    && ms.MethodKind == MethodKind.LambdaMethod);
 
             return FilterUnneededSymbols(symbols, syntaxContext);
         }
 
-        private IEnumerable<ISymbol> GetTypeMembers(SyntaxContext syntaxContext)
+        private IEnumerable<ISymbol> GetTypeMembers(IEnumerable<ISymbol> availableSymbols, SyntaxContext syntaxContext)
         {
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
-            var enclosingSymbol = syntaxContext.SemanticModel.GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken);
+            // Strange that SemanticModel.LookupSymbols returns instance members in static context. Bug?
+            var enclosingMethodSymbol = syntaxContext.SemanticModel
+                .GetEnclosingSymbol(syntaxContext.Position, syntaxContext.CancellationToken)
+                ?.AncestorsAndSelf().OfType<IMethodSymbol>()
+                .FirstOrDefault();
 
-            var methodSymbol = enclosingSymbol?.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
-            var typeSymbol = enclosingSymbol?.ContainingType;
-
-            if (typeSymbol == null || methodSymbol == null)
-            {
-                return Enumerable.Empty<ISymbol>();
-            }
-
-            var currentTypeMembers = typeSymbol.GetMembers()
-                .Where(member => member.CanBeReferencedByName);
-            var inheritedMembers = typeSymbol.GetBaseTypes()
-                .SelectMany(type => type.GetMembers())
-                .Where(member => member.CanBeReferencedByName
-                    && (member.DeclaredAccessibility == Accessibility.Public
-                    || member.DeclaredAccessibility == Accessibility.Protected));
-
-            var fieldsAndProperties = currentTypeMembers.Union(inheritedMembers)
-                .Where(member => member is IFieldSymbol || member is IPropertySymbol);
-
-            //Don't suggest instance members in static method
-            if (methodSymbol.IsStatic)
-            {
-                fieldsAndProperties = fieldsAndProperties.Where(member => member.IsStatic);
-            }
+            var fieldsAndProperties = availableSymbols
+                .Where(s => (s.Kind == SymbolKind.Field || s.Kind == SymbolKind.Property)
+                    && (enclosingMethodSymbol?.IsStatic != true || s.IsStatic));
 
             return FilterUnneededSymbols(fieldsAndProperties, syntaxContext);
         }
