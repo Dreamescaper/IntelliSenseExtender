@@ -40,7 +40,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             ITypeSymbol getMemberType(ISymbol s) => (s as IFieldSymbol)?.Type ?? ((IPropertySymbol)s).Type;
             var suitableTypeMembers = GetAssignableSymbols(syntaxContext, typeMembers, getMemberType, typeSymbol);
 
-            var methodParameters = GetMethodParameters(syntaxContext);
+            var methodParameters = GetMethodParameters(lookedUpSymbols, syntaxContext);
             var suitableMethodParameters = GetAssignableSymbols(syntaxContext, methodParameters, s => s.Type, typeSymbol);
 
             var localCompletions = suitableLocals
@@ -123,39 +123,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return FilterUnneededSymbols(fieldsAndProperties, syntaxContext);
         }
 
-        private IEnumerable<IParameterSymbol> GetMethodParameters(SyntaxContext syntaxContext)
+        private IEnumerable<IParameterSymbol> GetMethodParameters(IEnumerable<ISymbol> availableSymbols, SyntaxContext syntaxContext)
         {
             syntaxContext.CancellationToken.ThrowIfCancellationRequested();
 
-            var currentNode = syntaxContext.CurrentToken.Parent;
+            var symbols = availableSymbols
+                .OfType<IParameterSymbol>()
+                .Where(ps => ps.ContainingSymbol is IMethodSymbol ms
+                    && ms.MethodKind != MethodKind.LambdaMethod);
 
-            var methodOrPropertyNode = currentNode.AncestorsAndSelf()
-                .FirstOrDefault(node => node is MethodDeclarationSyntax || node is AccessorDeclarationSyntax);
-
-            if (methodOrPropertyNode is MethodDeclarationSyntax methodNode)
-            {
-                var methodSymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(methodNode);
-                return methodSymbol.Parameters;
-            }
-            //Special case - property / indexed property set method
-            else if (methodOrPropertyNode is AccessorDeclarationSyntax accessorNode
-                && accessorNode.Kind() == SyntaxKind.SetAccessorDeclaration)
-            {
-                var basePropertyNode = accessorNode.Ancestors().OfType<BasePropertyDeclarationSyntax>().FirstOrDefault();
-
-                if (basePropertyNode is PropertyDeclarationSyntax propertyNode)
-                {
-                    var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(propertyNode);
-                    return propertySymbol.SetMethod.Parameters;
-                }
-                else if (basePropertyNode is IndexerDeclarationSyntax indexerNode)
-                {
-                    var propertySymbol = syntaxContext.SemanticModel.GetDeclaredSymbol(indexerNode);
-                    return propertySymbol.SetMethod.Parameters;
-                }
-            }
-
-            return Enumerable.Empty<IParameterSymbol>();
+            return FilterUnneededSymbols(symbols, syntaxContext);
         }
 
         private IEnumerable<T> GetAssignableSymbols<T>(SyntaxContext syntaxContext, IEnumerable<T> symbols,
