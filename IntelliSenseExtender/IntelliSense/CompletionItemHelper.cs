@@ -146,7 +146,7 @@ namespace IntelliSenseExtender.IntelliSense
             GetSymbolMapping(context.Document)[fullSymbolName] = symbol;
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
-                nsName, aliasName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
+                nsName, aliasName, false, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
             props.Add(CompletionItemProperties.InsertText, insertText);
@@ -159,13 +159,14 @@ namespace IntelliSenseExtender.IntelliSense
 
             var sortText = GetSortText(symbol.GetAccessibleName(context), nsName, sortingPriority, unimported);
 
-            return CompletionItem.Create(
+            return CompletionItemInternal.Create(
                 displayText: displayText,
                 filterText: insertText,
                 sortText: sortText,
                 properties: props.ToImmutable(),
                 tags: tags,
-                rules: rules);
+                rules: rules,
+                inlineDescription: "(" + nsName + ")");
         }
 
         public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority,
