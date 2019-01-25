@@ -12,7 +12,7 @@
     <LangVersion>7.1</LangVersion>
     <SignAssembly>true</SignAssembly>
     <DebugSymbols>true</DebugSymbols>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

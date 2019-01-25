@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <NoWarn>VSTHRD200</NoWarn>
     <AssemblyTitle>IntelliSenseExtender.Tests</AssemblyTitle>
     <LangVersion>7.1</LangVersion>
