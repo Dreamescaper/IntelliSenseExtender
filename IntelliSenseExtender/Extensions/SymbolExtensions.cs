@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using IntelliSenseExtender.Context;
 using Microsoft.CodeAnalysis;
 
 namespace IntelliSenseExtender.Extensions
@@ -54,14 +55,14 @@ namespace IntelliSenseExtender.Extensions
         /// <summary>
         /// Get name including containing type name, if present
         /// </summary>
-        public static string GetAccessibleName(this ISymbol symbol)
+        public static string GetAccessibleName(this ISymbol symbol, SyntaxContext syntaxContext)
         {
             if (symbol is INamedTypeSymbol typeSymbol)
             {
                 var containingType = typeSymbol.ContainingType;
-                if (containingType != null)
+                if (containingType != null && !syntaxContext.StaticImports.Contains(containingType))
                 {
-                    return $"{containingType.GetAccessibleName()}.{symbol.Name}";
+                    return $"{containingType.GetAccessibleName(syntaxContext)}.{symbol.Name}";
                 }
             }
             return symbol.Name;

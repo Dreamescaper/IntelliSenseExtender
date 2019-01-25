@@ -26,7 +26,7 @@ namespace IntelliSenseExtender.IntelliSense
             string displayText;
             string insertText;
 
-            string symbolName = alias ?? symbol.GetAccessibleName();
+            string symbolName = alias ?? symbol.GetAccessibleName(context);
             if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {
                 displayText = symbolName.Substring(0, symbolName.Length - AttributeSuffix.Length);
@@ -136,6 +136,9 @@ namespace IntelliSenseExtender.IntelliSense
             if (symbol is ITypeSymbol typeSymbol && context.Aliases.TryGetValue(typeSymbol, out aliasName))
                 unimported = false;
 
+            if (symbol.ContainingSymbol is ITypeSymbol parentTypeSymbol && context.StaticImports.Contains(parentTypeSymbol))
+                unimported = false;
+
             // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
             // for all items. However, for huge items quantity
             // encoding has significant performance impact. We will put it in GetDescriptionAsync,
@@ -154,7 +157,7 @@ namespace IntelliSenseExtender.IntelliSense
             if (newPositionOffset != 0)
                 props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
-            var sortText = GetSortText(symbol.GetAccessibleName(), nsName, sortingPriority, unimported);
+            var sortText = GetSortText(symbol.GetAccessibleName(context), nsName, sortingPriority, unimported);
 
             return CompletionItem.Create(
                 displayText: displayText,

@@ -59,6 +59,62 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task SuggestInferredEnumType_Nested()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        NM.ContainingClass.SomeEnum? e = /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public enum SomeEnum
+                        {
+                            A, B, C
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("ContainingClass.SomeEnum  (NM)"));
+        }
+
+        [Test]
+        public async Task SuggestInferredEnumType_Nested_WithStaticImport()
+        {
+            const string mainSource = @"
+                using static NM.ContainingClass;
+
+                public class Test {
+                    public void Method() {
+                        var e = SomeEnum.A;
+                        e == /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    public class ContainingClass
+                    {
+                        public enum SomeEnum
+                        {
+                            A, B, C
+                        }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
+            var completionsNames = completions.Select(completion => completion.DisplayText);
+            Assert.That(completionsNames, Does.Contain("SomeEnum"));
+            Assert.That(completionsNames, Does.Not.Contain("ContainingClass.SomeEnum  (NM)"));
+        }
+
+        [Test]
         public async Task DoNotSuggestInArbitraryContext()
         {
             const string mainSource = @"
