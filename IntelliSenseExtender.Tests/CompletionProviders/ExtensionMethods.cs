@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
 using NUnit.Framework;
@@ -25,8 +24,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "list.");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Select<>  (System.Linq)"));
+            Assert.That(completions, Contains("Select<>", "System.Linq"));
         }
 
         [Test]
@@ -50,8 +48,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Do  (NM)"));
+            Assert.That(completions, Contains("Do", "NM"));
         }
 
         [Test]
@@ -74,8 +71,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "111.");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Do  (NM)"));
+            Assert.That(completions, Contains("Do", "NM"));
         }
 
         [Test]
@@ -172,12 +168,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = (await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj."))
-                .Select(c => c.DisplayText)
-                .ToList();
+            var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.");
 
-            Assert.That(completions, Does.Not.Contain("Do1  (NM)"));
-            Assert.That(completions, Does.Not.Contain("Do2  (NM)"));
+            Assert.That(completions, NotContains("Do1", "NM"));
+            Assert.That(completions, NotContains("Do2", "NM"));
         }
 
         [Test]
@@ -200,10 +194,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                     }
                 }";
 
-            var completions = (await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.Some"))
-                .Select(c => c.DisplayText);
+            var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.Some");
 
-            Assert.That(completions, Does.Contain("SomeExtension  (NM)"));
+            Assert.That(completions, Contains("SomeExtension", "NM"));
         }
     }
 }

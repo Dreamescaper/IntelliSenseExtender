@@ -27,8 +27,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -47,8 +46,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "StrMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("strVar"));
+            Assert.That(completions, Contains("strVar"));
         }
 
         [Test]
@@ -68,8 +66,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -89,8 +86,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -112,8 +108,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "SrMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("v"));
+            Assert.That(completions, Contains("v"));
         }
 
         [Test]
@@ -132,8 +127,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("d1") & Does.Contain("d2"));
+            Assert.That(completions, Contains("d1") & Contains("d2"));
         }
 
         [Test]
@@ -151,8 +145,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return (");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("v1") & Does.Not.Contain("v2"));
+            Assert.That(completions, Contains("v1") & NotContains("v2"));
         }
 
         [Test]
@@ -170,8 +163,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return (");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("v1") & Does.Contain("v2"));
+            Assert.That(completions, NotContains("v1") & Contains("v2"));
         }
 
         [Test]
@@ -190,9 +182,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return (");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("v1")
-                & Does.Not.Contain("v2") & Does.Contain("v3"));
+            Assert.That(completions, NotContains("v1")
+                & NotContains("v2") & Contains("v3"));
         }
 
         [Test]
@@ -208,8 +199,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -226,8 +216,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "TestMethod(i, ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i") & Does.Not.Contain("s"));
+            Assert.That(completions, Contains("i") & NotContains("s"));
         }
 
         [Test]
@@ -244,8 +233,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "TestMethod(s, ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("s") & Does.Not.Contain("i"));
+            Assert.That(completions, Contains("s") & NotContains("i"));
         }
 
         [Test]
@@ -261,8 +249,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "SomeProperty = ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -275,8 +262,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "a.Contains(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("b"));
+            Assert.That(completions, Contains("b"));
         }
 
         [Test]
@@ -294,8 +280,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -313,8 +298,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Prop"));
+            Assert.That(completions, Contains("Prop"));
         }
 
         [Test]
@@ -332,8 +316,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("_field"));
+            Assert.That(completions, Contains("_field"));
         }
 
         [Test]
@@ -357,8 +340,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("ProtectedIntProperty"));
+            Assert.That(completions, Contains("ProtectedIntProperty"));
         }
 
         [Test]
@@ -387,8 +369,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "AMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("bVar"));
+            Assert.That(completions, Contains("bVar"));
         }
 
         [Test]
@@ -412,8 +393,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "Method(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("value"));
+            Assert.That(completions, Contains("value"));
         }
 
         [Test]
@@ -436,8 +416,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "Method(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("value"));
+            Assert.That(completions, Contains("value"));
         }
 
         [Test]
@@ -460,8 +439,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "Method(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("key"));
+            Assert.That(completions, Contains("key"));
         }
 
         [Test]
@@ -479,8 +457,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }}";
 
             var completions = await GetCompletionsAsync(Provider, source, $"if (a {@operator} ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("b") & Does.Not.Contain("a"));
+            Assert.That(completions, Contains("b") & NotContains("a"));
         }
 
         [Test]
@@ -497,8 +474,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("s"));
+            Assert.That(completions, NotContains("s"));
         }
 
         [Test]
@@ -522,8 +498,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("PrivateIntProperty"));
+            Assert.That(completions, NotContains("PrivateIntProperty"));
         }
 
         [Test]
@@ -547,8 +522,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("outOfScope"));
+            Assert.That(completions, NotContains("outOfScope"));
         }
 
         [Test]
@@ -569,8 +543,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("undefinedSoFar"));
+            Assert.That(completions, NotContains("undefinedSoFar"));
         }
 
         [Test]
@@ -590,8 +563,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("i"));
+            Assert.That(completions, NotContains("i"));
         }
 
         [Test]
@@ -612,8 +584,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("i"));
+            Assert.That(completions, NotContains("i"));
         }
 
         [Test]
@@ -631,8 +602,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("_field"));
+            Assert.That(completions, NotContains("_field"));
         }
 
         [Test]
@@ -672,8 +642,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "IntMethod(");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Has.All.Not.Contain("BackingField").IgnoreCase);
+            var completionNames = completions.Select(c => c.DisplayText).ToArray();
+
+            Assert.That(completionNames, Has.All.Not.Contain("BackingField").IgnoreCase);
         }
 
         [Test]
@@ -692,9 +663,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, " = ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
+            var completionNames = completions.Select(c => c.DisplayText).ToArray();
 
-            Assert.That(completionsNames, Is.Empty);
+            Assert.That(completionNames, Is.Empty);
         }
 
         [Test]
@@ -710,8 +681,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "Prop = ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("Prop"));
+            Assert.That(completions, NotContains("Prop"));
         }
 
         [Test]
@@ -731,11 +701,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "MultiMethod(_intField, ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("_intField"));
-            Assert.That(completionsNames, Does.Not.Contain("_boolField"));
-            Assert.That(completionsNames, Does.Contain("_stringField"));
+            Assert.That(completions, NotContains("_intField"));
+            Assert.That(completions, NotContains("_boolField"));
+            Assert.That(completions, Contains("_stringField"));
         }
 
         [Test]
@@ -755,11 +724,10 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "MultiMethod(boolVar:  ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("_intField"));
-            Assert.That(completionsNames, Does.Not.Contain("_stringField"));
-            Assert.That(completionsNames, Does.Contain("_boolField"));
+            Assert.That(completions, NotContains("_intField"));
+            Assert.That(completions, NotContains("_stringField"));
+            Assert.That(completions, Contains("_boolField"));
         }
 
         [Test]
@@ -775,9 +743,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -795,9 +762,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Contain("i"));
+            Assert.That(completions, Contains("i"));
         }
 
         [Test]
@@ -814,9 +780,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Contain("this"));
+            Assert.That(completions, Contains("this"));
         }
 
         [Test]
@@ -833,9 +798,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("this"));
+            Assert.That(completions, NotContains("this"));
         }
 
         [Test]
@@ -852,9 +816,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "return ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("this"));
+            Assert.That(completions, NotContains("this"));
         }
 
         [Test]
