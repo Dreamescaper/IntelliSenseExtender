@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis.Completion;
 using NUnit.Framework;
@@ -31,8 +30,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("SomeEnum  (NM)"));
+            Assert.That(completions, Contains("SomeEnum", "NM"));
         }
 
         [Test]
@@ -54,8 +52,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("SomeEnum  (NM)"));
+            Assert.That(completions, Contains("SomeEnum", "NM"));
         }
 
         [Test]
@@ -80,8 +77,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("ContainingClass.SomeEnum  (NM)"));
+            Assert.That(completions, Contains("ContainingClass.SomeEnum", "NM"));
         }
 
         [Test]
@@ -109,9 +105,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("SomeEnum"));
-            Assert.That(completionsNames, Does.Not.Contain("ContainingClass.SomeEnum  (NM)"));
+            Assert.That(completions, Contains("SomeEnum"));
+            Assert.That(completions, NotContains("ContainingClass.SomeEnum", "NM"));
         }
 
         [Test]
@@ -133,8 +128,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Is.Empty);
+            Assert.That(completions, Is.Empty);
         }
     }
 }

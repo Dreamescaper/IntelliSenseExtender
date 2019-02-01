@@ -35,7 +35,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             var document = GetTestDocument(source);
             var listCompletion = (await GetCompletionsAsync(Provider, document, "var list = new "))
-                .First(c => c.DisplayText == "List<>  (System.Collections.Generic)");
+                .First(c => Matches(c, "List<>", "System.Collections.Generic"));
             listCompletion = CompletionList
                 .Create(new TextSpan(source.IndexOf("var list = new "), 0), ImmutableArray.Create(listCompletion))
                 .Items[0];
@@ -63,8 +63,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, source, "var list = new ");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("List<>  (System.Collections.Generic)"));
+
+            Assert.That(completions, Contains("List<>", "System.Collections.Generic"));
+            Assert.That(completions, Contains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -85,8 +86,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Contain("Class  (NM)"));
+            Assert.That(completions, Contains("Class", "NM"));
         }
 
         [Test]
@@ -162,10 +162,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
                 mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("NestedClass  (NM)"));
-            Assert.That(completionsNames, Does.Contain("ContainingClass.NestedClass  (NM)"));
+            Assert.That(completions, NotContains("NestedClass", "NM"));
+            Assert.That(completions, Contains("ContainingClass.NestedClass", "NM"));
         }
 
         [Test]
@@ -190,9 +189,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
                 mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Contain("ContainingClass.NestedClass"));
+            Assert.That(completions, Contains("ContainingClass.NestedClass"));
         }
 
         [Test]
@@ -215,10 +213,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = false),
                 mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("NestedClass  (NM)"));
-            Assert.That(completionsNames, Does.Not.Contain("ContainingClass.NestedClass  (NM)"));
+            Assert.That(completions, NotContains("NestedClass", "NM"));
+            Assert.That(completions, NotContains("ContainingClass.NestedClass", "NM"));
         }
 
         [Test]
@@ -243,9 +240,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
             var completions = await GetCompletionsAsync(Provider_WithOptions(o => o.SuggestNestedTypes = true),
                 mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
+            var completionNames = completions.Select(c => c.DisplayText).ToArray();
 
-            Assert.That(completionsNames, Has.None.Contains("NestedClass"));
+            Assert.That(completionNames, Has.None.Contains("NestedClass"));
         }
 
         [Test]
@@ -267,8 +264,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("Class  (NM)"));
+            Assert.That(completions, NotContains("Class", "NM"));
         }
 
         [Test]
@@ -286,8 +282,9 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Has.None.Contains("GlobalNsClass"));
+            var completionNames = completions.Select(c => c.DisplayText).ToArray();
+
+            Assert.That(completionNames, Has.None.Contains("GlobalNsClass"));
         }
 
         [Test]
@@ -308,8 +305,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+            Assert.That(completions, NotContains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -334,8 +330,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 #endregion";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+            Assert.That(completions, NotContains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -356,8 +351,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+            Assert.That(completions, NotContains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -378,8 +372,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+            Assert.That(completions, NotContains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -398,8 +391,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
-            Assert.That(completionsNames, Does.Not.Contain("List<>  (System.Collections.Generic)"));
+            Assert.That(completions, NotContains("List<>", "System.Collections.Generic"));
         }
 
         [Test]
@@ -424,9 +416,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
-            var completionsNames = completions.Select(completion => completion.DisplayText);
 
-            Assert.That(completionsNames, Does.Not.Contain("ContainingClass  (NM)"));
+            Assert.That(completions, NotContains("ContainingClass", "NM"));
         }
 
         private static string NormSpaces(string str)

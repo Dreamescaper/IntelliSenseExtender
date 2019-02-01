@@ -81,10 +81,10 @@ namespace IntelliSenseExtender.Extensions
             return (importedNamespaces, staticImports, aliases);
         }
 
-        public static (ITypeSymbol typeSymbol, TypeInferredFrom inferredFrom) GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken)
+        public static InferredTypeInfo GetTypeSymbol(this SemanticModel semanticModel, SyntaxToken currentToken)
         {
-            ITypeSymbol typeSymbol = null;
-            TypeInferredFrom inferredFrom = TypeInferredFrom.None;
+            var inferredInfo = new InferredTypeInfo();
+
 
             SyntaxNode currentSyntaxNode = currentToken.Parent;
 
@@ -101,34 +101,40 @@ namespace IntelliSenseExtender.Extensions
                 && !varDeclarationSyntax.Type.IsVar)
             {
                 var typeInfo = semanticModel.GetTypeInfo(varDeclarationSyntax.Type);
-                typeSymbol = typeInfo.Type;
-                inferredFrom = TypeInferredFrom.VariableDeclaration;
+                inferredInfo.Type = typeInfo.Type;
+                inferredInfo.From = TypeInferredFrom.VariableDeclaration;
             }
             else if (currentSyntaxNode is AssignmentExpressionSyntax assigmentExpressionSyntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(assigmentExpressionSyntax.Left);
-                typeSymbol = typeInfo.Type;
-                inferredFrom = TypeInferredFrom.Assignment;
+                inferredInfo.Type = typeInfo.Type;
+                inferredInfo.From = TypeInferredFrom.Assignment;
             }
             else if (currentSyntaxNode is ArgumentSyntax argumentSyntax)
             {
-                typeSymbol = semanticModel.GetArgumentTypeSymbol(argumentSyntax);
-                inferredFrom = TypeInferredFrom.MethodArgument;
+                var parameterSymbol = semanticModel.GetParameterSymbol(argumentSyntax);
+
+                inferredInfo.Type = parameterSymbol?.Type;
+                inferredInfo.From = TypeInferredFrom.MethodArgument;
+                inferredInfo.ParameterSymbol = parameterSymbol;
             }
             else if (currentSyntaxNode is ArgumentListSyntax argumentListSyntax)
             {
-                typeSymbol = semanticModel.GetArgumentTypeSymbol(argumentListSyntax, currentToken);
-                inferredFrom = TypeInferredFrom.MethodArgument;
+                var parameterSymbol = semanticModel.GetParameterSymbol(argumentListSyntax, currentToken);
+
+                inferredInfo.Type = parameterSymbol?.Type;
+                inferredInfo.From = TypeInferredFrom.MethodArgument;
+                inferredInfo.ParameterSymbol = parameterSymbol;
             }
             else if (currentSyntaxNode is ReturnStatementSyntax returnStatementSyntax)
             {
-                typeSymbol = semanticModel.GetReturnTypeSymbol(returnStatementSyntax);
-                inferredFrom = TypeInferredFrom.ReturnValue;
+                inferredInfo.Type = semanticModel.GetReturnTypeSymbol(returnStatementSyntax);
+                inferredInfo.From = TypeInferredFrom.ReturnValue;
             }
             else if (currentSyntaxNode is BinaryExpressionSyntax expressionSyntax)
             {
-                typeSymbol = semanticModel.GetTypeInfo(expressionSyntax.Left).Type;
-                inferredFrom = TypeInferredFrom.BinaryExpression;
+                inferredInfo.Type = semanticModel.GetTypeInfo(expressionSyntax.Left).Type;
+                inferredInfo.From = TypeInferredFrom.BinaryExpression;
             }
 
             // If we have ValueTuple return value - try to infer element type
@@ -138,8 +144,8 @@ namespace IntelliSenseExtender.Extensions
                 // In such cases it's the first element - otherwise it would be TupleExpression
 
                 var returnTypeSymbol = semanticModel.GetReturnTypeSymbol(parentReturnStatement);
-                typeSymbol = GetTupleTypeFromReturnValue(returnTypeSymbol, 0);
-                inferredFrom = TypeInferredFrom.ReturnValue;
+                inferredInfo.Type = GetTupleTypeFromReturnValue(returnTypeSymbol, 0);
+                inferredInfo.From = TypeInferredFrom.ReturnValue;
             }
             else if (currentSyntaxNode is TupleExpressionSyntax tupleSyntax
                 && currentSyntaxNode.Parent is ReturnStatementSyntax parentReturn)
@@ -147,16 +153,16 @@ namespace IntelliSenseExtender.Extensions
                 //In this case we have non-first element
                 var tupleElementIndex = GetCurrentTupleElementIndex(tupleSyntax, currentToken);
                 var returnTypeSymbol = semanticModel.GetReturnTypeSymbol(parentReturn);
-                typeSymbol = GetTupleTypeFromReturnValue(returnTypeSymbol, tupleElementIndex);
-                inferredFrom = TypeInferredFrom.ReturnValue;
+                inferredInfo.Type = GetTupleTypeFromReturnValue(returnTypeSymbol, tupleElementIndex);
+                inferredInfo.From = TypeInferredFrom.ReturnValue;
             }
 
-            if (typeSymbol == null)
+            if (inferredInfo.Type == null)
             {
-                inferredFrom = TypeInferredFrom.None;
+                inferredInfo.From = TypeInferredFrom.None;
             }
 
-            return (typeSymbol, inferredFrom);
+            return inferredInfo;
         }
 
         private static ITypeSymbol GetReturnTypeSymbol(this SemanticModel semanticModel, ReturnStatementSyntax returnStatementSyntax)
@@ -193,9 +199,9 @@ namespace IntelliSenseExtender.Extensions
             return typeSymbol;
         }
 
-        private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
+        private static IParameterSymbol GetParameterSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
         {
-            ITypeSymbol result = null;
+            IParameterSymbol result = null;
 
             if (argumentSyntax.Parent is ArgumentListSyntax argumentListSyntax)
             {
@@ -207,7 +213,7 @@ namespace IntelliSenseExtender.Extensions
                     var argumentName = argumentSyntax.NameColon?.Name.Identifier.Text;
                     if (argumentName != null)
                     {
-                        result = parameters.FirstOrDefault(p => p.Name == argumentName)?.Type;
+                        result = parameters.FirstOrDefault(p => p.Name == argumentName);
                     }
                     // Otherwise - define parameter type by position
                     else
@@ -215,7 +221,7 @@ namespace IntelliSenseExtender.Extensions
                         int paramIndex = argumentListSyntax.Arguments.IndexOf(argumentSyntax);
                         if (paramIndex != -1)
                         {
-                            result = parameters.ElementAtOrDefault(paramIndex)?.Type;
+                            result = parameters.ElementAtOrDefault(paramIndex);
                         }
                     }
                 }
@@ -224,14 +230,14 @@ namespace IntelliSenseExtender.Extensions
             return result;
         }
 
-        private static ITypeSymbol GetArgumentTypeSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
+        private static IParameterSymbol GetParameterSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
         {
             int parameterIndex = argumentListSyntax.ChildTokens()
                 .Where(token => token.IsKind(SyntaxKind.CommaToken))
                 .ToList().IndexOf(currentToken) + 1;
             var parameters = semanticModel.GetParameters(argumentListSyntax);
 
-            return parameters?.ElementAtOrDefault(parameterIndex)?.Type;
+            return parameters?.ElementAtOrDefault(parameterIndex);
         }
 
         private static ITypeSymbol GetTupleTypeFromReturnValue(ITypeSymbol returnTypeSymbol, int elementIndex)

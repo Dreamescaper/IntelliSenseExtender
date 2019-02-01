@@ -23,12 +23,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var isNewKeywordPresent = syntaxContext.CurrentToken.Parent is ObjectCreationExpressionSyntax;
 
-            if (!isNewKeywordPresent && syntaxContext.InferredType != null)
+            if (!isNewKeywordPresent && syntaxContext.InferredInfo.Type != null)
             {
-                var completions = GetSpecialCasesCompletions(syntaxContext.InferredType, syntaxContext);
+                var completions = GetSpecialCasesCompletions(syntaxContext.InferredInfo.Type, syntaxContext);
                 if (options.SuggestFactoryMethodsOnObjectCreation)
                 {
-                    completions = completions.Concat(GetStaticMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredType));
+                    completions = completions.Concat(GetStaticMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredInfo.Type));
                 }
 
                 return completions;
@@ -84,14 +84,17 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
             return options.SuggestTypesOnObjectCreation
-                && syntaxContext.InferredType != null
+                && syntaxContext.InferredInfo.Type != null
                 // do not suggest for object
-                && syntaxContext.InferredType.SpecialType != SpecialType.System_Object
+                && syntaxContext.InferredInfo.Type.SpecialType != SpecialType.System_Object
                 // do not support enums and nullable enums
-                && syntaxContext.InferredType.TypeKind != TypeKind.Enum
-                && !(syntaxContext.InferredType is INamedTypeSymbol namedType
+                && syntaxContext.InferredInfo.Type.TypeKind != TypeKind.Enum
+                && !(syntaxContext.InferredInfo.Type is INamedTypeSymbol namedType
                     && namedType.Name == nameof(Nullable)
-                    && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum);
+                    && namedType.TypeArguments.FirstOrDefault()?.TypeKind == TypeKind.Enum)
+                // do not suggest for ref/out parameters
+                && (syntaxContext.InferredInfo.ParameterSymbol == null
+                    || syntaxContext.InferredInfo.ParameterSymbol.RefKind == RefKind.None);
         }
 
         private IEnumerable<CompletionItem> GetStaticMethodsAndPropertiesCompletions(SyntaxContext syntaxContext, ITypeSymbol typeSymbol)
@@ -119,7 +122,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private CompletionItem GetApplicableTypeCompletion(ITypeSymbol suggestedType, SyntaxContext syntaxContext, bool newKeywordRequired, Options.Options options)
         {
-            var assignableSymbol = syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(suggestedType, syntaxContext.InferredType);
+            var assignableSymbol = syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(suggestedType, syntaxContext.InferredInfo.Type);
 
             if (assignableSymbol == null
                 || assignableSymbol.Name == nameof(Nullable))
@@ -128,7 +131,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
 
             var symbolName = assignableSymbol.Name;
-            var inferredTypeName = syntaxContext.InferredType.Name;
+            var inferredTypeName = syntaxContext.InferredInfo.Type.Name;
             bool unimported = !syntaxContext.IsNamespaceImported(assignableSymbol.ContainingNamespace);
 
             int priority;

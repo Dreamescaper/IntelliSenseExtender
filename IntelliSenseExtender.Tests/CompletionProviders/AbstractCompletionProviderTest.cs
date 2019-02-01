@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace IntelliSenseExtender.Tests.CompletionProviders
 {
@@ -137,5 +138,30 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 return _options;
             }
         }
+
+        #region Assertion Constraints
+
+        public static bool Matches(CompletionItem item, string itemText, string @namespace)
+        {
+            var expectedItemText = itemText;
+
+            if (@namespace != null)
+                expectedItemText += $"  ({@namespace})";
+
+            return item.DisplayText == expectedItemText;
+        }
+
+        public static Constraint Contains(string itemText, string @namespace = null)
+        {
+            return Has.Some.EqualTo(itemText).Using<CompletionItem, string>(
+                (item, _) => Matches(item, itemText, @namespace));
+        }
+
+        public static Constraint NotContains(string itemText, string @namespace = null)
+        {
+            return new NotConstraint(Contains(itemText, @namespace));
+        }
+
+        #endregion Assertion Constraints
     }
 }
