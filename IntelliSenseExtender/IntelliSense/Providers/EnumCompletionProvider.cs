@@ -12,7 +12,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
-            var typeSymbol = syntaxContext.InferredType;
+            var typeSymbol = syntaxContext.InferredInfo.Type;
 
             // Unwrap nullable enum
             if (typeSymbol is INamedTypeSymbol namedType

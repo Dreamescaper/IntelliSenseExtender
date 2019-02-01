@@ -29,7 +29,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var lookedUpSymbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position);
 
-            var typeSymbol = syntaxContext.InferredType;
+            var typeSymbol = syntaxContext.InferredInfo.Type;
             var locals = GetLocalVariables(lookedUpSymbols, syntaxContext);
             var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
 
@@ -80,11 +80,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
             return options.SuggestLocalVariablesFirst
-                && syntaxContext.InferredType != null
-                && (syntaxContext.TypeInferredFrom == TypeInferredFrom.MethodArgument
-                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.ReturnValue
-                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.Assignment
-                    || syntaxContext.TypeInferredFrom == TypeInferredFrom.BinaryExpression);
+                && syntaxContext.InferredInfo.Type != null
+                && (syntaxContext.InferredInfo.From == TypeInferredFrom.MethodArgument
+                    || syntaxContext.InferredInfo.From == TypeInferredFrom.ReturnValue
+                    || syntaxContext.InferredInfo.From == TypeInferredFrom.Assignment
+                    || syntaxContext.InferredInfo.From == TypeInferredFrom.BinaryExpression);
         }
 
         private IEnumerable<ILocalSymbol> GetLocalVariables(IEnumerable<ISymbol> availableSymbols, SyntaxContext syntaxContext)
@@ -186,7 +186,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 return Enumerable.Empty<CompletionItem>();
 
             var typeMatches = syntaxContext.SemanticModel.Compilation
-                .ClassifyConversion(typeSymbol, syntaxContext.InferredType).IsImplicit;
+                .ClassifyConversion(typeSymbol, syntaxContext.InferredInfo.Type).IsImplicit;
             if (!typeMatches)
                 return Enumerable.Empty<CompletionItem>();
 

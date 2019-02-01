@@ -32,17 +32,16 @@ namespace IntelliSenseExtender.Context
         public ITypeSymbol AccessedSymbolType { get; }
         public ISymbol AccessedSymbol { get; }
 
-        public ITypeSymbol InferredType { get; }
-        public TypeInferredFrom TypeInferredFrom { get; }
+        public InferredTypeInfo InferredInfo { get; }
 
         public SyntaxToken CurrentToken { get; }
         public CancellationToken CancellationToken { get; }
 
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
             ImmutableHashSet<INamespaceSymbol> importedNamespaces, ImmutableHashSet<ITypeSymbol> staticImports, ImmutableDictionary<INamespaceOrTypeSymbol, string> aliases,
-            bool isTypeContext = false, bool isAttributeContext = false,
-            bool isMemberAccessContext = false, ITypeSymbol accessedSymbolType = null, ISymbol accessedSymbol = null,
-            ITypeSymbol inferredType = null, TypeInferredFrom inferredFrom = TypeInferredFrom.None,
+            bool isTypeContext, bool isAttributeContext,
+            bool isMemberAccessContext, ITypeSymbol accessedSymbolType, ISymbol accessedSymbol,
+            InferredTypeInfo inferredTypeInfo,
             SyntaxToken currentToken = default, CancellationToken token = default)
         {
             Document = document;
@@ -59,8 +58,8 @@ namespace IntelliSenseExtender.Context
             IsMemberAccessContext = isMemberAccessContext;
             AccessedSymbolType = accessedSymbolType;
             AccessedSymbol = accessedSymbol;
-            InferredType = inferredType;
-            TypeInferredFrom = inferredFrom;
+
+            InferredInfo = inferredTypeInfo;
 
             CurrentToken = currentToken;
             CancellationToken = token;
@@ -100,13 +99,13 @@ namespace IntelliSenseExtender.Context
                 accessedSymbol = semanticModel.GetSymbolInfo(accessedSyntax).Symbol;
             }
 
-            var (inferredType, inferredFrom) = semanticModel.GetTypeSymbol(currentToken);
+            var inferredTypeInfo = semanticModel.GetTypeSymbol(currentToken);
 
             return new SyntaxContext(document, semanticModel, syntaxTree, position,
                 importedNamespaces, staticImports, aliases,
                 isTypeContext, isAttributeContext, isMemberAccessContext,
                 accessedTypeSymbol, accessedSymbol,
-                inferredType, inferredFrom,
+                inferredTypeInfo,
                 currentToken, cancellationToken);
         }
 

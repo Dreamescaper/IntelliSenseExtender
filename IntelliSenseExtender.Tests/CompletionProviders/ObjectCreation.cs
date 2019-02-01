@@ -96,12 +96,59 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
                      public Test()
                      {
-                         int res = DoSomething(
+                         bool res = DoSomething(
                      }
                 }";
 
-            var completions = await GetCompletionsAsync(Provider, source, "int res = DoSomething(");
+            var completions = await GetCompletionsAsync(Provider, source, "bool res = DoSomething(");
             Assert.That(completions, Contains("new List<int>()"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestOutMethodParameter()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+
+                public class Test 
+                {
+                    public bool DoSomething(out List<int> par)
+                    {
+                        par = new List<int>();
+                        return true;
+                    }
+
+                     public Test()
+                     {
+                         bool res = DoSomething(
+                     }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "bool res = DoSomething(");
+            Assert.That(completions, NotContains("new List<int>()"));
+        }
+
+        [Test]
+        public async Task DoNotSuggestRefMethodParameter()
+        {
+            const string source = @"
+                using System;
+
+                public class Test 
+                {
+                    public bool DoSomething(ref DateTime par)
+                    {
+                        return true;
+                    }
+
+                     public Test()
+                     {
+                         bool res = DoSomething(
+                     }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "bool res = DoSomething(");
+            Assert.That(completions, NotContains("new DateTime()"));
         }
 
         [Test]
