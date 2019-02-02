@@ -1,4 +1,4 @@
-next
+1.2
 + Fix wrong handling of usings inside namespace
 + Take static usings and aliases into account
 + Fix displaying description for added items
