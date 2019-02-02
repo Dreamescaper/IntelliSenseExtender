@@ -86,6 +86,9 @@ namespace IntelliSenseExtender.Extensions
 
         public static bool IsAttribute(this INamedTypeSymbol typeSymbol)
         {
+            if (typeSymbol.TypeKind != TypeKind.Class)
+                return false;
+
             var baseTypes = typeSymbol.GetBaseTypes();
             return baseTypes.Any(baseTypeSymbol => baseTypeSymbol.Name == nameof(Attribute)
                     && baseTypeSymbol.ContainingNamespace?.Name == nameof(System));
