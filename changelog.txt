@@ -1,3 +1,6 @@
+1.2.1
++ Disable suggestions for Razor cshtml files
+
 1.2
 + Fix wrong handling of usings inside namespace
 + Take static usings and aliases into account
