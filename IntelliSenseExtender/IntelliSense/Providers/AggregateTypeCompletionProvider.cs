@@ -56,6 +56,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 return;
             }
 
+            if (IsRazorView(context))
+            {
+                // Completions are not usable in cshtml-Razor Views. Insertion of Namespaces doesn't work there.
+                return;
+            }
+
             var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
@@ -146,6 +152,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var sourceText = await completionContext.Document.GetTextAsync().ConfigureAwait(false);
             var currentLine = sourceText.Lines.GetLineFromPosition(completionContext.Position);
             return currentLine.ToString().StartsWith(";");
+        }
+
+        private bool IsRazorView(CompletionContext context)
+        {
+            return context.Document.Name != null && context.Document.Name.EndsWith(".cshtml");
         }
     }
 }
