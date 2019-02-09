@@ -28,6 +28,22 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task ProvideReferencesCompletionsNullConditional_Linq()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+                public class Test {
+                    public void Method() {
+                        var list = new List<string>();
+                        list?.
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "list?.");
+            Assert.That(completions, Contains("Select<>", "System.Linq"));
+        }
+
+        [Test]
         public async Task ProvideUserCodeCompletions()
         {
             const string mainSource = @"
@@ -195,6 +211,31 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 }";
 
             var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.Some");
+
+            Assert.That(completions, Contains("SomeExtension", "NM"));
+        }
+
+        [Test]
+        public async Task SuggestMethodsIfInvokedWithPresentTextAndNullConditional()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        object obj = null;
+                        obj?.Some
+                    }
+                }";
+            const string extensionsFile = @"
+                namespace NM
+                {
+                    public static class ObjectExtensions1
+                    {
+                        public static void SomeExtension(this object obj)
+                        { }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj?.Some");
 
             Assert.That(completions, Contains("SomeExtension", "NM"));
         }
