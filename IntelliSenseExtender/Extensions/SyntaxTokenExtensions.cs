@@ -11,11 +11,18 @@ namespace IntelliSenseExtender.Extensions
             accessedExpressionSyntax = null;
 
             var parentNode = currentToken.Parent;
-            var memberAccessNode = parentNode as MemberAccessExpressionSyntax
-                ?? parentNode?.Parent as MemberAccessExpressionSyntax;
-            if (memberAccessNode != null)
+            if (parentNode is IdentifierNameSyntax)
+            {
+                parentNode = parentNode.Parent;
+            }
+
+            if (parentNode is MemberAccessExpressionSyntax memberAccessNode)
             {
                 accessedExpressionSyntax = memberAccessNode.Expression;
+            }
+            else if (parentNode?.Parent is ConditionalAccessExpressionSyntax conditionalAccessNode)
+            {
+                accessedExpressionSyntax = conditionalAccessNode.Expression;
             }
 
             return accessedExpressionSyntax != null;
