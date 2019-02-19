@@ -766,7 +766,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public async Task SuggestReturnValues()
+        public async Task SuggestReturnValues_Method()
         {
             const string source = @"
                 public class Test {
@@ -780,6 +780,28 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = await GetCompletionsAsync(Provider, source, "return ");
 
             Assert.That(completions, Contains("i"));
+        }
+
+        [Test]
+        public async Task SuggestReturnValues_Lambda()
+        {
+            const string source = @"
+                using System.Linq;
+
+                public class Test
+                {
+                    public int Method()
+                    {
+                        var ints = new[] { 1, 2, 3 };
+                        string s1 = ""str"";
+                        ints.Select<int, string>(i => { return  });
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "i => { return ");
+
+            Assert.That(completions, NotContains("i"));
+            Assert.That(completions, Contains("s1"));
         }
 
         [Test]

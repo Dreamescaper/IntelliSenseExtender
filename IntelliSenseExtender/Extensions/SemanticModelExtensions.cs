@@ -171,7 +171,9 @@ namespace IntelliSenseExtender.Extensions
 
             var parentMethodOrProperty = returnStatementSyntax
                 .Ancestors()
-                .FirstOrDefault(node => node is MethodDeclarationSyntax || node is PropertyDeclarationSyntax);
+                .FirstOrDefault(node => node is MethodDeclarationSyntax
+                    || node is PropertyDeclarationSyntax
+                    || node is AnonymousFunctionExpressionSyntax);
 
             if (parentMethodOrProperty is MethodDeclarationSyntax methodSyntax)
             {
@@ -194,6 +196,20 @@ namespace IntelliSenseExtender.Extensions
                 var typeSyntax = propertySyntax.Type;
                 if (typeSyntax != null)
                     typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
+            }
+            else if (parentMethodOrProperty is AnonymousFunctionExpressionSyntax lambdaSyntax)
+            {
+                var methodSymbol = semanticModel.GetSymbolInfo(lambdaSyntax).Symbol as IMethodSymbol;
+                typeSymbol = methodSymbol?.ReturnType;
+
+                if (typeSymbol != null
+                    && methodSymbol.IsAsync
+                    && typeSymbol.Name == "Task"
+                    && typeSymbol is INamedTypeSymbol namedTypeSymbol
+                    && namedTypeSymbol.IsGenericType)
+                {
+                    typeSymbol = namedTypeSymbol.TypeArguments.FirstOrDefault();
+                }
             }
 
             return typeSymbol;
