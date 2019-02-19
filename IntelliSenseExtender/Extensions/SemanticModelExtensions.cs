@@ -205,7 +205,7 @@ namespace IntelliSenseExtender.Extensions
 
             if (argumentSyntax.Parent is ArgumentListSyntax argumentListSyntax)
             {
-                var parameters = GetParameters(semanticModel, argumentListSyntax);
+                var parameters = semanticModel.GetParameters(argumentListSyntax);
 
                 if (parameters != null)
                 {
@@ -259,8 +259,8 @@ namespace IntelliSenseExtender.Extensions
         /// </summary>
         private static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
-            var invocationSyntax = argumentListSyntax.Parent;
-            var methodInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+            var expressionSyntax = argumentListSyntax.Parent;
+            var methodInfo = semanticModel.GetSymbolInfo(expressionSyntax);
 
             IMethodSymbol methodSymbol = null;
             if (methodInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
@@ -268,15 +268,51 @@ namespace IntelliSenseExtender.Extensions
                 && argumentListSyntax.Arguments.Any(a => !a.IsMissing)
                 && argumentListSyntax.Arguments.All(a => a.NameColon == null))
             {
-                // If failed to resolve overload - try to find suitable based on existing parameters
+                // Try to determine whether method should be static or instance.
+                // Leave null if unknown
+                bool? isStatic = null;
+                if (expressionSyntax is InvocationExpressionSyntax invocationExpression
+                    && invocationExpression.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    var objectSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol;
 
+                    switch (objectSymbol?.Kind)
+                    {
+                        case SymbolKind.NamedType:
+                            isStatic = true;
+                            break;
+
+                        case SymbolKind.Field:
+                        case SymbolKind.Local:
+                        case SymbolKind.Parameter:
+                        case SymbolKind.Property:
+                            isStatic = false;
+                            break;
+                    }
+                }
+
+                // If failed to resolve overload - try to find suitable based on existing parameters
                 var presentArguments = argumentListSyntax.Arguments.TakeWhile(a => !a.IsMissing).ToList();
 
                 methodSymbol = methodInfo.CandidateSymbols
                     .OfType<IMethodSymbol>()
                     .Where(s => s.Parameters.Length >= argumentListSyntax.Arguments.Count)
+                    .Where(s =>
+                    {
+                        // Filter by instance or static, if known
+                        switch (isStatic)
+                        {
+                            case true:
+                                return s.IsStatic;
+                            case false:
+                                return !s.IsStatic || s.IsExtensionMethod;
+                            default:
+                                return true;
+                        }
+                    })
                     .FirstOrDefault(s =>
                     {
+                        // Filter by already entered arguments
                         for (int i = 0; i < presentArguments.Count; i++)
                         {
                             if (!semanticModel.ClassifyConversion(presentArguments[i].Expression, s.Parameters[i].Type).IsImplicit)
@@ -289,6 +325,7 @@ namespace IntelliSenseExtender.Extensions
             {
                 methodSymbol = (methodInfo.Symbol ?? methodInfo.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
             }
+
             return methodSymbol?.Parameters;
         }
 

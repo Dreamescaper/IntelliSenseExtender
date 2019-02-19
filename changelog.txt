@@ -1,3 +1,7 @@
+next
++ Support '?.' operator
++ Local suggestions improvements
+
 1.2.1
 + Disable suggestions for Razor cshtml files
 
