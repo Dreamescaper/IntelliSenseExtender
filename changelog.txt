@@ -1,4 +1,4 @@
-next
+1.2.2
 + Support '?.' operator
 + Local suggestions improvements
 
