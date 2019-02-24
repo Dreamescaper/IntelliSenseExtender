@@ -708,6 +708,41 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task SuggestCorrectArgumentType_ResolveStaticOverloads()
+        {
+            const string source = @"
+                public class Test
+                {
+                    public void Method()
+                    {
+                        var testObj = new TestClass();
+                        string a = ""str"";
+                        string b = ""str"";
+                        int i = 0;
+                        bool j = true;
+
+                        testObj.Do(a, )
+                    }
+                }
+
+                public class TestClass
+                {
+                    public void Do() { }
+                    public static void Do(string s1, bool b) { }
+                    public void Do(string s1) { }
+                    public void Do(string s1, string s2) { }
+                    public static void Do(string s1, int i) { }
+                    public static void Do(string s1, string s2, int i) { }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "testObj.Do(a, ");
+
+            Assert.That(completions, NotContains("i"));
+            Assert.That(completions, NotContains("j"));
+            Assert.That(completions, Contains("b"));
+        }
+
+        [Test]
         public async Task SuggestCorrectNamedArgumentType()
         {
             const string source = @"
@@ -731,7 +766,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
-        public async Task SuggestReturnValues()
+        public async Task SuggestReturnValues_Method()
         {
             const string source = @"
                 public class Test {
@@ -745,6 +780,28 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
             var completions = await GetCompletionsAsync(Provider, source, "return ");
 
             Assert.That(completions, Contains("i"));
+        }
+
+        [Test]
+        public async Task SuggestReturnValues_Lambda()
+        {
+            const string source = @"
+                using System.Linq;
+
+                public class Test
+                {
+                    public int Method()
+                    {
+                        var ints = new[] { 1, 2, 3 };
+                        string s1 = ""str"";
+                        ints.Select<int, string>(i => { return  });
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "i => { return ");
+
+            Assert.That(completions, NotContains("i"));
+            Assert.That(completions, Contains("s1"));
         }
 
         [Test]

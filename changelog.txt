@@ -1,7 +1,15 @@
-next
+1.2.2
++ Support '?.' operator
++ Local suggestions improvements
+
+1.2.1
++ Disable suggestions for Razor cshtml files
+
+1.2
 + Fix wrong handling of usings inside namespace
 + Take static usings and aliases into account
 + Fix displaying description for added items
++ Fix suggesting ref/out parameters
 + Minor fixes
 
 1.1

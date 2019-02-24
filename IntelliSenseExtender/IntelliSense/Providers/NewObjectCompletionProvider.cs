@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
+using IntelliSenseExtender.IntelliSense.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -85,6 +86,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             return options.SuggestTypesOnObjectCreation
                 && syntaxContext.InferredInfo.Type != null
+                // do not suggest for comparisons
+                && syntaxContext.InferredInfo.From != TypeInferredFrom.BinaryExpression
                 // do not suggest for object
                 && syntaxContext.InferredInfo.Type.SpecialType != SpecialType.System_Object
                 // do not support enums and nullable enums
