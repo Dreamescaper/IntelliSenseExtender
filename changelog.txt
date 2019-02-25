@@ -1,3 +1,6 @@
+next
++ Do not suggest anything if unnamed argument goes after named one
+
 1.2.2
 + Support '?.' operator
 + Local suggestions improvements

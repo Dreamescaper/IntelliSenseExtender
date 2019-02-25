@@ -237,6 +237,38 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task DoNotSuggestMethodParameterIfUnnamedAndFollowedByNamed()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(int i) {
+                        IntMethod(par2: 123, 
+                    }
+
+                    public void IntMethod(int par1, int par2){ }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, "(par2: 123, ");
+            Assert.That(completions, Is.Empty);
+        }
+
+        [Test]
+        public async Task SuggestMethodParameterIfNamedAndFollowedByNamed()
+        {
+            const string source = @"
+                public class Test {
+                    public void Method(int i) {
+                        IntMethod(par2: ""123"", par1: 
+                    }
+
+                    public void IntMethod(int par1, string par2){ }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, ", par1: ");
+            Assert.That(completions, Contains("i"));
+        }
+
+        [Test]
         public async Task SuggestMethodParametersForPropertiesAssignment()
         {
             const string source = @"
