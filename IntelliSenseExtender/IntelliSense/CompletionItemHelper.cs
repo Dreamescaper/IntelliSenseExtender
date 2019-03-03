@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
+using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Tags;
@@ -100,6 +102,16 @@ namespace IntelliSenseExtender.IntelliSense
                 {
                     // Adding 'unimported' text to beginning
                     var unimportedTextParts = ImmutableArray<TaggedText>.Empty
+                        .Add(new TaggedText(TextTags.Text, "TotalTypesCount: " + PerfMetric.TotalTypesCount))
+                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
+                        .Add(new TaggedText(TextTags.Text, "Total: " + PerfMetric.Total))
+                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
+                        .Add(new TaggedText(TextTags.Text, "TotalItemsCount: " + PerfMetric.TotalItemsCount))
+                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
+                        .Add(new TaggedText(TextTags.Text, "CreateItemTotal: " + PerfMetric.CreateComplItem_Total))
+                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
+                        .Add(new TaggedText(TextTags.Text, "CreateItemProps: " + PerfMetric.CreateComplItem_Props))
+                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
                         .Add(new TaggedText(TextTags.Text, "(unimported)"))
                         .Add(new TaggedText(TextTags.Space, " "))
                         .AddRange(description.TaggedParts);
@@ -121,6 +133,8 @@ namespace IntelliSenseExtender.IntelliSense
             bool newCreationSyntax = false, bool showParenthesisForNewCreations = false,
             bool includeContainingClass = false)
         {
+            var createSw = Stopwatch.StartNew();
+
             var accessabilityTag = GetAccessabilityTag(symbol);
             var kindTag = GetSymbolKindTag(symbol);
             var tags = ImmutableArray.Create(kindTag, accessabilityTag);
@@ -147,25 +161,38 @@ namespace IntelliSenseExtender.IntelliSense
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
                 nsName, aliasName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
-            var props = ImmutableDictionary.CreateBuilder<string, string>();
-            props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
-            props.Add(CompletionItemProperties.InsertText, insertText);
+
+            var propsSw = Stopwatch.StartNew();
+
+            var propsBuilder = ImmutableDictionary.CreateBuilder<string, string>();
+            propsBuilder.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
+            propsBuilder.Add(CompletionItemProperties.InsertText, insertText);
 
             if (unimported)
-                props.Add(CompletionItemProperties.NamespaceToImport, nsName);
+                propsBuilder.Add(CompletionItemProperties.NamespaceToImport, nsName);
 
             if (newPositionOffset != 0)
-                props.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+                propsBuilder.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
+
+            var props = propsBuilder.ToImmutable();
+
+            PerfMetric.CreateComplItem_Props_Span += propsSw.Elapsed;
 
             var sortText = GetSortText(symbol.GetAccessibleName(context), nsName, sortingPriority, unimported);
 
-            return CompletionItem.Create(
-                displayText: displayText,
-                filterText: insertText,
-                sortText: sortText,
-                properties: props.ToImmutable(),
-                tags: tags,
-                rules: rules);
+            var item = CompletionItem.Create(
+                            displayText: displayText,
+                            filterText: insertText,
+                            sortText: sortText,
+                            properties: props,
+                            tags: tags,
+                            rules: rules);
+
+            var createTime = createSw.Elapsed;
+            PerfMetric.CreateComplItem_Span += createTime;
+            PerfMetric.TotalItemsCount++;
+
+            return item;
         }
 
         public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority,

@@ -57,6 +57,8 @@ namespace IntelliSenseExtender.Extensions
         /// </summary>
         public static string GetAccessibleName(this ISymbol symbol, SyntaxContext syntaxContext)
         {
+            
+
             if (symbol is INamedTypeSymbol typeSymbol)
             {
                 var containingType = typeSymbol.ContainingType;

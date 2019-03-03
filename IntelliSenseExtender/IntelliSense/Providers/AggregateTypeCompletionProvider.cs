@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,10 +26,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public AggregateTypeCompletionProvider()
             : this(VsSettingsOptionsProvider.Current,
                   new TypesCompletionProvider(),
-                  new ExtensionMethodsCompletionProvider(),
-                  new LocalsCompletionProvider(),
-                  new NewObjectCompletionProvider(),
-                  new EnumCompletionProvider())
+                  new ExtensionMethodsCompletionProvider())
         {
         }
 
@@ -65,6 +63,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
+            PerfMetric.Reset();
+            var totalsw = Stopwatch.StartNew();
+
             var applicableTypeProviders = typeCompletionProviders
                 .Where(p => p.IsApplicable(syntaxContext, Options))
                 .ToArray();
@@ -86,6 +87,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .SelectMany(enumerable => enumerable);
 
             context.AddItems(simpleCompletions);
+
+            PerfMetric.Total = totalsw.ElapsedMilliseconds;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
@@ -115,7 +118,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext syntaxContext, Options.Options options)
         {
             var symbolsToTraverse = new Queue<INamespaceOrTypeSymbol>();
-
+            
             var globalNamespace = syntaxContext.SemanticModel.Compilation.GlobalNamespace;
             symbolsToTraverse.Enqueue(globalNamespace);
 
@@ -130,6 +133,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         if (syntaxContext.IsAccessible(namedTypeSymbol)
                             && !(options.FilterOutObsoleteSymbols && namedTypeSymbol.IsObsolete()))
                         {
+                            PerfMetric.TotalTypesCount++;
                             yield return namedTypeSymbol;
 
                             if (options.SuggestNestedTypes)
