@@ -27,7 +27,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 SuggestTypesOnObjectCreation = true,
                 AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
-                SuggestLocalVariablesFirst = true
+                SuggestLocalVariablesFirst = true,
+                InvokeIntelliSenseAutomatically = true
             };
 
         public static OptionsProvider Options_Default => new OptionsProvider(GetDefaultOptions());
