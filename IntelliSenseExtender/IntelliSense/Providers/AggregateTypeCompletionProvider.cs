@@ -90,7 +90,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (Options == null)
+            if (Options == null || !Options.InvokeIntelliSenseAutomatically)
             {
                 // Package not loaded yet (e.g. no solution opened)
                 return false;
@@ -98,7 +98,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             bool shouldTrigger = triggerCompletions.Any(c => c.ShouldTriggerCompletion(text, caretPosition, trigger, Options));
 
-            return shouldTrigger || base.ShouldTriggerCompletion(text, caretPosition, trigger, options);
+            return shouldTrigger;
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)

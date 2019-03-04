@@ -1,5 +1,6 @@
 next
 + Do not suggest anything if unnamed argument goes after named one
++ Add option to disable automatic IntelliSense invoking
 
 1.2.2
 + Support '?.' operator

@@ -18,7 +18,8 @@
                     SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
                     AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,
                     SuggestFactoryMethodsOnObjectCreation = optionsPage.SuggestFactoryMethodsOnObjectCreation,
-                    SuggestLocalVariablesFirst = optionsPage.SuggestLocalVariablesFirst
+                    SuggestLocalVariablesFirst = optionsPage.SuggestLocalVariablesFirst,
+                    InvokeIntelliSenseAutomatically = optionsPage.InvokeIntelliSenseAutomatically
                 };
         }
     }
