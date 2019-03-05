@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
-using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
@@ -70,7 +69,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .ToArray();
             if (applicableTypeProviders.Length > 0)
             {
-                var typeCompletions = GetAllTypes(syntaxContext, Options)
+                var typeCompletions = SymbolNavigator.GetAllTypes(syntaxContext, Options)
                     .SelectMany(type => applicableTypeProviders
                         .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
                     .Where(enumerable => enumerable != null)
@@ -110,40 +109,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             return await CompletionItemHelper.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false)
                 ?? await base.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
-        }
-
-        private IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext syntaxContext, Options.Options options)
-        {
-            var symbolsToTraverse = new Queue<INamespaceOrTypeSymbol>();
-
-            var globalNamespace = syntaxContext.SemanticModel.Compilation.GlobalNamespace;
-            symbolsToTraverse.Enqueue(globalNamespace);
-
-            while (symbolsToTraverse.Count > 0)
-            {
-                var current = symbolsToTraverse.Dequeue();
-
-                foreach (var member in current.GetMembers())
-                {
-                    if (member is INamedTypeSymbol namedTypeSymbol)
-                    {
-                        if (syntaxContext.IsAccessible(namedTypeSymbol)
-                            && !(options.FilterOutObsoleteSymbols && namedTypeSymbol.IsObsolete()))
-                        {
-                            yield return namedTypeSymbol;
-
-                            if (options.SuggestNestedTypes)
-                            {
-                                symbolsToTraverse.Enqueue(namedTypeSymbol);
-                            }
-                        }
-                    }
-                    else if (member is INamespaceSymbol ns)
-                    {
-                        symbolsToTraverse.Enqueue(ns);
-                    }
-                }
-            }
         }
 
         private async Task<bool> IsWatchWindowAsync(CompletionContext completionContext)
