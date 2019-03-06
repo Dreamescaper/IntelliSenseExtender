@@ -90,6 +90,27 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task SuggestInternalTypesInSameProject()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        /*here*/
+                    }
+                }";
+            const string classFile = @"
+                namespace NM
+                {
+                    internal class Class
+                    {
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, classFile, "/*here*/");
+            Assert.That(completions, Contains("Class", "NM"));
+        }
+
+        [Test]
         public async Task DoNotProvideCompletionsIfTypeNotExpected()
         {
             const string mainSource = @"

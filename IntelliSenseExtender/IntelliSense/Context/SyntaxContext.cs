@@ -69,8 +69,18 @@ namespace IntelliSenseExtender.Context
 
         public bool IsAccessible(ISymbol typeSymbol)
         {
-            //TODO: add support for internal's
-            return typeSymbol.DeclaredAccessibility == Accessibility.Public;
+            switch (typeSymbol.DeclaredAccessibility)
+            {
+                case Accessibility.Public:
+                    return true;
+
+                case Accessibility.Internal:
+                    //TODO: add support for InternalsVisibleTo
+                    return typeSymbol.ContainingAssembly?.Name == Document.Project.AssemblyName;
+
+                default:
+                    return false;
+            }
         }
 
         public bool IsNamespaceImported(INamespaceSymbol nsSymbol)
