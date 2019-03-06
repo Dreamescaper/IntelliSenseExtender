@@ -1,7 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using IntelliSenseExtender.Context;
+using IntelliSenseExtender.IntelliSense.Providers;
 using IntelliSenseExtender.Options;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 
 namespace IntelliSenseExtender
@@ -42,8 +49,28 @@ namespace IntelliSenseExtender
             // Do any initialization that requires the UI thread after switching to the UI thread.
             // Otherwise, remove the switch to the UI thread if you don't need it.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             OptionsPage = (OptionsPage)GetDialogPage(typeof(OptionsPage));
+
+            var dte = await GetServiceAsync(typeof(EnvDTE._DTE)) as EnvDTE.DTE;
+
+            dte.Events.WindowEvents.WindowActivated += (gotFocus, _) =>
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                if (gotFocus.Document == null)
+                    return;
+
+                var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+                var workspace = (Workspace)componentModel.GetService<VisualStudioWorkspace>();
+
+                var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(gotFocus.Document.FullName).FirstOrDefault();
+                if (documentId == null)
+                    return;
+
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var syntaxContext = SyntaxContext.CreateAsync(document, 1, CancellationToken.None).Result;
+                TypesCompletionProvider.CreateTypeCompletions(syntaxContext, VsSettingsOptionsProvider.Current.GetOptions());
+            };
         }
     }
 }

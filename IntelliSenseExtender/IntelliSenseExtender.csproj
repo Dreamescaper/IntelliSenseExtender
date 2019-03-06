@@ -49,6 +49,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.10.0" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="2.10.0" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3039">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
