@@ -2,6 +2,7 @@ next
 + Do not suggest anything if unnamed argument goes after named one
 + Add option to disable automatic IntelliSense invoking
 + Basic support for internal types
++ Fix missing suggestions if solution just loaded
 
 1.2.2
 + Support '?.' operator

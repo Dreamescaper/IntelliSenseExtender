@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using IntelliSenseExtender.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace IntelliSenseExtender
 {
@@ -11,7 +12,7 @@ namespace IntelliSenseExtender
     /// </summary>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
-    [Guid("718335A4-0E73-4834-A43E-E64DECE87EAB")]
+    [Guid(PackageGuidString)]
     [ProvideOptionPage(typeof(OptionsPage),
         "IntelliSense Extender", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionsPage),
@@ -23,9 +24,31 @@ namespace IntelliSenseExtender
         /// <summary>
         /// IntelliSenseExtenderPackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "7c7bcaff-b1be-476c-95bf-ed52ac6a6bee";
+        public const string PackageGuidString = "718335A4-0E73-4834-A43E-E64DECE87EAB";
+        public static Guid PackageGuid = new Guid(PackageGuidString);
 
-        public static OptionsPage OptionsPage { get; private set; }
+        private static readonly object lockObject = new object();
+
+        private static OptionsPage optionsPage;
+        public static OptionsPage OptionsPage
+        {
+            get
+            {
+                if (optionsPage == null)
+                {
+                    lock (lockObject)
+                    {
+                        if (optionsPage == null)
+                        {
+                            EnsurePackageLoaded();
+                        }
+                    }
+                }
+                return optionsPage;
+            }
+
+            private set => optionsPage = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IntelliSenseExtenderPackage"/> class.
@@ -44,6 +67,18 @@ namespace IntelliSenseExtender
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             OptionsPage = (OptionsPage)GetDialogPage(typeof(OptionsPage));
+        }
+
+        private static void EnsurePackageLoaded()
+        {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
+            var shell = (IVsShell)GetGlobalService(typeof(SVsShell));
+
+            if (shell.IsPackageLoaded(ref PackageGuid, out IVsPackage _) != VSConstants.S_OK)
+            {
+                ErrorHandler.Succeeded(shell.LoadPackage(ref PackageGuid, out _));
+            }
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         }
     }
 }
