@@ -53,6 +53,12 @@ namespace IntelliSenseExtender.Options
             "Might lead to duplications in IntelliSense.")]
         public bool SuggestLocalVariablesFirst { get; set; }
 
+        [Category("Object Creation")]
+        [DefaultValue(true)]
+        [DisplayName("Invoke IntelliSense automatically when applicable")]
+        [Description("(e.g. during assignment or providing arguments)")]
+        public bool InvokeIntelliSenseAutomatically { get; set; }
+
         public OptionsPage()
         {
             SortCompletionsAfterImported = true;
@@ -62,6 +68,7 @@ namespace IntelliSenseExtender.Options
             AddParethesisForNewSuggestions = true;
             SuggestFactoryMethodsOnObjectCreation = true;
             SuggestLocalVariablesFirst = true;
+            InvokeIntelliSenseAutomatically = true;
         }
     }
 }

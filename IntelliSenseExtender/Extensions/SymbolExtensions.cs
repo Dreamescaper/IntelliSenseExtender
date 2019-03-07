@@ -46,6 +46,11 @@ namespace IntelliSenseExtender.Extensions
             {
                 return symbol.GetNamespace();
             }
+            if (symbol.ContainingType != null)
+            {
+                var typeFullName = symbol.ContainingType.GetFullyQualifiedName(@namespace);
+                return $"{typeFullName}.{symbol.Name}";
+            }
             else
             {
                 return symbol.ToDisplayString();

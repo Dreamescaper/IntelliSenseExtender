@@ -234,10 +234,18 @@ namespace IntelliSenseExtender.Extensions
                     // Otherwise - define parameter type by position
                     else
                     {
-                        int paramIndex = argumentListSyntax.Arguments.IndexOf(argumentSyntax);
-                        if (paramIndex != -1)
+                        var namedArgumentPresent = argumentListSyntax.Arguments
+                            .Take(argumentListSyntax.Arguments.Count - 1)
+                            .Any(arg => arg.NameColon != null);
+
+                        // Do not return anything if there were named arguments before
+                        if (!namedArgumentPresent)
                         {
-                            result = parameters.ElementAtOrDefault(paramIndex);
+                            int paramIndex = argumentListSyntax.Arguments.IndexOf(argumentSyntax);
+                            if (paramIndex != -1)
+                            {
+                                result = parameters.ElementAtOrDefault(paramIndex);
+                            }
                         }
                     }
                 }
@@ -248,6 +256,16 @@ namespace IntelliSenseExtender.Extensions
 
         private static IParameterSymbol GetParameterSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
         {
+            var namedArgumentPresent = argumentListSyntax.Arguments
+                .Take(argumentListSyntax.Arguments.Count - 1)
+                .Any(arg => arg.NameColon != null);
+
+            // Do not return anything if there were named arguments before
+            if (namedArgumentPresent)
+            {
+                return null;
+            }
+
             int parameterIndex = argumentListSyntax.ChildTokens()
                 .Where(token => token.IsKind(SyntaxKind.CommaToken))
                 .ToList().IndexOf(currentToken) + 1;

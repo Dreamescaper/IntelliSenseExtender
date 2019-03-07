@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -87,16 +86,24 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (TryGetItemSymbolMapping(item, document, out ISymbol symbol))
-            {
-                string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
-                item = item.AddProperty(CompletionItemProperties.Symbols, symbolKey);
+            if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullQualifiedName))
+                return null;
 
-                var descriptionTask = SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            var globalNamespace = semanticModel.Compilation.GlobalNamespace;
+            var symbol = SymbolNavigator.FindSymbolByFullName(globalNamespace, fullQualifiedName);
 
-                bool unimported = item.Properties.ContainsKey(CompletionItemProperties.NamespaceToImport);
+            if (symbol == null)
+                return null;
 
-                var description = await descriptionTask;
+            string symbolKey = SymbolCompletionItem.EncodeSymbol(symbol);
+            item = item.AddProperty(CompletionItemProperties.Symbols, symbolKey);
+
+            var descriptionTask = SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+            bool unimported = item.Properties.ContainsKey(CompletionItemProperties.NamespaceToImport);
+
+            var description = await descriptionTask;
 
                 if (unimported)
                 {
@@ -116,15 +123,10 @@ namespace IntelliSenseExtender.IntelliSense
                         .Add(new TaggedText(TextTags.Space, " "))
                         .AddRange(description.TaggedParts);
 
-                    description = description.WithTaggedParts(unimportedTextParts);
-                }
+                description = description.WithTaggedParts(unimportedTextParts);
+            }
 
-                return description;
-            }
-            else
-            {
-                return null;
-            }
+            return description;
         }
 
         public static CompletionItem CreateCompletionItem(ISymbol symbol, SyntaxContext context,
@@ -152,12 +154,6 @@ namespace IntelliSenseExtender.IntelliSense
 
             if (symbol.ContainingSymbol is ITypeSymbol parentTypeSymbol && context.StaticImports.Contains(parentTypeSymbol))
                 unimported = false;
-
-            // In original Roslyn SymbolCompletionProvider SymbolsProperty is set
-            // for all items. However, for huge items quantity
-            // encoding has significant performance impact. We will put it in GetDescriptionAsync,
-            // and here put symbol to cache.
-            GetSymbolMapping(context.Document)[fullSymbolName] = symbol;
 
             (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
                 nsName, aliasName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
@@ -308,29 +304,6 @@ namespace IntelliSenseExtender.IntelliSense
             }
 
             return string.Empty;
-        }
-
-        private static (Document document, ConcurrentDictionary<string, ISymbol> mapping) _symbolMappingCache;
-
-        private static ConcurrentDictionary<string, ISymbol> GetSymbolMapping(Document currentDocument)
-        {
-            if (_symbolMappingCache.document?.Id != currentDocument.Id)
-            {
-                _symbolMappingCache.document = currentDocument;
-                _symbolMappingCache.mapping = new ConcurrentDictionary<string, ISymbol>();
-            }
-            return _symbolMappingCache.mapping;
-        }
-
-        private static bool TryGetItemSymbolMapping(CompletionItem item, Document currentDocument, out ISymbol symbol)
-        {
-            symbol = null;
-            if (item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName,
-                out string fullSymbolName))
-            {
-                return GetSymbolMapping(currentDocument).TryGetValue(fullSymbolName, out symbol);
-            }
-            return false;
         }
     }
 }
