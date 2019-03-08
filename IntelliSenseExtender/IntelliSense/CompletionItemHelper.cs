@@ -94,6 +94,7 @@ namespace IntelliSenseExtender.IntelliSense
                 strBuilder.AppendLine("TotalItemsCount: " + PerfMetric.TotalItemsCount);
                 strBuilder.AppendLine();
                 strBuilder.AppendLine("Total: " + PerfMetric.Total);
+                strBuilder.AppendLine("TraverseTypes: " + PerfMetric.TraverseTypes.TotalMilliseconds);
                 strBuilder.AppendLine("SyntixContext: " + PerfMetric.CreateSyntaxContext);
                 strBuilder.AppendLine("CreateItemTotal: " + PerfMetric.CreateComplItem_Total);
                 strBuilder.AppendLine("CreateItemProps: " + PerfMetric.CreateComplItem_Props);

@@ -7,8 +7,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public static int TotalTypesCount;
         public static int TotalItemsCount;
 
-        public static long TraverseTypes_SymbolNames;
-        public static long TraverseTypes_ExtMethods;
+        public static TimeSpan TraverseTypes;
 
         public static long CreateComplItem_Total => (long)CreateComplItem_Span.TotalMilliseconds;
         public static TimeSpan CreateComplItem_Span;
@@ -28,8 +27,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public static void Reset()
         {
-            TraverseTypes_SymbolNames = 0;
-            TraverseTypes_ExtMethods = 0;
+            TraverseTypes = TimeSpan.Zero;
             CreateComplItem_Span = TimeSpan.Zero;
             CreateComplItem_Props_Span = TimeSpan.Zero;
             Types = TimeSpan.Zero;

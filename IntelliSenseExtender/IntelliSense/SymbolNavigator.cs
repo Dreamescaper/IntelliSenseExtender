@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
@@ -11,6 +12,8 @@ namespace IntelliSenseExtender.IntelliSense
     {
         public static IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext syntaxContext, Options.Options options)
         {
+            var sw = Stopwatch.StartNew();
+
             var symbolsToTraverse = new Queue<INamespaceOrTypeSymbol>();
 
             var globalNamespace = syntaxContext.SemanticModel.Compilation.GlobalNamespace;
@@ -28,7 +31,9 @@ namespace IntelliSenseExtender.IntelliSense
                             && !(options.FilterOutObsoleteSymbols && namedTypeSymbol.IsObsolete()))
                         {
                             PerfMetric.TotalTypesCount++;
+                            PerfMetric.TraverseTypes += sw.Elapsed;
                             yield return namedTypeSymbol;
+                            sw = Stopwatch.StartNew();
 
                             if (options.SuggestNestedTypes)
                             {
@@ -42,6 +47,8 @@ namespace IntelliSenseExtender.IntelliSense
                     }
                 }
             }
+
+            PerfMetric.TraverseTypes += sw.Elapsed;
         }
 
         public static ISymbol FindSymbolByFullName(ISymbol parent, string fullName)
