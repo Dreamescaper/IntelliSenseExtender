@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using IntelliSenseExtender.Context;
@@ -27,6 +28,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
+            var localsSw = Stopwatch.StartNew();
+
             var lookedUpSymbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position);
 
             var typeSymbol = syntaxContext.InferredInfo.Type;
@@ -52,6 +55,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var methodParametersCompletions = suitableMethodParameters
                 .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
             var thisCompletion = GetThisCompletionIfApplicable(syntaxContext);
+
+            PerfMetric.Locals = localsSw.ElapsedMilliseconds;
 
             return localCompletions
                 .Concat(lambdaParamsCompletions)

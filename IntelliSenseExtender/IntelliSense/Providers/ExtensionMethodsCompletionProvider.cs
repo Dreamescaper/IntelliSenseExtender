@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
@@ -11,6 +12,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
+            var extMethodsSw = Stopwatch.StartNew();
+
             if (syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
                 || !typeSymbol.MightContainExtensionMethods)
             {
@@ -22,7 +25,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .OfType<IMethodSymbol>()
                 .Where(symbol => !(options.FilterOutObsoleteSymbols && symbol.IsObsolete()))
                 .Select(m => m.ReduceExtensionMethod(syntaxContext.AccessedSymbolType))
-                .Where(m => m != null);
+                .Where(m => m != null)
+                .ToList();
+
+            PerfMetric.ExtMethods += extMethodsSw.Elapsed;
 
             return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s, syntaxContext, options));
         }

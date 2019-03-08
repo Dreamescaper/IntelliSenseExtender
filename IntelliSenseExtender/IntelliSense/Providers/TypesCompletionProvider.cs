@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
@@ -10,6 +11,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
+            var typesSw = Stopwatch.StartNew();
+
             // Only attributes are permitted in attribute context
             if (syntaxContext.IsAttributeContext && (typeSymbol.IsAbstract || !typeSymbol.IsAttribute()))
                 return null;
@@ -21,14 +24,17 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             if (!syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
                 && !syntaxContext.Aliases.ContainsKey(typeSymbol))
             {
+                PerfMetric.Types += typesSw.Elapsed;
                 return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
             }
             // If nested types suggestions are enabled, we should return imported suggestions as well
             else if (options.SuggestNestedTypes && typeSymbol.ContainingType != null)
             {
+                PerfMetric.Types += typesSw.Elapsed;
                 return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, unimported: false) };
             }
 
+            PerfMetric.Types += typesSw.Elapsed;
             return null;
         }
 

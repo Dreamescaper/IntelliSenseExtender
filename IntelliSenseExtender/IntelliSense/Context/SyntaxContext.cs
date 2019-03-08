@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
+using IntelliSenseExtender.IntelliSense.Providers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,33 +92,42 @@ namespace IntelliSenseExtender.Context
 
         public static async Task<SyntaxContext> CreateAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var sw = Stopwatch.StartNew();
 
-            var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
-            var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);
-
-            var currentToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var (importedNamespaces, staticImports, aliases) = semanticModel.GetUsings(currentToken);
-
-            ExpressionSyntax accessedSyntax = null;
-            bool isMemberAccessContext = !isTypeContext && currentToken.IsMemberAccessContext(out accessedSyntax);
-            ITypeSymbol accessedTypeSymbol = null;
-            ISymbol accessedSymbol = null;
-            if (isMemberAccessContext)
+            try
             {
-                accessedTypeSymbol = semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
-                accessedSymbol = semanticModel.GetSymbolInfo(accessedSyntax).Symbol;
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
+                var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);
+
+                var currentToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var (importedNamespaces, staticImports, aliases) = semanticModel.GetUsings(currentToken);
+
+                ExpressionSyntax accessedSyntax = null;
+                bool isMemberAccessContext = !isTypeContext && currentToken.IsMemberAccessContext(out accessedSyntax);
+                ITypeSymbol accessedTypeSymbol = null;
+                ISymbol accessedSymbol = null;
+                if (isMemberAccessContext)
+                {
+                    accessedTypeSymbol = semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
+                    accessedSymbol = semanticModel.GetSymbolInfo(accessedSyntax).Symbol;
+                }
+
+                var inferredTypeInfo = semanticModel.GetTypeSymbol(currentToken);
+
+                return new SyntaxContext(document, semanticModel, syntaxTree, position,
+                    importedNamespaces, staticImports, aliases,
+                    isTypeContext, isAttributeContext, isMemberAccessContext,
+                    accessedTypeSymbol, accessedSymbol,
+                    inferredTypeInfo,
+                    currentToken, cancellationToken);
             }
-
-            var inferredTypeInfo = semanticModel.GetTypeSymbol(currentToken);
-
-            return new SyntaxContext(document, semanticModel, syntaxTree, position,
-                importedNamespaces, staticImports, aliases,
-                isTypeContext, isAttributeContext, isMemberAccessContext,
-                accessedTypeSymbol, accessedSymbol,
-                inferredTypeInfo,
-                currentToken, cancellationToken);
+            finally
+            {
+                PerfMetric.CreateSyntaxContext = sw.ElapsedMilliseconds;
+            }
         }
 
         /// <summary>

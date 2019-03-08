@@ -25,7 +25,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         public AggregateTypeCompletionProvider()
             : this(VsSettingsOptionsProvider.Current,
                   new TypesCompletionProvider(),
-                  new ExtensionMethodsCompletionProvider())
+                  new ExtensionMethodsCompletionProvider(),
+                  new LocalsCompletionProvider(),
+                  new NewObjectCompletionProvider(),
+                  new EnumCompletionProvider())
         {
         }
 
@@ -42,6 +45,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
+            PerfMetric.Reset();
+            var totalsw = Stopwatch.StartNew();
+
             if (Options == null)
             {
                 // Package not loaded yet (e.g. no solution opened)
@@ -62,8 +68,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                 .ConfigureAwait(false);
 
-            PerfMetric.Reset();
-            var totalsw = Stopwatch.StartNew();
+            var typeProvidersSw = Stopwatch.StartNew();
 
             var applicableTypeProviders = typeCompletionProviders
                 .Where(p => p.IsApplicable(syntaxContext, Options))
@@ -79,6 +84,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 context.AddItems(typeCompletions);
             }
 
+            PerfMetric.TypeProviders = typeProvidersSw.ElapsedMilliseconds;
+
+            var simpleProvidersSw = Stopwatch.StartNew();
+
             var simpleCompletions = simpleCompletionProviders
                 .Where(p => p.IsApplicable(syntaxContext, Options))
                 .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
@@ -87,7 +96,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
             context.AddItems(simpleCompletions);
 
+            PerfMetric.SimpleProviders = simpleProvidersSw.ElapsedMilliseconds;
+
             PerfMetric.Total = totalsw.ElapsedMilliseconds;
+
+            context.AddItem(CompletionItem.Create("PerfMetrics", sortText: "!!!"));
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)

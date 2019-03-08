@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
@@ -86,6 +87,28 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
+            if (item.DisplayText == "PerfMetrics")
+            {
+                var strBuilder = new StringBuilder();
+                strBuilder.AppendLine("TotalTypesCount: " + PerfMetric.TotalTypesCount);
+                strBuilder.AppendLine("TotalItemsCount: " + PerfMetric.TotalItemsCount);
+                strBuilder.AppendLine();
+                strBuilder.AppendLine("Total: " + PerfMetric.Total);
+                strBuilder.AppendLine("SyntixContext: " + PerfMetric.CreateSyntaxContext);
+                strBuilder.AppendLine("CreateItemTotal: " + PerfMetric.CreateComplItem_Total);
+                strBuilder.AppendLine("CreateItemProps: " + PerfMetric.CreateComplItem_Props);
+                strBuilder.AppendLine();
+                strBuilder.AppendLine("TypeProviders: " + PerfMetric.TypeProviders);
+                strBuilder.AppendLine("SimpleProviders: " + PerfMetric.SimpleProviders);
+                strBuilder.AppendLine();
+                strBuilder.AppendLine("Types: " + PerfMetric.Types.TotalMilliseconds);
+                strBuilder.AppendLine("ExtMethods: " + PerfMetric.ExtMethods.TotalMilliseconds);
+                strBuilder.AppendLine("NewOjbects: " + PerfMetric.NewObjects.TotalMilliseconds);
+                strBuilder.AppendLine("Locals: " + PerfMetric.Locals);
+
+                return CompletionDescription.FromText(strBuilder.ToString());
+            }
+
             if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullQualifiedName))
                 return null;
 
@@ -105,23 +128,13 @@ namespace IntelliSenseExtender.IntelliSense
 
             var description = await descriptionTask;
 
-                if (unimported)
-                {
-                    // Adding 'unimported' text to beginning
-                    var unimportedTextParts = ImmutableArray<TaggedText>.Empty
-                        .Add(new TaggedText(TextTags.Text, "TotalTypesCount: " + PerfMetric.TotalTypesCount))
-                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
-                        .Add(new TaggedText(TextTags.Text, "Total: " + PerfMetric.Total))
-                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
-                        .Add(new TaggedText(TextTags.Text, "TotalItemsCount: " + PerfMetric.TotalItemsCount))
-                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
-                        .Add(new TaggedText(TextTags.Text, "CreateItemTotal: " + PerfMetric.CreateComplItem_Total))
-                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
-                        .Add(new TaggedText(TextTags.Text, "CreateItemProps: " + PerfMetric.CreateComplItem_Props))
-                        .Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))
-                        .Add(new TaggedText(TextTags.Text, "(unimported)"))
-                        .Add(new TaggedText(TextTags.Space, " "))
-                        .AddRange(description.TaggedParts);
+            if (unimported)
+            {
+                // Adding 'unimported' text to beginning
+                var unimportedTextParts = ImmutableArray<TaggedText>.Empty
+                    .Add(new TaggedText(TextTags.Text, "(unimported)"))
+                    .Add(new TaggedText(TextTags.Space, " "))
+                    .AddRange(description.TaggedParts);
 
                 description = description.WithTaggedParts(unimportedTextParts);
             }
