@@ -191,6 +191,32 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task DoNotProvidePrivateExtensionMethods()
+        {
+            const string mainSource = @"
+                public class Test {
+                    public void Method() {
+                        object obj = null;
+                        obj.
+                    }
+                }";
+
+            const string extensionsFile = @"
+                namespace NM
+                {
+                    public static class ObjectExtensions1
+                    {
+                        private static void PrivateExtMethod(this object obj)
+                        { }
+                    }
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, mainSource, extensionsFile, "obj.");
+
+            Assert.That(completions, NotContains("PrivateExtMethod", "NM"));
+        }
+
+        [Test]
         public async Task SuggestMethodsIfInvokedWithPresentText()
         {
             const string mainSource = @"

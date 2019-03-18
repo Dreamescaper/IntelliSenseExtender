@@ -20,7 +20,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var extMethodSymbols = typeSymbol
                 .GetMembers()
                 .OfType<IMethodSymbol>()
-                .Where(symbol => !(options.FilterOutObsoleteSymbols && symbol.IsObsolete()))
+                .Where(methodSymbol => syntaxContext.IsAccessible(methodSymbol)
+                    && !(options.FilterOutObsoleteSymbols && methodSymbol.IsObsolete()))
                 .Select(m => m.ReduceExtensionMethod(syntaxContext.AccessedSymbolType))
                 .Where(m => m != null);
 
