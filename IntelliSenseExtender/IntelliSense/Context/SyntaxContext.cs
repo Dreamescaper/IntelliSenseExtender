@@ -67,16 +67,16 @@ namespace IntelliSenseExtender.Context
             _importedNamespacesTree = new NamespacesTree(ImportedNamespaces);
         }
 
-        public bool IsAccessible(ISymbol typeSymbol)
+        public bool IsAccessible(ISymbol symbol)
         {
-            switch (typeSymbol.DeclaredAccessibility)
+            switch (symbol.DeclaredAccessibility)
             {
                 case Accessibility.Public:
                     return true;
 
                 case Accessibility.Internal:
                     //TODO: add support for InternalsVisibleTo
-                    return typeSymbol.ContainingAssembly?.Name == Document.Project.AssemblyName;
+                    return symbol.ContainingAssembly?.Name == Document.Project.AssemblyName;
 
                 default:
                     return false;
