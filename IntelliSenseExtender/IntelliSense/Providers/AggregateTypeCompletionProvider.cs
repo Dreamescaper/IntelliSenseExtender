@@ -21,6 +21,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private readonly List<ISimpleCompletionProvider> simpleCompletionProviders;
         private readonly List<ITriggerCompletions> triggerCompletions;
 
+        private bool _triggeredByUs = false;
+
         public AggregateTypeCompletionProvider()
             : this(VsSettingsOptionsProvider.Current,
                   new TypesCompletionProvider(),
@@ -44,47 +46,60 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (Options == null)
+            try
             {
-                // Package not loaded yet (e.g. no solution opened)
-                return;
-            }
-            if (await IsWatchWindowAsync(context).ConfigureAwait(false))
-            {
-                // Completions are not usable in watch window
-                return;
-            }
+                if (Options == null)
+                {
+                    // Package not loaded yet (e.g. no solution opened)
+                    return;
+                }
+                if (await IsWatchWindowAsync(context).ConfigureAwait(false))
+                {
+                    // Completions are not usable in watch window
+                    return;
+                }
 
-            if (IsRazorView(context))
-            {
-                // Completions are not usable in cshtml-Razor Views. Insertion of Namespaces doesn't work there.
-                return;
-            }
+                if (IsRazorView(context))
+                {
+                    // Completions are not usable in cshtml-Razor Views. Insertion of Namespaces doesn't work there.
+                    return;
+                }
 
-            var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
-                .ConfigureAwait(false);
+                var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
+                    .ConfigureAwait(false);
 
-            var applicableTypeProviders = typeCompletionProviders
-                .Where(p => p.IsApplicable(syntaxContext, Options))
-                .ToArray();
-            if (applicableTypeProviders.Length > 0)
-            {
-                var typeCompletions = SymbolNavigator.GetAllTypes(syntaxContext, Options)
-                    .SelectMany(type => applicableTypeProviders
-                        .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
+                var applicableTypeProviders = typeCompletionProviders
+                    .Where(p => p.IsApplicable(syntaxContext, Options))
+                    .ToArray();
+                if (applicableTypeProviders.Length > 0)
+                {
+                    var typeCompletions = SymbolNavigator.GetAllTypes(syntaxContext, Options)
+                        .SelectMany(type => applicableTypeProviders
+                            .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
+                        .Where(enumerable => enumerable != null)
+                        .SelectMany(enumerable => enumerable);
+
+                    context.AddItems(typeCompletions);
+                }
+
+                var simpleCompletions = simpleCompletionProviders
+                    .Where(p => p.IsApplicable(syntaxContext, Options))
+                    .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
                     .Where(enumerable => enumerable != null)
                     .SelectMany(enumerable => enumerable);
 
-                context.AddItems(typeCompletions);
+                context.AddItems(simpleCompletions);
+
+                // If Completion was triggered by this provider - use suggestion mode
+                if (_triggeredByUs && context.SuggestionModeItem == null)
+                {
+                    context.SuggestionModeItem = CompletionItem.Create("");
+                }
             }
-
-            var simpleCompletions = simpleCompletionProviders
-                .Where(p => p.IsApplicable(syntaxContext, Options))
-                .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
-                .Where(enumerable => enumerable != null)
-                .SelectMany(enumerable => enumerable);
-
-            context.AddItems(simpleCompletions);
+            finally
+            {
+                _triggeredByUs = false;
+            }
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
@@ -96,6 +111,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
 
             bool shouldTrigger = triggerCompletions.Any(c => c.ShouldTriggerCompletion(text, caretPosition, trigger, Options));
+
+            _triggeredByUs = shouldTrigger;
 
             return shouldTrigger;
         }
