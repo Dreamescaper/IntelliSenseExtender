@@ -20,7 +20,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class LocalsCompletionProvider : ISimpleCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
-        private static readonly Regex AttributeArgumentRegex = new Regex(@"\[\w+\((|[^\]]+, )$");
 
         private static readonly string[] SymbolsToTriggerCompletion
             = new[] { ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= ", ": " };
@@ -68,8 +67,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var textBeforeCaret = currentLine.ToString().Substring(0, caretPosition - currentLine.Start);
 
                 if (trigger.Kind == CompletionTriggerKind.Insertion
-                    && (BracketRegex.IsMatch(textBeforeCaret) || SymbolsToTriggerCompletion.Any(s => textBeforeCaret.EndsWith(s)))
-                    && !AttributeArgumentRegex.IsMatch(textBeforeCaret))
+                    && (BracketRegex.IsMatch(textBeforeCaret) || SymbolsToTriggerCompletion.Any(s => textBeforeCaret.EndsWith(s))))
                 {
                     return true;
                 }

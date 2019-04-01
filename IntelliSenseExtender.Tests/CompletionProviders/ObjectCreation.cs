@@ -666,57 +666,5 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 options: null);
             Assert.That(triggerCompletion);
         }
-
-        [Test]
-        public void DontTriggerInAttributeConstructor_FirstArgument()
-        {
-            // Due to strange default behavior with suggestion non-static members
-
-            const string source = @"
-                public class Test {
-                    [Some(]
-                    public static bool DoSmth(Test testInstance)
-                    {
-                    }
-                }
-
-                public SomeAttribute : System.Attribute
-                {
-                    public SomeAttribute(string v) { }
-                }";
-
-            bool triggerCompletion = Provider.ShouldTriggerCompletion(
-                text: SourceText.From(source),
-                caretPosition: source.IndexOf("[Some(") + 6,
-                trigger: CompletionTrigger.CreateInsertionTrigger('('),
-                options: null);
-            Assert.That(!triggerCompletion);
-        }
-
-        [Test]
-        public void DontTriggerInAttributeConstructor_SecondArgument()
-        {
-            // Due to strange default behavior with suggestion non-static members
-
-            const string source = @"
-                public class Test {
-                    [Some(""0"", ]
-                    public static bool DoSmth(Test testInstance)
-                    {
-                    }
-                }
-
-                public SomeAttribute : System.Attribute
-                {
-                    public SomeAttribute(string v1, string v2) { }
-                }";
-
-            bool triggerCompletion = Provider.ShouldTriggerCompletion(
-                text: SourceText.From(source),
-                caretPosition: source.IndexOf(", ") + 2,
-                trigger: CompletionTrigger.CreateInsertionTrigger(' '),
-                options: null);
-            Assert.That(!triggerCompletion);
-        }
     }
 }

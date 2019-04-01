@@ -18,7 +18,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITypeCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
-        private static readonly Regex AttributeArgumentRegex = new Regex(@"\[\w+\((|[^\]]+, )$");
 
         public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
@@ -73,8 +72,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         || textBeforeCaret.EndsWith(": ")
                         || textBeforeCaret.EndsWith(" = new ")
                         || textBeforeCaret.EndsWith("return ")
-                        || BracketRegex.IsMatch(textBeforeCaret))
-                    && !AttributeArgumentRegex.IsMatch(textBeforeCaret))
+                        || BracketRegex.IsMatch(textBeforeCaret)))
                 {
                     return true;
                 }
