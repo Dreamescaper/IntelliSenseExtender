@@ -1,3 +1,6 @@
+1.5
++ Use inline description for 16.1+
+
 1.4
 + Fix automatically committed items
 + Add options to disable unimported suggestions

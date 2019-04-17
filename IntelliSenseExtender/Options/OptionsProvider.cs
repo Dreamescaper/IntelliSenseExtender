@@ -8,6 +8,8 @@
         {
             var optionsPage = IntelliSenseExtenderPackage.OptionsPage;
 
+            Options.VsVersion = IntelliSenseExtenderPackage.VsVersion;
+
             return optionsPage == null
                 ? null
                 : new Options

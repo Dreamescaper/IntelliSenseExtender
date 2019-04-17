@@ -16,6 +16,10 @@ namespace IntelliSenseExtender.IntelliSense
     {
         private static readonly SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
 
+        // Inline description is only supported in 16.1+
+        private static readonly bool UseInlineDescription = Options.Options.VsVersion != null
+            && Options.Options.VsVersion >= new Version(16, 1);
+
         public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
             string @namespace, string alias, bool unimported, bool includeContainingType, bool newCreation,
             bool showParenthesisForNewCreations)
@@ -74,7 +78,7 @@ namespace IntelliSenseExtender.IntelliSense
                 insertText = displayText;
             }
 
-            if (unimported)
+            if (unimported && !UseInlineDescription)
             {
                 displayText += $"  ({@namespace})";
             }
@@ -155,9 +159,12 @@ namespace IntelliSenseExtender.IntelliSense
 
             var sortText = GetSortText(symbol.GetAccessibleName(context), nsName, sortingPriority, unimported);
 
+            var inlineDescription = unimported && UseInlineDescription ? nsName : null;
+
             return CompletionItem.Create(
                 displayText: displayText,
                 filterText: insertText,
+                inlineDescription: inlineDescription,
                 sortText: sortText,
                 properties: props.ToImmutable(),
                 tags: tags,
@@ -206,7 +213,7 @@ namespace IntelliSenseExtender.IntelliSense
                     prefix = string.Empty;
                     break;
                 case Sorting.Last:
-                    prefix = "~_";
+                    prefix = "~";
                     break;
                 default:
                     prefix = "!" + sortingPriority + "_";
@@ -215,7 +222,7 @@ namespace IntelliSenseExtender.IntelliSense
 
             // Add namespace to the end so items with same name would be displayed
             // (only for unimported values)
-            var suffix = unimported ? " " + namespaceName : string.Empty;
+            var suffix = unimported ? "!" + namespaceName : string.Empty;
             return prefix + symbolName + suffix;
         }
 
