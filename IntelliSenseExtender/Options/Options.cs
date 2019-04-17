@@ -6,7 +6,6 @@ namespace IntelliSenseExtender.Options
     {
         public bool SuggestUnimportedTypes { get; set; }
         public bool SuggestUnimportedExtensionMethods { get; set; }
-        public bool SortCompletionsAfterImported { get; set; }
         public bool FilterOutObsoleteSymbols { get; set; }
         public bool SuggestTypesOnObjectCreation { get; set; }
         public bool AddParethesisForNewSuggestions { get; set; }

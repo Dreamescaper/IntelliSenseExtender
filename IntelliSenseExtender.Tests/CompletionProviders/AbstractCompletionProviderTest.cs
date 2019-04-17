@@ -25,7 +25,6 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 SuggestUnimportedTypes = true,
                 SuggestUnimportedExtensionMethods = true,
                 FilterOutObsoleteSymbols = true,
-                SortCompletionsAfterImported = true,
                 SuggestTypesOnObjectCreation = true,
                 AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,

@@ -41,8 +41,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)
         {
-            int sorting = options.SortCompletionsAfterImported ? Sorting.Last : Sorting.Default;
-            return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sorting);
+            return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, Sorting.Default);
         }
     }
 }

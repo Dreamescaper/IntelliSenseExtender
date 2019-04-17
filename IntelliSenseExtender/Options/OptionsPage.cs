@@ -22,13 +22,6 @@ namespace IntelliSenseExtender.Options
 
         [Category("Unimported Symbols")]
         [DefaultValue(true)]
-        [DisplayName("Sort Added Suggestions Last")]
-        [Description("If enabled, unimported completions are listed after imported ones. " +
-            "Otherwise all items are sorted alphabetically.")]
-        public bool SortCompletionsAfterImported { get; set; }
-
-        [Category("Unimported Symbols")]
-        [DefaultValue(true)]
         [DisplayName("Filter Out Obsolete symbols")]
         [Description("Do not show methods or types marked with Obsolete attribute.")]
         public bool FilterOutObsoleteSymbols { get; set; }
@@ -75,7 +68,6 @@ namespace IntelliSenseExtender.Options
         {
             SuggestUnimportedTypes = true;
             SuggestUnimportedExtensionMethods = true;
-            SortCompletionsAfterImported = true;
             FilterOutObsoleteSymbols = true;
             SuggestNestedTypes = false;
             SuggestTypesOnObjectCreation = true;

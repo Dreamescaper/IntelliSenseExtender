@@ -16,7 +16,6 @@
                 {
                     SuggestUnimportedTypes = optionsPage.SuggestUnimportedTypes,
                     SuggestUnimportedExtensionMethods = optionsPage.SuggestUnimportedExtensionMethods,
-                    SortCompletionsAfterImported = optionsPage.SortCompletionsAfterImported,
                     FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
                     SuggestNestedTypes = optionsPage.SuggestNestedTypes,
                     SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,

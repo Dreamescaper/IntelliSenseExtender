@@ -1,5 +1,6 @@
 1.5
 + Use inline description for 16.1+
++ Remove option for alphabetical order
 
 1.4
 + Fix automatically committed items
