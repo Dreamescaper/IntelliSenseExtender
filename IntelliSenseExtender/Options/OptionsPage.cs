@@ -73,6 +73,8 @@ namespace IntelliSenseExtender.Options
 
         public OptionsPage()
         {
+            SuggestUnimportedTypes = true;
+            SuggestUnimportedExtensionMethods = true;
             SortCompletionsAfterImported = true;
             FilterOutObsoleteSymbols = true;
             SuggestNestedTypes = false;
