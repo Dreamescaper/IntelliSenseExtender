@@ -18,15 +18,20 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             if (typeSymbol.ContainingType != null && syntaxContext.StaticImports.Contains(typeSymbol.ContainingType))
                 return null;
 
-            if (!syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
-                && !syntaxContext.Aliases.ContainsKey(typeSymbol))
+            // Skip if alias present from current type
+            if (syntaxContext.Aliases.ContainsKey(typeSymbol))
+                return null;
+
+            var isImported = syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace);
+
+            // Add nested type independently whether imported or not
+            if (options.SuggestNestedTypes && typeSymbol.ContainingType != null)
+            {
+                return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, unimported: !isImported) };
+            }
+            else if (options.SuggestUnimportedTypes && !isImported)
             {
                 return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
-            }
-            // If nested types suggestions are enabled, we should return imported suggestions as well
-            else if (options.SuggestNestedTypes && typeSymbol.ContainingType != null)
-            {
-                return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, unimported: false) };
             }
 
             return null;
@@ -34,7 +39,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
-            return syntaxContext.IsTypeContext;
+            return (options.SuggestUnimportedTypes || options.SuggestNestedTypes)
+                && syntaxContext.IsTypeContext;
         }
 
         private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)

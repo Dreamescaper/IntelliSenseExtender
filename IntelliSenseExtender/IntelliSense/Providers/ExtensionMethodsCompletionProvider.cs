@@ -11,6 +11,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
+            if (!options.SuggestUnimportedExtensionMethods)
+                return null;
+
             if (syntaxContext.IsNamespaceImported(typeSymbol.ContainingNamespace)
                 || !typeSymbol.MightContainExtensionMethods)
             {
@@ -30,7 +33,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
         {
-            return syntaxContext.IsMemberAccessContext
+            return options.SuggestUnimportedExtensionMethods
+                && syntaxContext.IsMemberAccessContext
                 && syntaxContext.AccessedSymbolType != null
                 && syntaxContext.AccessedSymbol?.Kind != SymbolKind.NamedType;
         }

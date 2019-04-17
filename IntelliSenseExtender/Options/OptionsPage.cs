@@ -10,6 +10,18 @@ namespace IntelliSenseExtender.Options
     {
         [Category("Unimported Symbols")]
         [DefaultValue(true)]
+        [DisplayName("Suggest Unimported Types")]
+        [Description("Show IntelliSense suggestions for unimported types. (Not needed for 16.1+)")]
+        public bool SuggestUnimportedTypes { get; set; }
+
+        [Category("Unimported Symbols")]
+        [DefaultValue(true)]
+        [DisplayName("Suggest Unimported Extension Methods")]
+        [Description("Show IntelliSense suggestions for unimported extension methods.")]
+        public bool SuggestUnimportedExtensionMethods { get; set; }
+
+        [Category("Unimported Symbols")]
+        [DefaultValue(true)]
         [DisplayName("Sort Added Suggestions Last")]
         [Description("If enabled, unimported completions are listed after imported ones. " +
             "Otherwise all items are sorted alphabetically.")]

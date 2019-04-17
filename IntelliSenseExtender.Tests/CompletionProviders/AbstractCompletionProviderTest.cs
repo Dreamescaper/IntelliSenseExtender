@@ -22,6 +22,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         private static Options.Options GetDefaultOptions() =>
             new Options.Options
             {
+                SuggestUnimportedTypes = true,
+                SuggestUnimportedExtensionMethods = true,
                 FilterOutObsoleteSymbols = true,
                 SortCompletionsAfterImported = true,
                 SuggestTypesOnObjectCreation = true,
