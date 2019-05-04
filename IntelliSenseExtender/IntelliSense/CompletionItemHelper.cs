@@ -186,18 +186,23 @@ namespace IntelliSenseExtender.IntelliSense
             if (newPositionOffset != 0)
                 properties = properties.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
+            string inlineDescription = null;
             if (namespaceToImport != null)
             {
                 properties = properties
                     .Add(CompletionItemProperties.NamespaceToImport, namespaceToImport)
                     .Add(CompletionItemProperties.InsertText, itemText);
 
-                itemText += $"  ({namespaceToImport})";
+                if (UseInlineDescription)
+                    inlineDescription = namespaceToImport;
+                else
+                    itemText += $"  ({namespaceToImport})";
             }
 
             return CompletionItem.Create(
                         displayText: itemText,
                         sortText: sortText,
+                        inlineDescription: inlineDescription,
                         tags: tags,
                         properties: properties,
                         rules: rules
