@@ -1,5 +1,5 @@
 1.4.1
-+ Split into separate version for VS2017 and VS2019
++ Split into separate versions for VS2017 and VS2019
 
 1.4
 + Fix automatically committed items
