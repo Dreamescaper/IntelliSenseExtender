@@ -1,6 +1,9 @@
 1.5
 + Use inline description for 16.1+
-+ Remove option for alphabetical order
++ Remove option for alphabetical order, as not suitable with VS2019
+
+1.4.1
++ Split into separate versions for VS2017 and VS2019
 
 1.4
 + Fix automatically committed items

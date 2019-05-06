@@ -25,7 +25,7 @@ namespace IntelliSenseExtender
         /// <summary>
         /// IntelliSenseExtenderPackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "718335A4-0E73-4834-A43E-E64DECE87EAB";
+        public const string PackageGuidString = "497C930A-E6CD-4B49-BE5A-35F8DC7E79CA";
         public static Guid PackageGuid = new Guid(PackageGuidString);
 
         private static readonly object lockObject = new object();
