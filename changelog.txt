@@ -4,7 +4,7 @@
 
 1.4
 + Fix automatically committed items
-+ Add options to disable unimported suggestions
++ Add options to disable unimported suggestions (not needed for VS16.1P3+)
 
 1.3.1
 + Do not suggest non-accessible extension methods

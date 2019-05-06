@@ -227,7 +227,7 @@ namespace IntelliSenseExtender.IntelliSense
 
             // Add namespace to the end so items with same name would be displayed
             // (only for unimported values)
-            var suffix = unimported ? "!" + namespaceName : string.Empty;
+            var suffix = unimported ? " " + namespaceName : string.Empty;
             return prefix + symbolName + suffix;
         }
 
