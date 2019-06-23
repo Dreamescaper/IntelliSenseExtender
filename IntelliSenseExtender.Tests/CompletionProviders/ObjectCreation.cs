@@ -105,6 +105,36 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         }
 
         [Test]
+        public async Task SuggestInterfaceImplementation_ReadOnlyPropertyInitialization()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+
+                public class Test 
+                {
+                     public IList<int> ReadOnlyProp { get; } = 
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " = ");
+            Assert.That(completions, Contains("new List<int>()"));
+        }
+
+        [Test]
+        public async Task SuggestInterfaceImplementation_PropertyExpressionBody()
+        {
+            const string source = @"
+                using System.Collections.Generic;
+
+                public class Test 
+                {
+                     public IList<int> ReadOnlyProp => 
+                }";
+
+            var completions = await GetCompletionsAsync(Provider, source, " => ");
+            Assert.That(completions, Contains("new List<int>()"));
+        }
+
+        [Test]
         public async Task DoNotSuggestOutMethodParameter()
         {
             const string source = @"

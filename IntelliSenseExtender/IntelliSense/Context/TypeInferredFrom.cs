@@ -7,6 +7,8 @@
         Assignment,
         MethodArgument,
         ReturnValue,
+        PropertyInilialyzer,
+        ExpressionBody,
         BinaryExpression
     }
 }
