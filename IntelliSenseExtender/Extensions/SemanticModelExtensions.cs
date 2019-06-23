@@ -136,6 +136,19 @@ namespace IntelliSenseExtender.Extensions
                 inferredInfo.Type = semanticModel.GetTypeInfo(expressionSyntax.Left).Type;
                 inferredInfo.From = TypeInferredFrom.BinaryExpression;
             }
+            else if (currentSyntaxNode?.Parent is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            {
+                if (currentSyntaxNode == propertyDeclarationSyntax.Initializer)
+                {
+                    inferredInfo.Type = semanticModel.GetTypeInfo(propertyDeclarationSyntax.Type).Type;
+                    inferredInfo.From = TypeInferredFrom.PropertyInilialyzer;
+                }
+                else if (currentSyntaxNode == propertyDeclarationSyntax.ExpressionBody)
+                {
+                    inferredInfo.Type = semanticModel.GetTypeInfo(propertyDeclarationSyntax.Type).Type;
+                    inferredInfo.From = TypeInferredFrom.ExpressionBody;
+                }
+            }
 
             // If we have ValueTuple return value - try to infer element type
             else if (currentSyntaxNode is ParenthesizedExpressionSyntax
