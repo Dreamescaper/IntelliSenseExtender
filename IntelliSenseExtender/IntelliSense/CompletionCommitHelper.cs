@@ -15,10 +15,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(CompletionItemProperties.InsertText, out string insertText))
-            {
-                insertText = item.DisplayText;
-            }
+            var insertText = item.DisplayText;
 
             int? newPosition = null;
             if (item.Properties.TryGetValue(CompletionItemProperties.NewPositionOffset, out string positionOffsetString)

@@ -138,12 +138,15 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static bool Matches(CompletionItem item, string itemText, string @namespace)
         {
-            var expectedItemText = itemText;
+            // For some reason InlineDescription is internal, even if corresponding constructor is public.
+            var inlineDescription = typeof(CompletionItem).GetProperty("InlineDescription",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .GetValue(item) as string ?? "";
 
-            if (@namespace != null)
-                expectedItemText += $"  ({@namespace})";
+            @namespace = @namespace ?? "";
 
-            return item.DisplayText == expectedItemText;
+            return (item.DisplayText + item.DisplayTextSuffix) == itemText
+                && inlineDescription == @namespace;
         }
 
         public static Constraint Contains(string itemText, string @namespace = null)

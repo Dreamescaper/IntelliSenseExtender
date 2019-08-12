@@ -9,7 +9,7 @@
         <ReleaseNotes>changelog.txt</ReleaseNotes>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,17.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.1,17.0)" />
     </Installation>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />

@@ -1,3 +1,8 @@
+1.6
++ Support 16.1+ only
++ Support property readonly initializer and expression bodies for creation completions
++ Minor performance improvements
+
 1.5
 + Use inline description for 16.1+
 + Remove option for alphabetical order, as not suitable with VS2019

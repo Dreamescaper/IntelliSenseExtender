@@ -28,7 +28,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Select(m => m.ReduceExtensionMethod(syntaxContext.AccessedSymbolType))
                 .Where(m => m != null);
 
-            return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s, syntaxContext, options));
+            return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s, syntaxContext));
         }
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
@@ -39,7 +39,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && syntaxContext.AccessedSymbol?.Kind != SymbolKind.NamedType;
         }
 
-        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)
+        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
             return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, Sorting.Default);
         }

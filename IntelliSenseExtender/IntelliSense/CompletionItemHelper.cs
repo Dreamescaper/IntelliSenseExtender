@@ -16,48 +16,40 @@ namespace IntelliSenseExtender.IntelliSense
     {
         private static readonly SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
 
-        // Inline description is only supported in 16.1+
-        private static readonly bool UseInlineDescription = Options.Options.VsVersion != null
-            && Options.Options.VsVersion >= new Version(16, 1);
-
-        public static (string displayText, string insertText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
-            string @namespace, string alias, bool unimported, bool includeContainingType, bool newCreation,
-            bool showParenthesisForNewCreations)
+        public static (string displayText, string suffixText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
+            string alias, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
         {
             const string AttributeSuffix = nameof(Attribute);
 
             string displayText;
-            string insertText;
+            string suffixText = null;
 
             string symbolName = alias ?? symbol.GetAccessibleName(context);
             if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
             {
                 displayText = symbolName.Substring(0, symbolName.Length - AttributeSuffix.Length);
-                insertText = displayText;
             }
             else if (alias == null && symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
             {
                 //If generic type is unbound - do not show generic arguments
                 if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters))
                 {
-                    displayText = symbolName + "<>";
-                    insertText = symbolName;
+                    displayText = symbolName;
+                    suffixText = "<>";
                 }
                 else
                 {
                     displayText = symbol.ToDisplayString(BoundGenericFormat);
-                    insertText = displayText;
                 }
             }
             else if (symbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
             {
-                displayText = symbolName + "<>";
-                insertText = symbolName;
+                displayText = symbolName;
+                suffixText = "<>";
             }
             else
             {
                 displayText = symbolName;
-                insertText = symbolName;
             }
 
             if (includeContainingType)
@@ -65,7 +57,6 @@ namespace IntelliSenseExtender.IntelliSense
                 var containingType = symbol.ContainingType;
                 var typeName = containingType.Name;
                 displayText = $"{typeName}.{displayText}";
-                insertText = displayText;
             }
 
             if (newCreation)
@@ -75,15 +66,9 @@ namespace IntelliSenseExtender.IntelliSense
                 {
                     displayText += "()";
                 }
-                insertText = displayText;
             }
 
-            if (unimported && !UseInlineDescription)
-            {
-                displayText += $"  ({@namespace})";
-            }
-
-            return (displayText, insertText);
+            return (displayText, suffixText);
         }
 
         public static async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -145,11 +130,10 @@ namespace IntelliSenseExtender.IntelliSense
             if (symbol.ContainingSymbol is ITypeSymbol parentTypeSymbol && context.StaticImports.Contains(parentTypeSymbol))
                 unimported = false;
 
-            (string displayText, string insertText) = GetDisplayInsertText(symbol, context,
-                nsName, aliasName, unimported, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
+            (string displayText, string suffixText) = GetDisplayInsertText(symbol, context,
+                aliasName, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
-            props.Add(CompletionItemProperties.InsertText, insertText);
 
             if (unimported)
                 props.Add(CompletionItemProperties.NamespaceToImport, nsName);
@@ -159,11 +143,11 @@ namespace IntelliSenseExtender.IntelliSense
 
             var sortText = GetSortText(symbol.GetAccessibleName(context), nsName, sortingPriority, unimported);
 
-            var inlineDescription = unimported && UseInlineDescription ? nsName : null;
+            var inlineDescription = unimported ? nsName : null;
 
             return CompletionItem.Create(
                 displayText: displayText,
-                filterText: insertText,
+                displayTextSuffix: suffixText,
                 inlineDescription: inlineDescription,
                 sortText: sortText,
                 properties: props.ToImmutable(),
@@ -190,23 +174,18 @@ namespace IntelliSenseExtender.IntelliSense
             if (namespaceToImport != null)
             {
                 properties = properties
-                    .Add(CompletionItemProperties.NamespaceToImport, namespaceToImport)
-                    .Add(CompletionItemProperties.InsertText, itemText);
+                    .Add(CompletionItemProperties.NamespaceToImport, namespaceToImport);
 
-                if (UseInlineDescription)
-                    inlineDescription = namespaceToImport;
-                else
-                    itemText += $"  ({namespaceToImport})";
+                inlineDescription = namespaceToImport;
             }
 
             return CompletionItem.Create(
-                        displayText: itemText,
-                        sortText: sortText,
-                        inlineDescription: inlineDescription,
-                        tags: tags,
-                        properties: properties,
-                        rules: rules
-                    );
+                displayText: itemText,
+                sortText: sortText,
+                inlineDescription: inlineDescription,
+                tags: tags,
+                properties: properties,
+                rules: rules);
         }
 
         private static string GetSortText(string symbolName, string namespaceName, int sortingPriority, bool unimported)

@@ -33,7 +33,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             }
             else if (options.SuggestUnimportedTypes && !isImported)
             {
-                return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
+                return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext) };
             }
 
             return null;
@@ -45,7 +45,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 && syntaxContext.IsTypeContext;
         }
 
-        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)
+        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context)
         {
             return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, Sorting.Last);
         }
