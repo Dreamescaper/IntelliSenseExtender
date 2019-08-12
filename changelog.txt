@@ -1,3 +1,7 @@
+1.4.2
++ Support property readonly initializer and expression bodies
++ Remove VS2019 version from supported VS2017 extension
+
 1.4.1
 + Split into separate versions for VS2017 and VS2019
 
