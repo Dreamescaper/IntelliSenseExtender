@@ -27,11 +27,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             // Add nested type independently whether imported or not
             if (options.SuggestNestedTypes && typeSymbol.ContainingType != null)
             {
-                return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, unimported: !isImported) };
+                int sorting = (!isImported && options.SortCompletionsAfterImported)
+                    ? Sorting.Last
+                    : Sorting.Default;
+
+                return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, sorting, unimported: !isImported) };
             }
             else if (options.SuggestUnimportedTypes && !isImported)
             {
-                return new[] { CreateCompletionItemForSymbol(typeSymbol, syntaxContext, options) };
+                int sorting = options.SortCompletionsAfterImported ? Sorting.Last : Sorting.Default;
+                return new[] { CompletionItemHelper.CreateCompletionItem(typeSymbol, syntaxContext, sorting) };
             }
 
             return null;
@@ -41,12 +46,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             return (options.SuggestUnimportedTypes || options.SuggestNestedTypes)
                 && syntaxContext.IsTypeContext;
-        }
-
-        private CompletionItem CreateCompletionItemForSymbol(ISymbol typeSymbol, SyntaxContext context, Options.Options options)
-        {
-            int sorting = options.SortCompletionsAfterImported ? Sorting.Last : Sorting.Default;
-            return CompletionItemHelper.CreateCompletionItem(typeSymbol, context, sorting);
         }
     }
 }

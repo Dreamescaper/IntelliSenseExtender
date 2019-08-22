@@ -11,7 +11,7 @@ namespace IntelliSenseExtender.Options
         [Category("Unimported Symbols")]
         [DefaultValue(true)]
         [DisplayName("Suggest Unimported Types")]
-        [Description("Show IntelliSense suggestions for unimported types. (Not needed for 16.1+)")]
+        [Description("Show IntelliSense suggestions for unimported types.")]
         public bool SuggestUnimportedTypes { get; set; }
 
         [Category("Unimported Symbols")]
