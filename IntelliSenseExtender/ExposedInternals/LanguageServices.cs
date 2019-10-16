@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
@@ -28,7 +29,14 @@ namespace IntelliSenseExtender.ExposedInternals
             IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst)
         {
             var addImportService = GetService(hostServices, _addImportServiceType);
-            return (SyntaxNode)_addImportsMethod.Invoke(addImportService, new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst });
+
+            var arguments = _addImportsMethod.GetParameters().Length == 5
+                // Pre 16.4P2
+                ? new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst }
+                // Post 16.4P2
+                : new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, CancellationToken.None };
+
+            return (SyntaxNode)_addImportsMethod.Invoke(addImportService, arguments);
         }
 
         private static object GetService(HostLanguageServices hostServices, Type serviceType)

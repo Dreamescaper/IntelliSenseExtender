@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="IntelliSenseExtender2019.Dreamescaper.6958f445-4769-47f7-885e-ba2505f1087a" Version="1.5" Language="en-US" Publisher="Dreamescaper" />
+        <Identity Id="IntelliSenseExtender2019.Dreamescaper.6958f445-4769-47f7-885e-ba2505f1087a" Version="1.6.1" Language="en-US" Publisher="Dreamescaper" />
         <DisplayName>IntelliSense Extender 2019</DisplayName>
         <Description xml:space="preserve">Provide IntelliSense completions not only for imported types, but for all available in current solution and referenced assemblies.</Description>
         <MoreInfo>https://github.com/Dreamescaper/IntelliSenseExtender</MoreInfo>

@@ -1,3 +1,7 @@
+1.6.1
++ Fix crash on 16.4 Preview 2+
++ Types completion is disabled by default
+
 1.6
 + Support 16.1+ only
 + Support property readonly initializer and expression bodies for creation completions

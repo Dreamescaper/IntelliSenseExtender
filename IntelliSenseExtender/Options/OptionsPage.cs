@@ -9,7 +9,7 @@ namespace IntelliSenseExtender.Options
     public class OptionsPage : DialogPage
     {
         [Category("Unimported Symbols")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         [DisplayName("Suggest Unimported Types")]
         [Description("Show IntelliSense suggestions for unimported types. (Not needed for 16.1+)")]
         public bool SuggestUnimportedTypes { get; set; }
