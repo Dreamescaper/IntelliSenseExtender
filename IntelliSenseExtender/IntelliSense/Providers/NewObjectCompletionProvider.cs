@@ -19,7 +19,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 
-        public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
+        public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
             var isNewKeywordPresent = syntaxContext.CurrentToken.Parent is ObjectCreationExpressionSyntax;
 
@@ -37,7 +37,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return null;
         }
 
-        public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
+        public IEnumerable<CompletionItem>? GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
             if (typeSymbol.IsBuiltInType()
                 || (typeSymbol.TypeKind != TypeKind.Class && typeSymbol.TypeKind != TypeKind.Struct)
@@ -121,8 +121,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         includeContainingClass: true));
         }
 
-        private CompletionItem GetApplicableTypeCompletion(ITypeSymbol suggestedType, SyntaxContext syntaxContext, bool newKeywordRequired, Options.Options options)
+        private CompletionItem? GetApplicableTypeCompletion(ITypeSymbol suggestedType, SyntaxContext syntaxContext, bool newKeywordRequired, Options.Options options)
         {
+            if (syntaxContext.InferredInfo.Type == null)
+                return null;
+
             var assignableSymbol = syntaxContext.SemanticModel.Compilation.GetAssignableSymbol(suggestedType, syntaxContext.InferredInfo.Type);
 
             if (assignableSymbol == null

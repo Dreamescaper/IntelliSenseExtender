@@ -6,6 +6,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
+#nullable disable
+
 namespace IntelliSenseExtender.ExposedInternals
 {
     public static class LanguageServices

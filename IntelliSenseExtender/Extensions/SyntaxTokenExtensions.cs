@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -6,7 +7,8 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SyntaxTokenExtensions
     {
-        public static bool IsMemberAccessContext(this SyntaxToken currentToken, out ExpressionSyntax accessedExpressionSyntax)
+        public static bool IsMemberAccessContext(this SyntaxToken currentToken,
+            [NotNullWhen(true)] out ExpressionSyntax? accessedExpressionSyntax)
         {
             accessedExpressionSyntax = null;
 
@@ -28,7 +30,8 @@ namespace IntelliSenseExtender.Extensions
             return accessedExpressionSyntax != null;
         }
 
-        public static bool IsObjectCreationContext(this SyntaxToken currentToken, out ObjectCreationExpressionSyntax creationExpressionSyntax)
+        public static bool IsObjectCreationContext(this SyntaxToken currentToken,
+            [NotNullWhen(true)] out ObjectCreationExpressionSyntax? creationExpressionSyntax)
         {
             creationExpressionSyntax = null;
 

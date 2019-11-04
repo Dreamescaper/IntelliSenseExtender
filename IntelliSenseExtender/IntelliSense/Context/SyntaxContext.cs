@@ -29,8 +29,8 @@ namespace IntelliSenseExtender.Context
         public bool IsAttributeContext { get; }
 
         public bool IsMemberAccessContext { get; }
-        public ITypeSymbol AccessedSymbolType { get; }
-        public ISymbol AccessedSymbol { get; }
+        public ITypeSymbol? AccessedSymbolType { get; }
+        public ISymbol? AccessedSymbol { get; }
 
         public InferredTypeInfo InferredInfo { get; }
 
@@ -40,7 +40,7 @@ namespace IntelliSenseExtender.Context
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
             ImmutableHashSet<INamespaceSymbol> importedNamespaces, ImmutableHashSet<ITypeSymbol> staticImports, ImmutableDictionary<INamespaceOrTypeSymbol, string> aliases,
             bool isTypeContext, bool isAttributeContext,
-            bool isMemberAccessContext, ITypeSymbol accessedSymbolType, ISymbol accessedSymbol,
+            bool isMemberAccessContext, ITypeSymbol? accessedSymbolType, ISymbol? accessedSymbol,
             InferredTypeInfo inferredTypeInfo,
             SyntaxToken currentToken = default, CancellationToken token = default)
         {
@@ -69,18 +69,14 @@ namespace IntelliSenseExtender.Context
 
         public bool IsAccessible(ISymbol symbol)
         {
-            switch (symbol.DeclaredAccessibility)
+            return symbol.DeclaredAccessibility switch
             {
-                case Accessibility.Public:
-                    return true;
+                Accessibility.Public => true,
 
-                case Accessibility.Internal:
-                    //TODO: add support for InternalsVisibleTo
-                    return symbol.ContainingAssembly?.Name == Document.Project.AssemblyName;
+                Accessibility.Internal => symbol.ContainingAssembly?.Name == Document.Project.AssemblyName,
 
-                default:
-                    return false;
-            }
+                _ => false,
+            };
         }
 
         public bool IsNamespaceImported(INamespaceSymbol nsSymbol)
@@ -99,10 +95,10 @@ namespace IntelliSenseExtender.Context
             var currentToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var (importedNamespaces, staticImports, aliases) = semanticModel.GetUsings(currentToken);
 
-            ExpressionSyntax accessedSyntax = null;
+            ExpressionSyntax? accessedSyntax = null;
             bool isMemberAccessContext = !isTypeContext && currentToken.IsMemberAccessContext(out accessedSyntax);
-            ITypeSymbol accessedTypeSymbol = null;
-            ISymbol accessedSymbol = null;
+            ITypeSymbol? accessedTypeSymbol = null;
+            ISymbol? accessedSymbol = null;
             if (isMemberAccessContext)
             {
                 accessedTypeSymbol = semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
@@ -145,9 +141,10 @@ namespace IntelliSenseExtender.Context
 
                 while (currentNs?.IsGlobalNamespace == false)
                 {
-                    if (!treeLevel.TryGetValue(currentNs.Name, out treeLevel))
+                    if (!treeLevel.TryGetValue(currentNs.Name, out var nextLevel))
                         return false;
 
+                    treeLevel = nextLevel;
                     currentNs = currentNs.ContainingNamespace;
                 }
 

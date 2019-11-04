@@ -14,7 +14,7 @@ namespace IntelliSenseExtender.Extensions
             ImmutableDictionary<INamespaceOrTypeSymbol, string> aliases)
             GetUsings(this SemanticModel semanticModel, SyntaxToken currentToken)
         {
-            IEnumerable<INamespaceSymbol> GetParentNamespaces(INamespaceSymbol nsSymbol)
+            static IEnumerable<INamespaceSymbol> GetParentNamespaces(INamespaceSymbol nsSymbol)
             {
                 while (nsSymbol != null)
                 {
@@ -76,7 +76,7 @@ namespace IntelliSenseExtender.Extensions
                     alias: u.Alias.Name.Identifier.Text))
                 .Where(a => a.symbol != null)
                 .GroupBy(a => a.symbol)
-                .ToImmutableDictionary(g => g.Key, g => g.First().alias);
+                .ToImmutableDictionary(g => g.Key!, g => g.First().alias);
 
             return (importedNamespaces, staticImports, aliases);
         }
@@ -178,9 +178,9 @@ namespace IntelliSenseExtender.Extensions
             return inferredInfo;
         }
 
-        private static ITypeSymbol GetReturnTypeSymbol(this SemanticModel semanticModel, ReturnStatementSyntax returnStatementSyntax)
+        private static ITypeSymbol? GetReturnTypeSymbol(this SemanticModel semanticModel, ReturnStatementSyntax returnStatementSyntax)
         {
-            ITypeSymbol typeSymbol = null;
+            ITypeSymbol? typeSymbol = null;
 
             var parentMethodOrProperty = returnStatementSyntax
                 .Ancestors()
@@ -216,7 +216,7 @@ namespace IntelliSenseExtender.Extensions
                 typeSymbol = methodSymbol?.ReturnType;
 
                 if (typeSymbol != null
-                    && methodSymbol.IsAsync
+                    && methodSymbol?.IsAsync == true
                     && typeSymbol.Name == "Task"
                     && typeSymbol is INamedTypeSymbol namedTypeSymbol
                     && namedTypeSymbol.IsGenericType)
@@ -228,9 +228,9 @@ namespace IntelliSenseExtender.Extensions
             return typeSymbol;
         }
 
-        private static IParameterSymbol GetParameterSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
+        private static IParameterSymbol? GetParameterSymbol(this SemanticModel semanticModel, ArgumentSyntax argumentSyntax)
         {
-            IParameterSymbol result = null;
+            IParameterSymbol? result = null;
 
             if (argumentSyntax.Parent is ArgumentListSyntax argumentListSyntax)
             {
@@ -267,7 +267,7 @@ namespace IntelliSenseExtender.Extensions
             return result;
         }
 
-        private static IParameterSymbol GetParameterSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
+        private static IParameterSymbol? GetParameterSymbol(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax, SyntaxToken currentToken)
         {
             var namedArgumentPresent = argumentListSyntax.Arguments
                 .Take(argumentListSyntax.Arguments.Count - 1)
@@ -287,12 +287,12 @@ namespace IntelliSenseExtender.Extensions
             return parameters?.ElementAtOrDefault(parameterIndex);
         }
 
-        private static ITypeSymbol GetTupleTypeFromReturnValue(ITypeSymbol returnTypeSymbol, int elementIndex)
+        private static ITypeSymbol? GetTupleTypeFromReturnValue(ITypeSymbol? returnTypeSymbol, int elementIndex)
         {
-            ITypeSymbol typeSymbol = null;
+            ITypeSymbol? typeSymbol = null;
 
-            if (returnTypeSymbol.IsTupleType
-                && returnTypeSymbol is INamedTypeSymbol namedType
+            if (returnTypeSymbol is INamedTypeSymbol namedType
+                && returnTypeSymbol.IsTupleType
                 && namedType.TupleElements.Length > elementIndex)
             {
                 typeSymbol = namedType.TupleElements[elementIndex].Type;
@@ -304,12 +304,12 @@ namespace IntelliSenseExtender.Extensions
         /// <summary>
         /// Return list of parameters of invoked method. Returns null if no method symbol found.
         /// </summary>
-        private static IList<IParameterSymbol> GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
+        private static IList<IParameterSymbol>? GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
             var expressionSyntax = argumentListSyntax.Parent;
             var methodInfo = semanticModel.GetSymbolInfo(expressionSyntax);
 
-            IMethodSymbol methodSymbol = null;
+            IMethodSymbol? methodSymbol = null;
             if (methodInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
                 && methodInfo.CandidateSymbols.Length > 1
                 && argumentListSyntax.Arguments.Any(a => !a.IsMissing)
@@ -347,15 +347,12 @@ namespace IntelliSenseExtender.Extensions
                     .Where(s =>
                     {
                         // Filter by instance or static, if known
-                        switch (isStatic)
+                        return isStatic switch
                         {
-                            case true:
-                                return s.IsStatic;
-                            case false:
-                                return !s.IsStatic || s.IsExtensionMethod;
-                            default:
-                                return true;
-                        }
+                            true => s.IsStatic,
+                            false => !s.IsStatic || s.IsExtensionMethod,
+                            _ => true,
+                        };
                     })
                     .FirstOrDefault(s =>
                     {

@@ -2,6 +2,8 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
+#nullable disable
+
 namespace IntelliSenseExtender.ExposedInternals
 {
     public static class GenerationOptions
@@ -13,7 +15,7 @@ namespace IntelliSenseExtender.ExposedInternals
             var workspacesAssembly = AppDomain.CurrentDomain.GetAssemblies()
                 .First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
             var type = workspacesAssembly.GetType("Microsoft.CodeAnalysis.Editing.GenerationOptions");
-            PlaceSystemNamespaceFirst = (PerLanguageOption<bool>)type.GetField("PlaceSystemNamespaceFirst").GetValue(null);
+            PlaceSystemNamespaceFirst = (PerLanguageOption<bool>)type?.GetField("PlaceSystemNamespaceFirst")?.GetValue(null);
         }
     }
 }
