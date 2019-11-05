@@ -16,13 +16,13 @@ namespace IntelliSenseExtender.IntelliSense
     {
         private static readonly SymbolDisplayFormat BoundGenericFormat = SymbolDisplayFormat.CSharpShortErrorMessageFormat;
 
-        public static (string displayText, string suffixText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
-            string alias, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
+        public static (string displayText, string? suffixText) GetDisplayInsertText(ISymbol symbol, SyntaxContext context,
+            string? alias, bool includeContainingType, bool newCreation, bool showParenthesisForNewCreations)
         {
             const string AttributeSuffix = nameof(Attribute);
 
             string displayText;
-            string suffixText = null;
+            string? suffixText = null;
 
             string symbolName = alias ?? symbol.GetAccessibleName(context);
             if (context.IsAttributeContext && symbolName.EndsWith(AttributeSuffix))
@@ -71,7 +71,7 @@ namespace IntelliSenseExtender.IntelliSense
             return (displayText, suffixText);
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullQualifiedName))
                 return null;
@@ -123,14 +123,14 @@ namespace IntelliSenseExtender.IntelliSense
             var nsName = symbol.GetNamespace();
             var fullSymbolName = symbol.GetFullyQualifiedName(nsName);
 
-            string aliasName = null;
+            string? aliasName = null;
             if (symbol is ITypeSymbol typeSymbol && context.Aliases.TryGetValue(typeSymbol, out aliasName))
                 unimported = false;
 
             if (symbol.ContainingSymbol is ITypeSymbol parentTypeSymbol && context.StaticImports.Contains(parentTypeSymbol))
                 unimported = false;
 
-            (string displayText, string suffixText) = GetDisplayInsertText(symbol, context,
+            (string displayText, string? suffixText) = GetDisplayInsertText(symbol, context,
                 aliasName, includeContainingClass, newCreationSyntax, showParenthesisForNewCreations);
             var props = ImmutableDictionary.CreateBuilder<string, string>();
             props.Add(CompletionItemProperties.FullSymbolName, fullSymbolName);
@@ -157,7 +157,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static CompletionItem CreateCompletionItem(string itemText, int sortingPriority,
             ImmutableArray<string> tags = default,
-            string namespaceToImport = null,
+            string? namespaceToImport = null,
             int newPositionOffset = 0)
         {
             var rules = CompletionItemRules.Create(
@@ -170,7 +170,7 @@ namespace IntelliSenseExtender.IntelliSense
             if (newPositionOffset != 0)
                 properties = properties.Add(CompletionItemProperties.NewPositionOffset, newPositionOffset.ToString());
 
-            string inlineDescription = null;
+            string? inlineDescription = null;
             if (namespaceToImport != null)
             {
                 properties = properties
@@ -190,19 +190,12 @@ namespace IntelliSenseExtender.IntelliSense
 
         private static string GetSortText(string symbolName, string namespaceName, int sortingPriority, bool unimported)
         {
-            string prefix;
-            switch (sortingPriority)
+            var prefix = sortingPriority switch
             {
-                case Sorting.Default:
-                    prefix = string.Empty;
-                    break;
-                case Sorting.Last:
-                    prefix = "~";
-                    break;
-                default:
-                    prefix = "!" + sortingPriority + "_";
-                    break;
-            }
+                Sorting.Default => string.Empty,
+                Sorting.Last => "~",
+                _ => "!" + sortingPriority + "_",
+            };
 
             // Add namespace to the end so items with same name would be displayed
             // (only for unimported values)

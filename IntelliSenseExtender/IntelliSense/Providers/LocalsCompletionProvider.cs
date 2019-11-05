@@ -28,7 +28,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         {
             var lookedUpSymbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position);
 
-            var typeSymbol = syntaxContext.InferredInfo.Type;
+            var typeSymbol = syntaxContext.InferredInfo.Type!;
             var locals = GetLocalVariables(lookedUpSymbols, syntaxContext);
             var suitableLocals = GetAssignableSymbols(syntaxContext, locals, s => s.Type, typeSymbol);
 

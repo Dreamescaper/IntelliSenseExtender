@@ -10,7 +10,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 {
     public class EnumCompletionProvider : ISimpleCompletionProvider
     {
-        public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
+        public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
             var typeSymbol = syntaxContext.InferredInfo.Type;
 

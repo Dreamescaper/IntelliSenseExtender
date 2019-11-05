@@ -8,7 +8,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 {
     public class TypesCompletionProvider : ITypeCompletionProvider
     {
-        public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
+        public IEnumerable<CompletionItem>? GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
             // Only attributes are permitted in attribute context
             if (syntaxContext.IsAttributeContext && (typeSymbol.IsAbstract || !typeSymbol.IsAttribute()))

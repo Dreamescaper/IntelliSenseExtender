@@ -9,7 +9,7 @@
     <OldToolsVersion>15.0</OldToolsVersion>
     <AssemblyTitle>IntelliSenseExtender</AssemblyTitle>
     <Product>IntelliSenseExtender</Product>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <SignAssembly>true</SignAssembly>
     <DebugSymbols>true</DebugSymbols>
     <TargetFramework>net472</TargetFramework>
@@ -61,6 +61,15 @@
     <Compile Update="Options\OptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AnnotatedReferenceAssemblyVersion>3.0.0</AnnotatedReferenceAssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.77" PrivateAssets="all" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(AnnotatedReferenceAssemblyVersion)]" />
   </ItemGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />

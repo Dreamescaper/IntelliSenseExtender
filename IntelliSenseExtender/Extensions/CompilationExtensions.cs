@@ -11,7 +11,7 @@ namespace IntelliSenseExtender.Extensions
         /// If types are generic, and toSymbol is assignable from fromSymbol with certain type parameter  returns fromSymbol with that type parameter.
         /// If no conversion present - returns null
         /// </summary>
-        public static ITypeSymbol GetAssignableSymbol(this Compilation compilation, ITypeSymbol fromSymbol, ITypeSymbol toSymbol)
+        public static ITypeSymbol? GetAssignableSymbol(this Compilation compilation, ITypeSymbol fromSymbol, ITypeSymbol toSymbol)
         {
             if (IsAssignable(compilation, fromSymbol, toSymbol))
             {

@@ -32,12 +32,12 @@ namespace IntelliSenseExtender.Extensions
             return string.Join(".", nsNames.ToArray());
         }
 
-        public static string GetFullyQualifiedName(this ISymbol symbol, string @namespace = null)
+        public static string GetFullyQualifiedName(this ISymbol symbol, string? @namespace = null)
         {
             if (symbol is ITypeSymbol)
             {
                 // ToDisplayString would work in this case as well, but it is slower
-                @namespace = @namespace ?? symbol.GetNamespace();
+                @namespace ??= symbol.GetNamespace();
                 return string.IsNullOrEmpty(@namespace)
                     ? symbol.Name
                     : $"{@namespace}.{symbol.Name}";

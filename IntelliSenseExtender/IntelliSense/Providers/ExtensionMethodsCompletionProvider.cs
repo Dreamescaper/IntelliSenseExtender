@@ -9,7 +9,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 {
     public class ExtensionMethodsCompletionProvider : ITypeCompletionProvider
     {
-        public IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
+        public IEnumerable<CompletionItem>? GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
         {
             if (!options.SuggestUnimportedExtensionMethods)
                 return null;

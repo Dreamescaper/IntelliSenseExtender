@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using IntelliSenseExtender.Options;
 using Microsoft.VisualStudio;
@@ -29,11 +28,8 @@ namespace IntelliSenseExtender
         public static Guid PackageGuid = new Guid(PackageGuidString);
 
         private static readonly object lockObject = new object();
-
-        public static Version VsVersion;
-
-        private static OptionsPage optionsPage;
-        public static OptionsPage OptionsPage
+        private static OptionsPage? optionsPage;
+        public static OptionsPage? OptionsPage
         {
             get
             {
@@ -70,16 +66,6 @@ namespace IntelliSenseExtender
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             OptionsPage = (OptionsPage)GetDialogPage(typeof(OptionsPage));
-
-            // Get current VS version. Remove when 16.0 support dropped
-            var vsAppId = (IVsAppId)ServiceProvider.GlobalProvider.GetService(typeof(SVsAppId));
-            object semanticVersionObj = null;
-            vsAppId?.GetProperty((int)VSAPropID.VSAPROPID_ProductSemanticVersion, out semanticVersionObj);
-            var versionStr = semanticVersionObj as string;
-            if (versionStr != null)
-                versionStr = new string(versionStr.TakeWhile(c => char.IsDigit(c) || c == '.').ToArray());
-
-            Version.TryParse(versionStr, out VsVersion);
         }
 
         private static void EnsurePackageLoaded()

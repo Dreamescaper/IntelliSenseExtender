@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 
+#nullable disable
+
 namespace IntelliSenseExtender.ExposedInternals
 {
     /// <summary>

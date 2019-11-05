@@ -42,7 +42,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             _optionsProvider = optionsProvider;
         }
 
-        public Options.Options Options => _optionsProvider.GetOptions();
+        public Options.Options? Options => _optionsProvider.GetOptions();
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

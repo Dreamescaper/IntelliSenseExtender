@@ -42,10 +42,10 @@ namespace IntelliSenseExtender.IntelliSense
             }
         }
 
-        public static ISymbol FindSymbolByFullName(ISymbol parent, string fullName)
+        public static ISymbol? FindSymbolByFullName(ISymbol parent, string fullName)
         {
             var pathNames = fullName.Split('.');
-            ISymbol currentSymbol = parent;
+            ISymbol? currentSymbol = parent;
 
             foreach (var name in pathNames)
             {

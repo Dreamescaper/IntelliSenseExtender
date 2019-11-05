@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
+
 namespace IntelliSenseExtender.ExposedInternals
 {
     /// <summary>

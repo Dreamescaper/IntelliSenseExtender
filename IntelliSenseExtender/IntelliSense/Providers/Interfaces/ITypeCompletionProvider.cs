@@ -8,6 +8,6 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 {
     public interface ITypeCompletionProvider : ICompletionProvider
     {
-        IEnumerable<CompletionItem> GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options);
+        IEnumerable<CompletionItem>? GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options);
     }
 }

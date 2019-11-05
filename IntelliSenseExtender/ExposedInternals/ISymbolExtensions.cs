@@ -2,6 +2,8 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
+
 namespace IntelliSenseExtender.ExposedInternals
 {
     public static class ISymbolExtensions
@@ -14,7 +16,7 @@ namespace IntelliSenseExtender.ExposedInternals
                 .First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
             var type = workspacesAssembly.GetType("Microsoft.CodeAnalysis.Shared.Extensions.ISymbolExtensions");
 
-            _isInaccessibleLocalMethod = (Func<ISymbol, int, bool>)type.GetMethod(nameof(IsInaccessibleLocal)).CreateDelegate(typeof(Func<ISymbol, int, bool>));
+            _isInaccessibleLocalMethod = (Func<ISymbol, int, bool>)type?.GetMethod(nameof(IsInaccessibleLocal))?.CreateDelegate(typeof(Func<ISymbol, int, bool>));
         }
 
         public static bool IsInaccessibleLocal(this ISymbol symbol, int position)

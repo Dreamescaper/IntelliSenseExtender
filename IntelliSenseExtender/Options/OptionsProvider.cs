@@ -4,11 +4,9 @@
     {
         public static VsSettingsOptionsProvider Current { get; set; } = new VsSettingsOptionsProvider();
 
-        public Options GetOptions()
+        public Options? GetOptions()
         {
             var optionsPage = IntelliSenseExtenderPackage.OptionsPage;
-
-            Options.VsVersion = IntelliSenseExtenderPackage.VsVersion;
 
             return optionsPage == null
                 ? null
