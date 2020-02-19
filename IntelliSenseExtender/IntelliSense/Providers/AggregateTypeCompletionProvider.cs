@@ -68,6 +68,9 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 var syntaxContext = await SyntaxContext.CreateAsync(context.Document, context.Position, context.CancellationToken)
                     .ConfigureAwait(false);
 
+                if (syntaxContext == null)
+                    return;
+
                 var applicableTypeProviders = typeCompletionProviders
                     .Where(p => p.IsApplicable(syntaxContext, Options))
                     .ToArray();

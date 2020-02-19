@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +16,10 @@ namespace IntelliSenseExtender.Editor
         {
             var documentOptionsTask = document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            if (model == null)
+                return document;
+
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var currentNode = root.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).Parent;

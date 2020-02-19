@@ -84,10 +84,13 @@ namespace IntelliSenseExtender.Context
             return _importedNamespacesTree.Contains(nsSymbol);
         }
 
-        public static async Task<SyntaxContext> CreateAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<SyntaxContext?> CreateAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            if (semanticModel == null || syntaxTree == null)
+                return null;
 
             var isTypeContext = syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
             var isAttributeContext = isTypeContext && syntaxTree.IsAttributeNameContext(position, cancellationToken);

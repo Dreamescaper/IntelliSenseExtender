@@ -111,8 +111,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Where(symbol => symbol.IsStatic
                     && symbol.DeclaredAccessibility == Accessibility.Public
                     && (((symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary
-                            && Equals((symbol as IMethodSymbol)?.ReturnType, typeSymbol))
-                        || Equals((symbol as IPropertySymbol)?.Type, typeSymbol)));
+                            && SymbolEqualityComparer.Default.Equals((symbol as IMethodSymbol)?.ReturnType, typeSymbol))
+                        || SymbolEqualityComparer.Default.Equals((symbol as IPropertySymbol)?.Type, typeSymbol)));
 
             return factorySymbols.Select(symbol => CompletionItemHelper.CreateCompletionItem(symbol, syntaxContext,
                         Sorting.NewSuggestion_FactoryMethod,

@@ -77,6 +77,10 @@ namespace IntelliSenseExtender.IntelliSense
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+
+            if (semanticModel == null)
+                return null;
+
             var globalNamespace = semanticModel.Compilation.GlobalNamespace;
             var symbol = SymbolNavigator.FindSymbolByFullName(globalNamespace, fullQualifiedName);
 

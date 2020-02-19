@@ -25,10 +25,10 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .OfType<IMethodSymbol>()
                 .Where(methodSymbol => syntaxContext.IsAccessible(methodSymbol)
                     && !(options.FilterOutObsoleteSymbols && methodSymbol.IsObsolete()))
-                .Select(m => m.ReduceExtensionMethod(syntaxContext.AccessedSymbolType))
+                .Select(m => m.ReduceExtensionMethod(syntaxContext.AccessedSymbolType!))
                 .Where(m => m != null);
 
-            return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s, syntaxContext));
+            return extMethodSymbols.Select(s => CreateCompletionItemForSymbol(s!, syntaxContext));
         }
 
         public bool IsApplicable(SyntaxContext syntaxContext, Options.Options options)
