@@ -12,9 +12,6 @@
                 ? null
                 : new Options
                 {
-                    SuggestUnimportedTypes = optionsPage.SuggestUnimportedTypes,
-                    SuggestUnimportedExtensionMethods = optionsPage.SuggestUnimportedExtensionMethods,
-                    FilterOutObsoleteSymbols = optionsPage.FilterOutObsoleteSymbols,
                     SuggestNestedTypes = optionsPage.SuggestNestedTypes,
                     SuggestTypesOnObjectCreation = optionsPage.SuggestTypesOnObjectCreation,
                     AddParethesisForNewSuggestions = optionsPage.AddParethesisForNewSuggestions,

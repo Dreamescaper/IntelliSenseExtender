@@ -8,25 +8,7 @@ namespace IntelliSenseExtender.Options
     [ComVisible(true)]
     public class OptionsPage : DialogPage
     {
-        [Category("Unimported Symbols")]
-        [DefaultValue(false)]
-        [DisplayName("Suggest Unimported Types")]
-        [Description("Show IntelliSense suggestions for unimported types. (Not needed for 16.1+)")]
-        public bool SuggestUnimportedTypes { get; set; }
-
-        [Category("Unimported Symbols")]
-        [DefaultValue(true)]
-        [DisplayName("Suggest Unimported Extension Methods")]
-        [Description("Show IntelliSense suggestions for unimported extension methods.")]
-        public bool SuggestUnimportedExtensionMethods { get; set; }
-
-        [Category("Unimported Symbols")]
-        [DefaultValue(true)]
-        [DisplayName("Filter Out Obsolete symbols")]
-        [Description("Do not show methods or types marked with Obsolete attribute.")]
-        public bool FilterOutObsoleteSymbols { get; set; }
-
-        [Category("Unimported Symbols")]
+        [Category("Types")]
         [DefaultValue(false)]
         [DisplayName("Suggest Nested Types")]
         [Description("Suggest nested types in arbitrary context.")]
@@ -66,9 +48,6 @@ namespace IntelliSenseExtender.Options
 
         public OptionsPage()
         {
-            SuggestUnimportedTypes = true;
-            SuggestUnimportedExtensionMethods = true;
-            FilterOutObsoleteSymbols = true;
             SuggestNestedTypes = false;
             SuggestTypesOnObjectCreation = true;
             AddParethesisForNewSuggestions = true;

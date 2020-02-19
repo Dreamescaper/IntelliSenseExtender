@@ -73,7 +73,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullQualifiedName))
+            if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullyQualifiedName))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
@@ -82,7 +82,7 @@ namespace IntelliSenseExtender.IntelliSense
                 return null;
 
             var globalNamespace = semanticModel.Compilation.GlobalNamespace;
-            var symbol = SymbolNavigator.FindSymbolByFullName(globalNamespace, fullQualifiedName);
+            var symbol = SymbolNavigator.FindSymbolByFullName(globalNamespace, fullyQualifiedName);
 
             if (symbol == null)
                 return null;

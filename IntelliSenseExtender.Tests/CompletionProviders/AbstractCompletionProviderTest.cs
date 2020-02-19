@@ -22,9 +22,6 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
         private static Options.Options GetDefaultOptions() =>
             new Options.Options
             {
-                SuggestUnimportedTypes = true,
-                SuggestUnimportedExtensionMethods = true,
-                FilterOutObsoleteSymbols = true,
                 SuggestTypesOnObjectCreation = true,
                 AddParethesisForNewSuggestions = true,
                 SuggestFactoryMethodsOnObjectCreation = true,
@@ -138,15 +135,8 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
 
         public static bool Matches(CompletionItem item, string itemText, string @namespace)
         {
-            // For some reason InlineDescription is internal, even if corresponding constructor is public.
-            var inlineDescription = typeof(CompletionItem).GetProperty("InlineDescription",
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .GetValue(item) as string ?? "";
-
-            @namespace = @namespace ?? "";
-
             return (item.DisplayText + item.DisplayTextSuffix) == itemText
-                && inlineDescription == @namespace;
+                && (item.InlineDescription ?? "") == (@namespace ?? "");
         }
 
         public static Constraint Contains(string itemText, string @namespace = null)

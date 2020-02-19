@@ -25,8 +25,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public AggregateTypeCompletionProvider()
             : this(VsSettingsOptionsProvider.Current,
-                  new TypesCompletionProvider(),
-                  new ExtensionMethodsCompletionProvider(),
+                  new NestedTypesCompletionProvider(),
                   new LocalsCompletionProvider(),
                   new NewObjectCompletionProvider(),
                   new EnumCompletionProvider())

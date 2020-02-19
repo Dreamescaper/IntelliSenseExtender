@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using IntelliSenseExtender.Context;
-using IntelliSenseExtender.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace IntelliSenseExtender.IntelliSense
@@ -23,8 +22,7 @@ namespace IntelliSenseExtender.IntelliSense
                 {
                     if (member is INamedTypeSymbol namedTypeSymbol)
                     {
-                        if (syntaxContext.IsAccessible(namedTypeSymbol)
-                            && !(options.FilterOutObsoleteSymbols && namedTypeSymbol.IsObsolete()))
+                        if (syntaxContext.IsAccessible(namedTypeSymbol))
                         {
                             yield return namedTypeSymbol;
 
