@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    public class LocalsCompletionProvider : ISimpleCompletionProvider, ITriggerCompletions
+    public class LocalsCompletionProvider : ICompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 

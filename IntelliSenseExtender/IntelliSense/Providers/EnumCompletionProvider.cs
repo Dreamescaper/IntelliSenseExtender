@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    public class EnumCompletionProvider : ISimpleCompletionProvider
+    public class EnumCompletionProvider : ICompletionProvider
     {
         public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {

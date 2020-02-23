@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
@@ -17,9 +16,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         private readonly IOptionsProvider _optionsProvider;
 
-        private readonly List<ITypeCompletionProvider> typeCompletionProviders;
-        private readonly List<ISimpleCompletionProvider> simpleCompletionProviders;
-        private readonly List<ITriggerCompletions> triggerCompletions;
+        private readonly ICompletionProvider[] completionProviders;
+        private readonly ITriggerCompletions[] triggerCompletions;
 
         private bool _triggeredByUs = false;
 
@@ -34,9 +32,8 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 
         public AggregateTypeCompletionProvider(IOptionsProvider optionsProvider, params ICompletionProvider[] completionProviders)
         {
-            typeCompletionProviders = completionProviders.OfType<ITypeCompletionProvider>().ToList();
-            simpleCompletionProviders = completionProviders.OfType<ISimpleCompletionProvider>().ToList();
-            triggerCompletions = completionProviders.OfType<ITriggerCompletions>().ToList();
+            this.completionProviders = completionProviders;
+            triggerCompletions = completionProviders.OfType<ITriggerCompletions>().ToArray();
 
             _optionsProvider = optionsProvider;
         }
@@ -70,21 +67,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 if (syntaxContext == null)
                     return;
 
-                var applicableTypeProviders = typeCompletionProviders
-                    .Where(p => p.IsApplicable(syntaxContext, Options))
-                    .ToArray();
-                if (applicableTypeProviders.Length > 0)
-                {
-                    var typeCompletions = SymbolNavigator.GetAllTypes(syntaxContext, Options)
-                        .SelectMany(type => applicableTypeProviders
-                            .Select(provider => provider.GetCompletionItemsForType(type, syntaxContext, Options)))
-                        .Where(enumerable => enumerable != null)
-                        .SelectMany(enumerable => enumerable);
-
-                    context.AddItems(typeCompletions);
-                }
-
-                var simpleCompletions = simpleCompletionProviders
+                var simpleCompletions = completionProviders
                     .Where(p => p.IsApplicable(syntaxContext, Options))
                     .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
                     .Where(enumerable => enumerable != null)

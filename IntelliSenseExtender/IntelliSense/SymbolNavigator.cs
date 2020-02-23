@@ -7,7 +7,7 @@ namespace IntelliSenseExtender.IntelliSense
 {
     public class SymbolNavigator
     {
-        public static IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext syntaxContext, Options.Options options)
+        public static IEnumerable<INamedTypeSymbol> GetAllTypes(SyntaxContext syntaxContext)
         {
             var symbolsToTraverse = new Queue<INamespaceOrTypeSymbol>();
 
@@ -25,11 +25,7 @@ namespace IntelliSenseExtender.IntelliSense
                         if (syntaxContext.IsAccessible(namedTypeSymbol))
                         {
                             yield return namedTypeSymbol;
-
-                            if (options.SuggestNestedTypes)
-                            {
-                                symbolsToTraverse.Enqueue(namedTypeSymbol);
-                            }
+                            symbolsToTraverse.Enqueue(namedTypeSymbol);
                         }
                     }
                     else if (member is INamespaceSymbol ns)
