@@ -1,6 +1,5 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using IntelliSenseExtender.Context;
 using Microsoft.CodeAnalysis;
 
@@ -8,28 +7,38 @@ namespace IntelliSenseExtender.Extensions
 {
     public static class SymbolExtensions
     {
+        private static readonly ConcurrentBag<Stack<string>> stackPool = new ConcurrentBag<Stack<string>>();
         private const int DefaultSize = 8;
 
         public static string GetNamespace(this ISymbol symbol)
         {
             // ToDisplayString would work here as well, but it is slower
-            var nsNames = new Stack<string>(DefaultSize);
+            if (!stackPool.TryTake(out var nsNames))
+                nsNames = new Stack<string>(DefaultSize);
 
-            while (symbol != null)
+            try
             {
-                if (symbol is INamespaceSymbol nsSymbol)
+                while (symbol != null)
                 {
-                    if (nsSymbol.IsGlobalNamespace)
+                    if (symbol is INamespaceSymbol nsSymbol)
                     {
-                        break;
+                        if (nsSymbol.IsGlobalNamespace)
+                        {
+                            break;
+                        }
+
+                        nsNames.Push(symbol.Name);
                     }
-
-                    nsNames.Push(symbol.Name);
+                    symbol = symbol.ContainingSymbol;
                 }
-                symbol = symbol.ContainingSymbol;
-            }
 
-            return string.Join(".", nsNames.ToArray());
+                return string.Join(".", nsNames.ToArray());
+            }
+            finally
+            {
+                nsNames.Clear();
+                stackPool.Add(nsNames);
+            }
         }
 
         public static string GetFullyQualifiedName(this ISymbol symbol, string? @namespace = null)
@@ -73,13 +82,6 @@ namespace IntelliSenseExtender.Extensions
             return symbol.Name;
         }
 
-        public static bool IsObsolete(this ISymbol symbol)
-        {
-            return symbol
-                .GetAttributes()
-                .Any(attribute => attribute.AttributeClass.Name == nameof(ObsoleteAttribute));
-        }
-
         public static IEnumerable<ISymbol> AncestorsAndSelf(this ISymbol symbol)
         {
             while (symbol != null)
@@ -87,16 +89,6 @@ namespace IntelliSenseExtender.Extensions
                 yield return symbol;
                 symbol = symbol.ContainingSymbol;
             }
-        }
-
-        public static bool IsAttribute(this INamedTypeSymbol typeSymbol)
-        {
-            if (typeSymbol.TypeKind != TypeKind.Class)
-                return false;
-
-            var baseTypes = typeSymbol.GetBaseTypes();
-            return baseTypes.Any(baseTypeSymbol => baseTypeSymbol.Name == nameof(Attribute)
-                    && baseTypeSymbol.ContainingNamespace?.Name == nameof(System));
         }
 
         public static bool IsBuiltInType(this ITypeSymbol typeSymbol)

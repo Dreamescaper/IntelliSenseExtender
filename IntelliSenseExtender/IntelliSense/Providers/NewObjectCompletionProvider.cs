@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
@@ -10,53 +11,88 @@ using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IntelliSenseExtender.IntelliSense.Providers
 {
-    public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITypeCompletionProvider, ITriggerCompletions
+    public class NewObjectCompletionProvider : ISimpleCompletionProvider, ITriggerCompletions
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 
         public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
         {
+            var type = syntaxContext.InferredInfo.Type;
+
+            if (type == null)
+                return null;
+
             var isNewKeywordPresent = syntaxContext.CurrentToken.Parent is ObjectCreationExpressionSyntax;
 
-            if (!isNewKeywordPresent && syntaxContext.InferredInfo.Type != null)
+            // TODO make async
+            var completions = GetTypeCompletionsAsync(syntaxContext, type, isNewKeywordPresent, options).Result;
+
+            if (!isNewKeywordPresent)
             {
-                var completions = GetSpecialCasesCompletions(syntaxContext.InferredInfo.Type, syntaxContext);
+                completions = completions.Concat(GetSpecialCasesCompletions(type, syntaxContext));
                 if (options.SuggestFactoryMethodsOnObjectCreation)
                 {
-                    completions = completions.Concat(GetStaticMethodsAndPropertiesCompletions(syntaxContext, syntaxContext.InferredInfo.Type));
+                    completions = completions.Concat(GetStaticMethodsAndPropertiesCompletions(syntaxContext, type));
                 }
-
-                return completions;
             }
 
-            return null;
+            return completions;
         }
 
-        public IEnumerable<CompletionItem>? GetCompletionItemsForType(INamedTypeSymbol typeSymbol, SyntaxContext syntaxContext, Options.Options options)
+        private async Task<IEnumerable<CompletionItem>> GetTypeCompletionsAsync(SyntaxContext syntaxContext, ITypeSymbol type, bool isNewKeywordPresent, Options.Options options)
         {
-            if (typeSymbol.IsBuiltInType()
-                || (typeSymbol.TypeKind != TypeKind.Class && typeSymbol.TypeKind != TypeKind.Struct)
-                || typeSymbol.IsAbstract
-                || !typeSymbol.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public))
+            var solution = syntaxContext.Document.Project.Solution;
+            IEnumerable<INamedTypeSymbol> implementations = Array.Empty<INamedTypeSymbol>();
+
+            if (type is INamedTypeSymbol namedType)
             {
-                return null;
+                implementations = namedType.TypeKind switch
+                {
+                    TypeKind.Class => await SymbolFinder.FindDerivedClassesAsync(namedType, solution, cancellationToken: syntaxContext.CancellationToken),
+                    TypeKind.Interface => (await SymbolFinder.FindImplementationsAsync(namedType, solution, cancellationToken: syntaxContext.CancellationToken)).OfType<INamedTypeSymbol>(),
+                    _ => Array.Empty<INamedTypeSymbol>()
+                };
             }
 
-            bool newKeywordRequired = true;
-            var currentSyntaxNode = syntaxContext.CurrentToken.Parent;
-            if (currentSyntaxNode is ObjectCreationExpressionSyntax)
+            if (type is INamedTypeSymbol namedTypeSymbol && (type.TypeKind == TypeKind.Class || type.TypeKind == TypeKind.Struct))
             {
-                //if we already have new keyword - we don't need that
-                newKeywordRequired = false;
+                if (namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    if (namedTypeSymbol.TypeArguments[0] is INamedTypeSymbol typeArgumentNamedType)
+                        implementations = implementations.Append(typeArgumentNamedType);
+                }
+                else
+                {
+                    implementations = implementations.Append(namedTypeSymbol);
+                }
             }
 
-            var applicableCompletion = GetApplicableTypeCompletion(typeSymbol, syntaxContext, newKeywordRequired, options);
-            return applicableCompletion == null ? null : new[] { applicableCompletion };
+            return FromAssignableTypes(implementations);
+
+            IEnumerable<CompletionItem> FromAssignableTypes(IEnumerable<INamedTypeSymbol> assignableTypes)
+            {
+                foreach (var assignableType in assignableTypes)
+                {
+                    if (assignableType.IsBuiltInType()
+                        || (assignableType.TypeKind != TypeKind.Class && assignableType.TypeKind != TypeKind.Struct)
+                        || assignableType.IsAbstract
+                        || !assignableType.InstanceConstructors.Any(con => con.DeclaredAccessibility == Accessibility.Public))
+                    {
+                        continue;
+                    }
+
+                    var completion = GetApplicableTypeCompletion(assignableType, syntaxContext, !isNewKeywordPresent, options);
+
+                    if (completion != null)
+                        yield return completion;
+                }
+            }
         }
 
         public bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, Options.Options options)
@@ -179,12 +215,14 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                         var typeParameter = namedTypeSymbol.TypeArguments.FirstOrDefault();
                         if (typeParameter != null)
                         {
-                            var unimported = !syntaxContext.IsNamespaceImported(namedTypeSymbol.ContainingNamespace);
+                            const string listNamespace = "System.Collections.Generic";
+
+                            var unimported = !syntaxContext.IsNamespaceImported(listNamespace);
                             var displayName = typeParameter.ToMinimalDisplayString(syntaxContext.SemanticModel, syntaxContext.Position);
                             var completion = CompletionItemHelper.CreateCompletionItem(
                                     $"new List<{displayName}> {{}}",
                                     Sorting.NewSuggestion_CollectionInitializer,
-                                    namespaceToImport: unimported ? namedTypeSymbol.GetNamespace() : null,
+                                    namespaceToImport: unimported ? listNamespace : null,
                                     newPositionOffset: -1);
                             return new[] { completion };
                         }

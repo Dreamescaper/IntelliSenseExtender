@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -84,6 +85,11 @@ namespace IntelliSenseExtender.Context
             return _importedNamespacesTree.Contains(nsSymbol);
         }
 
+        public bool IsNamespaceImported(string nsName)
+        {
+            return _importedNamespacesTree.Contains(nsName);
+        }
+
         public static async Task<SyntaxContext?> CreateAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -126,7 +132,10 @@ namespace IntelliSenseExtender.Context
         {
             public NamespacesTree(IEnumerable<INamespaceSymbol> namespaces)
             {
-                var nsGroups = namespaces.GroupBy(ns => ns.Name);
+                var nsGroups = namespaces
+                    .Where(ns => !ns.IsGlobalNamespace)
+                    .GroupBy(ns => ns.Name);
+
                 foreach (var nsGroup in nsGroups)
                 {
                     var parentNs = nsGroup
@@ -149,6 +158,22 @@ namespace IntelliSenseExtender.Context
 
                     treeLevel = nextLevel;
                     currentNs = currentNs.ContainingNamespace;
+                }
+
+                return true;
+            }
+
+            public bool Contains(string nsName)
+            {
+                var parts = nsName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+
+                var current = this;
+
+                for (int i = parts.Length - 1; i >= 0; i--)
+                {
+                    string part = parts[i];
+                    if (!current.TryGetValue(part, out current!))
+                        return false;
                 }
 
                 return true;
