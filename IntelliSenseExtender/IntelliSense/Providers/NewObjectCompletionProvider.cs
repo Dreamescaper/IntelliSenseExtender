@@ -21,17 +21,16 @@ namespace IntelliSenseExtender.IntelliSense.Providers
     {
         private static readonly Regex BracketRegex = new Regex(@"\w\($");
 
-        public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
+        public async Task<IEnumerable<CompletionItem>> GetCompletionItemsAsync(SyntaxContext syntaxContext, Options.Options options)
         {
             var type = syntaxContext.InferredInfo.Type;
 
             if (type == null)
-                return null;
+                return Enumerable.Empty<CompletionItem>();
 
             var isNewKeywordPresent = syntaxContext.CurrentToken.Parent is ObjectCreationExpressionSyntax;
 
-            // TODO make async
-            var completions = GetTypeCompletionsAsync(syntaxContext, type, isNewKeywordPresent, options).Result;
+            var completions = await GetTypeCompletionsAsync(syntaxContext, type, isNewKeywordPresent, options).ConfigureAwait(false);
 
             if (!isNewKeywordPresent)
             {

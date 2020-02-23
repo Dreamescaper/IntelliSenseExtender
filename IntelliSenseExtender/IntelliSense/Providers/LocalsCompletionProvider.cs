@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
@@ -24,7 +25,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
         private static readonly string[] SymbolsToTriggerCompletion
             = new[] { ", ", "return ", "== ", "!= ", "> ", "< ", "<= ", ">= ", ": " };
 
-        public IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
+        public Task<IEnumerable<CompletionItem>> GetCompletionItemsAsync(SyntaxContext syntaxContext, Options.Options options)
         {
             var lookedUpSymbols = syntaxContext.SemanticModel.LookupSymbols(syntaxContext.Position);
 
@@ -52,11 +53,11 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 .Select(l => CreateCompletion(syntaxContext, l, Sorting.Suitable_MethodParameters));
             var thisCompletion = GetThisCompletionIfApplicable(syntaxContext);
 
-            return localCompletions
+            return Task.FromResult(localCompletions
                 .Concat(lambdaParamsCompletions)
                 .Concat(typeMemberCompletions)
                 .Concat(methodParametersCompletions)
-                .Concat(thisCompletion);
+                .Concat(thisCompletion));
         }
 
         public bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, Options.Options options)

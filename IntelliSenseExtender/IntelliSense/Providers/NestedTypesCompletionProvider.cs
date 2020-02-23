@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using IntelliSenseExtender.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using Microsoft.CodeAnalysis.Completion;
@@ -7,7 +8,12 @@ namespace IntelliSenseExtender.IntelliSense.Providers
 {
     public class NestedTypesCompletionProvider : ICompletionProvider
     {
-        public IEnumerable<CompletionItem>? GetCompletionItems(SyntaxContext syntaxContext, Options.Options options)
+        public Task<IEnumerable<CompletionItem>> GetCompletionItemsAsync(SyntaxContext syntaxContext, Options.Options options)
+        {
+            return Task.FromResult(GetCompletionItems(syntaxContext));
+        }
+
+        private IEnumerable<CompletionItem> GetCompletionItems(SyntaxContext syntaxContext)
         {
             var hasStaticImports = syntaxContext.StaticImports.Count > 0;
             var hasAliases = syntaxContext.Aliases.Count > 0;

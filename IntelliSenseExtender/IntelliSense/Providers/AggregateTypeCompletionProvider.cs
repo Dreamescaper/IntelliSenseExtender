@@ -67,13 +67,13 @@ namespace IntelliSenseExtender.IntelliSense.Providers
                 if (syntaxContext == null)
                     return;
 
-                var simpleCompletions = completionProviders
+                var completionsTasks = completionProviders
                     .Where(p => p.IsApplicable(syntaxContext, Options))
-                    .Select(provider => provider.GetCompletionItems(syntaxContext, Options))
-                    .Where(enumerable => enumerable != null)
-                    .SelectMany(enumerable => enumerable);
+                    .Select(provider => provider.GetCompletionItemsAsync(syntaxContext, Options));
 
-                context.AddItems(simpleCompletions);
+                var completions = (await Task.WhenAll(completionsTasks).ConfigureAwait(false)).SelectMany(i => i);
+
+                context.AddItems(completions);
 
                 // If Completion was triggered by this provider - use suggestion mode
                 if (_triggeredByUs && context.SuggestionModeItem == null)
