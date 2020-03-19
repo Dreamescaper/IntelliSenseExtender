@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 
 #nullable disable
@@ -28,15 +29,16 @@ namespace IntelliSenseExtender.ExposedInternals
 
         public static SyntaxNode AddImports(this HostLanguageServices hostServices,
             Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
-            IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst)
+            IEnumerable<SyntaxNode> newImports, SyntaxGenerator syntaxGenerator,
+            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var addImportService = GetService(hostServices, _addImportServiceType);
 
-            var arguments = _addImportsMethod.GetParameters().Length == 5
-                // Pre 16.4P2
-                ? new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst }
-                // Post 16.4P2
-                : new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, CancellationToken.None };
+            var arguments = _addImportsMethod.GetParameters().Length == 6
+                // Pre 16.6P1
+                ? new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, cancellationToken }
+                // Post 16.6P1
+                : new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken };
 
             return (SyntaxNode)_addImportsMethod.Invoke(addImportService, arguments);
         }

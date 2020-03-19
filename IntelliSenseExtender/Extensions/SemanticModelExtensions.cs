@@ -73,7 +73,7 @@ namespace IntelliSenseExtender.Extensions
                 .Where(u => u.Alias != null && u.StaticKeyword.IsKind(SyntaxKind.None))
                 .Select(u => (
                     symbol: semanticModel.GetSymbolInfo(u.Name).Symbol as INamespaceOrTypeSymbol,
-                    alias: u.Alias.Name.Identifier.Text))
+                    alias: u.Alias!.Name.Identifier.Text))
                 .Where(a => a.symbol != null)
                 .GroupBy(a => a.symbol)
                 .ToImmutableDictionary(g => g.Key!, g => g.First().alias);

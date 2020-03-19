@@ -48,8 +48,10 @@ namespace IntelliSenseExtender.Editor
                     .NamespaceImportDeclaration(nsName);
 
                 var services = document.Project.LanguageServices;
-                var finalRoot = services.AddImports(
-                    model.Compilation, root, currentNode, new[] { import }, placeSystemNamespaceFirst);
+                var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+                var finalRoot = services.AddImports(model.Compilation, root, currentNode,
+                    new[] { import }, syntaxGenerator,
+                    placeSystemNamespaceFirst, cancellationToken);
 
                 var newDocument = document.WithSyntaxRoot(finalRoot);
                 newDocument = await Formatter.FormatAsync(newDocument, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);
