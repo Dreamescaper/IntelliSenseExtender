@@ -5,9 +5,6 @@
 [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=Dreamescaper.IntelliSenseExtender)
 
 # Features:
-- Provide IntelliSense completions not only for imported types, but for all available in current solution and referenced assemblies. 
-- Provide completions for unimported extension methods.
-- Automatically add usings on completion commit.
 - Suggest interfaces implementations or derived types during assignments
 - Suggest static factory methods if they are present for type during assignments 
 - Suggest suitable locals and members first
