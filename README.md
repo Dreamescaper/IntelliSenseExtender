@@ -10,3 +10,8 @@
 - Suggest interfaces implementations or derived types during assignments
 - Suggest static factory methods if they are present for type during assignments 
 - Suggest suitable locals and members first
+
+# :warning: Deprecation Warning:
+- Microsoft has added the ability to show items from unimported namespaces when autocompleting with Intellisense. As of Visual Studio 16.8, this plugin conflicts with that feature and causes no unimported types to be shown. If using Visual Studio >16.8, disable this plugin and enable "Show items from unimported namespaces" in the Visual Studio options window.
+
+![example](https://i.imgur.com/hTQh0E1.png)
