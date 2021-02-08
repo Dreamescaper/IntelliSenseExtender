@@ -64,6 +64,12 @@ namespace IntelliSenseExtender.IntelliSense
                 displayText = $"new {displayText}";
                 if (showParenthesisForNewCreations)
                 {
+                    if(suffixText != null)
+                    {
+                        displayText += suffixText;
+                        suffixText = null;
+                    }
+
                     displayText += "()";
                 }
             }

@@ -34,11 +34,19 @@ namespace IntelliSenseExtender.ExposedInternals
         {
             var addImportService = GetService(hostServices, _addImportServiceType);
 
-            var arguments = _addImportsMethod.GetParameters().Length == 6
+            var allowInHiddenRegions = false;
+
+            var arguments = _addImportsMethod.GetParameters().Length switch
+            {
                 // Pre 16.6P1
-                ? new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, cancellationToken }
-                // Post 16.6P1
-                : new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken };
+                6 => new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, cancellationToken },
+                // Pre 16.9
+                7 => new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken },
+                // Post 16.9
+                8 => new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken },
+
+                _ => throw new NotSupportedException()
+            };
 
             return (SyntaxNode)_addImportsMethod.Invoke(addImportService, arguments);
         }
