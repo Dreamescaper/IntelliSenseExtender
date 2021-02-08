@@ -61,13 +61,13 @@ namespace IntelliSenseExtender.Extensions
 
             var importedNamespaces = importedNamespacesFromUsing
                 .Concat(currentNamespaces.SelectMany(GetParentNamespaces))
-                .ToImmutableHashSet();
+                .ToImmutableHashSet<INamespaceSymbol>(SymbolEqualityComparer.Default);
 
             var staticImports = usings
                 .Where(u => u.Alias == null && u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                 .Select(ns => semanticModel.GetSymbolInfo(ns.Name).Symbol)
                 .OfType<ITypeSymbol>()
-                .ToImmutableHashSet();
+                .ToImmutableHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
             var aliases = usings
                 .Where(u => u.Alias != null && u.StaticKeyword.IsKind(SyntaxKind.None))

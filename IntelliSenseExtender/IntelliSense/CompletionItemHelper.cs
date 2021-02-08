@@ -32,7 +32,7 @@ namespace IntelliSenseExtender.IntelliSense
             else if (alias == null && symbol is INamedTypeSymbol typeSymbol && typeSymbol.Arity > 0)
             {
                 //If generic type is unbound - do not show generic arguments
-                if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters))
+                if (Enumerable.SequenceEqual(typeSymbol.TypeArguments, typeSymbol.TypeParameters, SymbolEqualityComparer.Default))
                 {
                     displayText = symbolName;
                     suffixText = "<>";
