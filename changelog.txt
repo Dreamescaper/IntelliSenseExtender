@@ -1,3 +1,6 @@
+1.8
++ Fix error on VS 16.9
+
 1.7
 + Fix error on VS 16.6
 + Remove support for unimported types and extension methods, as available in VS itself
