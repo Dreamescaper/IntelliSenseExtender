@@ -96,15 +96,5 @@ namespace IntelliSenseExtender.Extensions
             return typeSymbol.SpecialType >= SpecialType.System_Object
                 && typeSymbol.SpecialType <= SpecialType.System_Array;
         }
-
-        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol typeSymbol)
-        {
-            var currentSymbol = typeSymbol.BaseType;
-            while (currentSymbol != null)
-            {
-                yield return currentSymbol;
-                currentSymbol = currentSymbol.BaseType;
-            }
-        }
     }
 }

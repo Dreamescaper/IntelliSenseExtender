@@ -8,8 +8,6 @@ using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IntelliSenseExtender.Context
 {
@@ -29,10 +27,6 @@ namespace IntelliSenseExtender.Context
         public bool IsTypeContext { get; }
         public bool IsAttributeContext { get; }
 
-        public bool IsMemberAccessContext { get; }
-        public ITypeSymbol? AccessedSymbolType { get; }
-        public ISymbol? AccessedSymbol { get; }
-
         public InferredTypeInfo InferredInfo { get; }
 
         public SyntaxToken CurrentToken { get; }
@@ -41,7 +35,6 @@ namespace IntelliSenseExtender.Context
         public SyntaxContext(Document document, SemanticModel semanticModel, SyntaxTree syntaxTree, int position,
             ImmutableHashSet<INamespaceSymbol> importedNamespaces, ImmutableHashSet<ITypeSymbol> staticImports, ImmutableDictionary<INamespaceOrTypeSymbol, string> aliases,
             bool isTypeContext, bool isAttributeContext,
-            bool isMemberAccessContext, ITypeSymbol? accessedSymbolType, ISymbol? accessedSymbol,
             InferredTypeInfo inferredTypeInfo,
             SyntaxToken currentToken = default, CancellationToken token = default)
         {
@@ -56,9 +49,6 @@ namespace IntelliSenseExtender.Context
 
             IsTypeContext = isTypeContext;
             IsAttributeContext = isAttributeContext;
-            IsMemberAccessContext = isMemberAccessContext;
-            AccessedSymbolType = accessedSymbolType;
-            AccessedSymbol = accessedSymbol;
 
             InferredInfo = inferredTypeInfo;
 
@@ -104,22 +94,11 @@ namespace IntelliSenseExtender.Context
             var currentToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var (importedNamespaces, staticImports, aliases) = semanticModel.GetUsings(currentToken);
 
-            ExpressionSyntax? accessedSyntax = null;
-            bool isMemberAccessContext = !isTypeContext && currentToken.IsMemberAccessContext(out accessedSyntax);
-            ITypeSymbol? accessedTypeSymbol = null;
-            ISymbol? accessedSymbol = null;
-            if (isMemberAccessContext)
-            {
-                accessedTypeSymbol = semanticModel.GetTypeInfo(accessedSyntax, cancellationToken).Type;
-                accessedSymbol = semanticModel.GetSymbolInfo(accessedSyntax).Symbol;
-            }
-
             var inferredTypeInfo = semanticModel.GetTypeSymbol(currentToken);
 
             return new SyntaxContext(document, semanticModel, syntaxTree, position,
                 importedNamespaces, staticImports, aliases,
-                isTypeContext, isAttributeContext, isMemberAccessContext,
-                accessedTypeSymbol, accessedSymbol,
+                isTypeContext, isAttributeContext,
                 inferredTypeInfo,
                 currentToken, cancellationToken);
         }
