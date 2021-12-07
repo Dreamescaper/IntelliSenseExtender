@@ -1,21 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="IntelliSenseExtender2019.Dreamescaper.6958f445-4769-47f7-885e-ba2505f1087a" Version="1.8.0" Language="en-US" Publisher="Dreamescaper" />
-        <DisplayName>IntelliSense Extender 2019</DisplayName>
+        <Identity Id="IntelliSenseExtender2022.Dreamescaper.6958f445-4769-47f7-885e-ba2505f1087a" Version="1.9.0" Language="en-US" Publisher="Dreamescaper" />
+        <DisplayName>IntelliSense Extender 2022</DisplayName>
         <Description xml:space="preserve">Provides additional IntelliSense functionality.</Description>
         <MoreInfo>https://github.com/Dreamescaper/IntelliSenseExtender</MoreInfo>
         <License>LICENSE.txt</License>
         <ReleaseNotes>changelog.txt</ReleaseNotes>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.5,17.0)" />
+		<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
+			<ProductArchitecture>amd64</ProductArchitecture>
+		</InstallationTarget>
     </Installation>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     </Assets>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,)" DisplayName="Visual Studio core editor" />
+		<Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
     </Prerequisites>
 </PackageManifest>

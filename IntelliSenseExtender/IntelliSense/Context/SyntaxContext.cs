@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
-using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
 
-namespace IntelliSenseExtender.Context
+namespace IntelliSenseExtender.IntelliSense.Context
 {
     public class SyntaxContext
     {

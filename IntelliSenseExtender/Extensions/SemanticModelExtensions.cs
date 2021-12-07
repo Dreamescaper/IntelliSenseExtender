@@ -86,7 +86,7 @@ namespace IntelliSenseExtender.Extensions
             var inferredInfo = new InferredTypeInfo();
 
 
-            SyntaxNode currentSyntaxNode = currentToken.Parent;
+            SyntaxNode? currentSyntaxNode = currentToken.Parent;
 
             // If new keyword is already present, we need to work with parent node
             if (currentSyntaxNode is ObjectCreationExpressionSyntax
@@ -196,7 +196,7 @@ namespace IntelliSenseExtender.Extensions
                     typeSymbol = semanticModel.GetTypeInfo(typeSyntax).Type;
 
                 if (typeSymbol != null
-                    && methodSyntax.Modifiers.Any(m => m.Kind() == SyntaxKind.AsyncKeyword)
+                    && methodSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword))
                     && typeSymbol.Name == "Task"
                     && typeSymbol is INamedTypeSymbol namedTypeSymbol
                     && namedTypeSymbol.IsGenericType)
@@ -307,6 +307,10 @@ namespace IntelliSenseExtender.Extensions
         private static IList<IParameterSymbol>? GetParameters(this SemanticModel semanticModel, ArgumentListSyntax argumentListSyntax)
         {
             var expressionSyntax = argumentListSyntax.Parent;
+
+            if (expressionSyntax is null)
+                return null;
+
             var methodInfo = semanticModel.GetSymbolInfo(expressionSyntax);
 
             IMethodSymbol? methodSymbol = null;
@@ -377,7 +381,7 @@ namespace IntelliSenseExtender.Extensions
         {
             // Simply count commas before current token
             var commasCount = tupleSyntax.ChildTokens()
-                .Where(token => token.Kind() == SyntaxKind.CommaToken)
+                .Where(token => token.IsKind(SyntaxKind.CommaToken))
                 .TakeWhile(token => token != currentToken)
                 .Count();
 

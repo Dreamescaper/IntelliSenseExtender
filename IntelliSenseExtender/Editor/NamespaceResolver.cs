@@ -25,7 +25,6 @@ namespace IntelliSenseExtender.Editor
             var currentNode = root.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).Parent;
 
             var documentOptions = await documentOptionsTask;
-            bool placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
 
             var existingUsingContext = root.DescendantNodes()
                 .OfType<UsingDirectiveSyntax>()
@@ -51,7 +50,7 @@ namespace IntelliSenseExtender.Editor
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var finalRoot = services.AddImports(model.Compilation, root, currentNode,
                     new[] { import }, syntaxGenerator,
-                    placeSystemNamespaceFirst, cancellationToken);
+                    documentOptions, cancellationToken);
 
                 var newDocument = document.WithSyntaxRoot(finalRoot);
                 newDocument = await Formatter.FormatAsync(newDocument, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);

@@ -3,9 +3,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Context;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
+using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Tags;
@@ -64,7 +64,7 @@ namespace IntelliSenseExtender.IntelliSense
                 displayText = $"new {displayText}";
                 if (showParenthesisForNewCreations)
                 {
-                    if(suffixText != null)
+                    if (suffixText != null)
                     {
                         displayText += suffixText;
                         suffixText = null;
@@ -79,7 +79,7 @@ namespace IntelliSenseExtender.IntelliSense
 
         public static async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out string fullyQualifiedName))
+            if (!item.Properties.TryGetValue(CompletionItemProperties.FullSymbolName, out var fullyQualifiedName))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);

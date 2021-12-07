@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 
 #nullable disable
 
@@ -30,23 +31,13 @@ namespace IntelliSenseExtender.ExposedInternals
         public static SyntaxNode AddImports(this HostLanguageServices hostServices,
             Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
             IEnumerable<SyntaxNode> newImports, SyntaxGenerator syntaxGenerator,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
             var addImportService = GetService(hostServices, _addImportServiceType);
 
             var allowInHiddenRegions = false;
 
-            var arguments = _addImportsMethod.GetParameters().Length switch
-            {
-                // Pre 16.6P1
-                6 => new object[] { compilation, root, contextLocation, newImports, placeSystemNamespaceFirst, cancellationToken },
-                // Pre 16.9
-                7 => new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken },
-                // Post 16.9
-                8 => new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken },
-
-                _ => throw new NotSupportedException()
-            };
+            var arguments = new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, optionSet, allowInHiddenRegions, cancellationToken };
 
             return (SyntaxNode)_addImportsMethod.Invoke(addImportService, arguments);
         }

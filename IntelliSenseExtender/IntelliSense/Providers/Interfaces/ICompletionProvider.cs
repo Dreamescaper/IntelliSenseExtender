@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Context;
+using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis.Completion;
 
 namespace IntelliSenseExtender.IntelliSense.Providers.Interfaces

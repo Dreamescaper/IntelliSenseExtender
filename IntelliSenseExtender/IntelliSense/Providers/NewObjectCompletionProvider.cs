@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Context;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;

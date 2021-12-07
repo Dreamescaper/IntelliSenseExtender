@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Context;
 using IntelliSenseExtender.ExposedInternals;
 using IntelliSenseExtender.Extensions;
 using IntelliSenseExtender.IntelliSense.Context;
@@ -181,7 +180,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             var methodSymbol = enclosingSymbol?.AncestorsAndSelf().OfType<IMethodSymbol>().FirstOrDefault();
             var typeSymbol = enclosingSymbol?.ContainingType;
 
-            if (typeSymbol == null || methodSymbol == null || methodSymbol.IsStatic)
+            if (typeSymbol == null || methodSymbol == null || methodSymbol.IsStatic || syntaxContext.InferredInfo.Type is null)
                 return Enumerable.Empty<CompletionItem>();
 
             var typeMatches = syntaxContext.SemanticModel.Compilation

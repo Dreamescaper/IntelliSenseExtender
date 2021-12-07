@@ -35,7 +35,7 @@ namespace IntelliSenseExtender.Extensions
         {
             creationExpressionSyntax = null;
 
-            if (currentToken.Kind() == SyntaxKind.NewKeyword)
+            if (currentToken.IsKind(SyntaxKind.NewKeyword))
             {
                 creationExpressionSyntax = currentToken.Parent as ObjectCreationExpressionSyntax;
             }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using IntelliSenseExtender.Context;
+using IntelliSenseExtender.IntelliSense.Context;
 using Microsoft.CodeAnalysis;
 
 namespace IntelliSenseExtender.Extensions

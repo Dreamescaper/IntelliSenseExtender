@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IntelliSenseExtender.Context;
+using IntelliSenseExtender.IntelliSense.Context;
 using IntelliSenseExtender.IntelliSense.Providers.Interfaces;
 using IntelliSenseExtender.Options;
 using Microsoft.CodeAnalysis;
