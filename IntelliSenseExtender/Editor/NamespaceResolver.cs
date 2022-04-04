@@ -48,7 +48,7 @@ namespace IntelliSenseExtender.Editor
 
                 var services = document.Project.LanguageServices;
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var finalRoot = services.AddImports(model.Compilation, root, currentNode,
+                var finalRoot = services.AddImports(document, model.Compilation, root, currentNode,
                     new[] { import }, syntaxGenerator,
                     documentOptions, cancellationToken);
 

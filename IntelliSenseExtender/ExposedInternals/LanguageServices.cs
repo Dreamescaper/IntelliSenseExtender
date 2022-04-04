@@ -15,6 +15,7 @@ namespace IntelliSenseExtender.ExposedInternals
     public static class LanguageServices
     {
         private static readonly Type _addImportServiceType;
+        private static readonly MethodInfo _addImportPlacementOptionsFromDocumentMethod;
         private static readonly MethodInfo _addImportsMethod;
         private static readonly MethodInfo _getServiceMethod;
 
@@ -22,22 +23,45 @@ namespace IntelliSenseExtender.ExposedInternals
         {
             var workspacesAssembly = AppDomain.CurrentDomain.GetAssemblies()
                 .First(a => a.GetName().Name == "Microsoft.CodeAnalysis.Workspaces");
-            _addImportServiceType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImports.IAddImportsService");
+
+            // Before 17.2 - AddImports, after - AddImport.
+            _addImportServiceType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImport.IAddImportsService")
+                ?? workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImports.IAddImportsService");
+
+            var addImportPlacementOptionsType = workspacesAssembly.GetType("Microsoft.CodeAnalysis.AddImport.AddImportPlacementOptions");
+            _addImportPlacementOptionsFromDocumentMethod = addImportPlacementOptionsType?.GetMethod("FromDocument");
+
             _addImportsMethod = _addImportServiceType.GetMethod("AddImports");
             _getServiceMethod = typeof(HostLanguageServices)
                 .GetMethod(nameof(HostLanguageServices.GetService), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         }
 
-        public static SyntaxNode AddImports(this HostLanguageServices hostServices,
+        public static SyntaxNode AddImports(this HostLanguageServices hostServices, Document document,
             Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
             IEnumerable<SyntaxNode> newImports, SyntaxGenerator syntaxGenerator,
             OptionSet optionSet, CancellationToken cancellationToken)
         {
             var addImportService = GetService(hostServices, _addImportServiceType);
 
-            var allowInHiddenRegions = false;
+            object[] arguments;
+            if (_addImportsMethod.GetParameters().Length == 8)
+            {
+                // Pre 17.2
+                var allowInHiddenRegions = false;
+                arguments = new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, optionSet, allowInHiddenRegions, cancellationToken };
+            }
+            else
+            {
+                // Post 17.2
+                var placementOptions = _addImportPlacementOptionsFromDocumentMethod?.Invoke(null, new object[] { document, optionSet });
+                arguments = new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, placementOptions, cancellationToken };
+            }
 
-            var arguments = new object[] { compilation, root, contextLocation, newImports, syntaxGenerator, optionSet, allowInHiddenRegions, cancellationToken };
+
+            /* 
+            Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
+            IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator, AddImportPlacementOptions options, CancellationToken cancellationToken) */
+
 
             return (SyntaxNode)_addImportsMethod.Invoke(addImportService, arguments);
         }

@@ -1,3 +1,6 @@
+1.9.1
++ VS 17.2 support
+
 1.9 
 + VS2022 support
 
