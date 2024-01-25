@@ -46,7 +46,7 @@ namespace IntelliSenseExtender.Tests.CompletionProviders
                 .First(c => Matches(c, "ContainingClass.NestedClass", "NM"));
             listCompletion = CompletionList
                 .Create(new TextSpan(source.IndexOf("var list = new "), 0), ImmutableArray.Create(listCompletion))
-                .Items[0];
+                .ItemsList[0];
             var changes = await Provider.GetChangeAsync(document, listCompletion, ' ', CancellationToken.None);
             var textWithChanges = (await document.GetTextAsync()).WithChanges(changes.TextChange).ToString();
 

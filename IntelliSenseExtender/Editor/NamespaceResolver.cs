@@ -14,7 +14,6 @@ namespace IntelliSenseExtender.Editor
     {
         public async Task<Document> AddNamespaceImportAsync(string nsName, Document document, int position, CancellationToken cancellationToken)
         {
-            var documentOptionsTask = document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (model == null)
@@ -23,8 +22,6 @@ namespace IntelliSenseExtender.Editor
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var currentNode = root.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).Parent;
-
-            var documentOptions = await documentOptionsTask;
 
             var existingUsingContext = root.DescendantNodes()
                 .OfType<UsingDirectiveSyntax>()
@@ -46,11 +43,10 @@ namespace IntelliSenseExtender.Editor
                 var import = SyntaxGenerator.GetGenerator(document)
                     .NamespaceImportDeclaration(nsName);
 
-                var services = document.Project.LanguageServices;
+                var services = document.Project.Services;
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var finalRoot = services.AddImports(document, model.Compilation, root, currentNode,
-                    new[] { import }, syntaxGenerator,
-                    documentOptions, cancellationToken);
+                var finalRoot = await services.AddImportsAsync(document, model.Compilation, root, currentNode,
+                    [import], syntaxGenerator, cancellationToken);
 
                 var newDocument = document.WithSyntaxRoot(finalRoot);
                 newDocument = await Formatter.FormatAsync(newDocument, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);
@@ -80,10 +76,10 @@ namespace IntelliSenseExtender.Editor
                     indexFromCopy = index + 1;
             }
 
-            var isLastComparisionSuccessful = index == maxIndex && nsToImport[index] == containingNs[index];
+            var isLastComparisonSuccessful = index == maxIndex && nsToImport[index] == containingNs[index];
             var nextSymbolIsDot = ++index < nsToImport.Length - 1 && nsToImport[index] == dot;
 
-            if (isLastComparisionSuccessful && nextSymbolIsDot)
+            if (isLastComparisonSuccessful && nextSymbolIsDot)
                 indexFromCopy = index + 1;
 
             return nsToImport.Substring(indexFromCopy);

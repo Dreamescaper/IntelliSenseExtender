@@ -107,7 +107,7 @@ namespace IntelliSenseExtender.IntelliSense.Providers
             return CompletionCommitHelper.GetChangeAsync(document, item, cancellationToken);
         }
 
-        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             return await CompletionItemHelper.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false)
                 ?? await base.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
